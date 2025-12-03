@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicios | JamVault</title>
+    <link rel="stylesheet" href="IndexStyles_fixed.css">
+    <style>
+        /* Estilos específicos para Ejercicios */
+        .exercises-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .exercises-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .exercises-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .search-bar {
+            flex-grow: 1;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: inherit;
+            font-size: 1rem;
+        }
+
+        .natural .search-bar,
+        .vintage .search-bar,
+        .retro .search-bar {
+            background: rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .exercise-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .natural .exercise-card,
+        .vintage .exercise-card,
+        .retro .exercise-card {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .exercise-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .JamVault .exercise-card {
+            border-left: 4px solid #FF8906;
+        }
+
+        .natural .exercise-card {
+            border-left: 4px solid #40916C;
+        }
+
+        .galactic .exercise-card {
+            border-left: 4px solid #3282B8;
+        }
+
+        .retro .exercise-card {
+            border-left: 4px solid #FF6F61;
+        }
+
+        .vintage .exercise-card {
+            border-left: 4px solid #FFB300;
+        }
+
+        .redblack .exercise-card {
+            border-left: 4px solid #C74B50;
+        }
+
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .exercise-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .tags {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .JamVault .tag {
+            background: #FF8906;
+            color: #000;
+        }
+
+        .natural .tag {
+            background: #8FB996;
+            color: #000;
+        }
+
+        .galactic .tag {
+            background: #00B4D8;
+            color: #000;
+        }
+
+        .retro .tag {
+            background: #FFD460;
+            color: #000;
+        }
+
+        .vintage .tag {
+            background: #A6C48A;
+            color: #000;
+        }
+
+        .redblack .tag {
+            background: #C74B50;
+            color: #FFF;
+        }
+
+        .exercise-content {
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+
+        .exercise-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .natural .exercise-footer,
+        .vintage .exercise-footer,
+        .retro .exercise-footer {
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .bpm-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .bpm-input {
+            width: 60px;
+            padding: 0.3rem;
+            border-radius: 4px;
+            border: none;
+            text-align: center;
+        }
+
+        /* Modal para añadir ejercicio */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .JamVault .modal-content {
+            background: #0f0e17;
+            border: 1px solid #FF8906;
+        }
+
+        .natural .modal-content {
+            background: #1a1f1b;
+            border: 1px solid #40916C;
+        }
+
+        .galactic .modal-content {
+            background: #0C1B33;
+            border: 1px solid #3282B8;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: inherit;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+
+<body class="JamVault">
+    <header>
+        <a href="INDEX.html">
+            <div class="logo-title">
+                <img src="imagenes/logo.png" alt="Logo" class="Logo">
+            </div>
+        </a>
+        <div class="nav-links">
+            <a href="Acordes.html" class="btn">Acordes</a>
+            <a href="Escalas.html" class="btn">Escalas</a>
+            <a href="Tabs.html" class="btn">Tabs</a>
+            <a href="Afinador.html" class="btn">Afinador</a>
+            <a href="Jamstudio.html" class="btn">JamStudio</a>
+            <a href="Songbook.html" class="btn">Canciones</a>
+            <a href="Ejercicios.html" class="btn">Ejercicios</a>
+        </div>
+        <button id="toggleTheme" class="btn">Cambiar Tema</button>
+    </header>
+
+    <main class="exercises-container">
+        <div class="exercises-header">
+            <h2>Ejercicios</h2>
+
+            <div class="controls-bar">
+                <button id="addExerciseBtn" class="btn">+ Añadir</button>
+                <input type="text" id="searchInput" class="search-bar"
+                    placeholder="Ej. Escala Pentatónica, Spider Exercise, etc...">
+            </div>
+        </div>
+
+        <div id="exercisesList">
+            <!-- Los ejercicios se generarán aquí dinámicamente -->
+        </div>
+    </main>
+
+    <!-- Modal para nuevo ejercicio -->
+    <div id="exerciseModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Nuevo Ejercicio</h3>
+            <form id="exerciseForm">
+                <div class="form-group">
+                    <label>Nombre del Ejercicio</label>
+                    <input type="text" id="exName" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select id="exCategory">
+                        <option value="Escalas">Escalas</option>
+                        <option value="Acordes">Acordes</option>
+                        <option value="Técnica">Técnica</option>
+                        <option value="Velocidad">Velocidad</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nivel</label>
+                    <select id="exLevel">
+                        <option value="Principiante">Principiante</option>
+                        <option value="Intermedio">Intermedio</option>
+                        <option value="Avanzado">Avanzado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>BPM Inicial</label>
+                    <input type="number" id="exBpm" value="60" min="40" max="300">
+                </div>
+                <button type="submit" class="btn" style="width: 100%">Guardar Ejercicio</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="LocalStorage.js"></script>
+    <script src="Ejercicios.js"></script>
+</body>
+
+</html>

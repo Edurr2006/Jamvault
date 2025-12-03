@@ -1,0 +1,667 @@
+:root {
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* ---------- LOGO ---------- */
+.logo-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  user-select: none;
+  background-color: #2E1A47;
+  width: 275px;
+  border-radius: 20px;
+}
+
+.galactic .logo-title {
+  background-color: #1B262C;
+}
+
+.natural .logo-title {
+  background-color: #F4F9F4;
+  color: #ffffff;
+}
+
+.redblack .logo-title {
+  background-color: #121212;
+}
+
+.JamVault .logo-title {
+  background-color: #0f0e17f0;
+}
+
+.vintage .logo-title {
+  background-color: #1F1A16;
+  color: #ffffff;
+}
+
+/* ---------- BASE ---------- */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* Transición suave al cambiar de tema */
+* {
+  transition: background-color 0.4s ease,
+    color 0.4s ease,
+    border-color 0.4s ease,
+    fill 0.4s ease,
+    stroke 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+header {
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+}
+
+.btn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 8px;
+  text-decoration: none;
+  transform: none;
+  /* ← quitado el scale que distorsionaba */
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.container {
+  max-width: 800px;
+  margin: 2rem auto;
+  text-align: center;
+}
+
+/* ---------- THEMES ---------- */
+
+/* JamVault (original Cyber) */
+.JamVault {
+  background: #0f0e17f0;
+  color: #ffffff;
+}
+
+.JamVault header {
+  background: #00000043;
+  color: #fff;
+}
+
+.JamVault .btn {
+  background: #FF8906;
+  color: #000;
+}
+
+.JamVault .btn:hover {
+  background: #ff9d39;
+  color: #000;
+}
+
+/* Natural */
+.natural {
+  background: #1a1f1b;
+  color: #DDE6D5;
+}
+
+.natural header {
+  background: #3A5A40;
+  color: #fff;
+}
+
+.natural .btn {
+  background: #8FB996;
+  color: #000;
+}
+
+.natural .btn:hover {
+  background: #2a6048;
+  color: #fff;
+}
+
+/* Galáctico */
+.galactic {
+  background: #0C1B33;
+  color: #C9E7FF;
+}
+
+.galactic header {
+  background: #1E4C7E;
+  color: #fff;
+}
+
+.galactic .btn {
+  background: #00B4D8;
+  color: #000;
+}
+
+.galactic .btn:hover {
+  background: #0077B6;
+  color: #fff;
+}
+
+/* Retro */
+.retro {
+  background: #1E1A2B;
+  color: #F0EDEE;
+}
+
+.retro header {
+  background: #FF5C8D;
+  color: #fff;
+}
+
+.retro .btn {
+  background: #FFD460;
+  color: #000;
+}
+
+.retro .btn:hover {
+  background: #c6476d;
+  color: #fff;
+}
+
+/* Vintage */
+.vintage {
+  background: #1F1A16;
+  color: #EAE0D5;
+}
+
+.vintage header {
+  background: #C67F00;
+  color: #fff;
+}
+
+.vintage .btn {
+  background: #A6C48A;
+  color: #000;
+}
+
+.vintage .btn:hover {
+  background: #C67F00;
+  color: #fff;
+}
+
+/* Red & Black */
+.redblack {
+  background: #1A0B0B;
+  color: #E0E0E0;
+}
+
+.redblack header {
+  background: #7B193A;
+  color: #FFFFFF;
+}
+
+.redblack .btn {
+  background: #C74B50;
+  color: #FFF;
+}
+
+.redblack .btn:hover {
+  background: #9E2B3D;
+  color: #FFF;
+}
+
+.redblack {
+  --shadow-color: rgb(59, 59, 59);
+}
+
+/* ---------- ELEMENTOS ---------- */
+button {
+  text-decoration: none;
+}
+
+.Logo {
+  width: 120px;
+}
+
+.title-logo {
+  float: left;
+}
+
+#toggleTheme {
+  margin-left: auto;
+}
+
+.nav-links {
+  margin-left: auto;
+}
+
+/* ---------- TARJETAS (MENÚ) VERSION BUENA ---------- */
+.menu {
+  display: inline-block;
+  background-color: #3a3037;
+  padding: 40px;
+  margin-left: 80px;
+  width: 325px;
+  cursor: pointer;
+  border-radius: 20px;
+
+  /* Nueva sombra normal — la que te gustaba */
+  box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.35);
+
+  transition: transform 0.25s ease,
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* Hover elegante */
+.menu:hover {
+  transform: translateY(-6px);
+  box-shadow: 0px 18px 35px rgba(0, 0, 0, 0.55);
+}
+
+/* Hovers por tema */
+.JamVault .menu:hover {
+  background-color: #FF8906;
+  color: #000;
+}
+
+.natural .menu:hover {
+  background-color: #8FB996;
+  color: #000;
+}
+
+.galactic .menu:hover {
+  background-color: #00B4D8;
+  color: #000;
+}
+
+.retro .menu:hover {
+  background-color: #FFD460;
+  color: #000;
+}
+
+.vintage .menu:hover {
+  background-color: #A6C48A;
+  color: #000;
+}
+
+.redblack .menu:hover {
+  background-color: #C74B50;
+  color: #FFF;
+}
+
+.menus {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cardlink {
+  text-decoration: none;
+}
+
+a {
+  color: inherit;
+}
+
+/* ---------- AFINADOR ---------- */
+.tuner-container {
+  text-align: center;
+  padding: 30px;
+}
+
+.note-display {
+  margin-top: 20px;
+  border: 2px solid #fff;
+  padding: 20px;
+  border-radius: 15px;
+  background-color: rgba(255, 255, 255, 0.1);
+  display: inline-block;
+}
+
+.natural .note-display,
+.vintage .note-display,
+.retro .note-display {
+  border-color: #000;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.redblack .note-display,
+.galactic .note-display,
+.JamVault .note-display {
+  border-color: #FFF;
+}
+
+.note-display h1 {
+  font-size: 4rem;
+  margin: 0;
+}
+
+/* ---------- ACORDES ---------- */
+.chords-container {
+  text-align: center;
+  padding: 2rem;
+}
+
+.chord-selector {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+.chord-display {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chord-name {
+  margin-top: 1rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* Canvas */
+.JamVault #chordCanvas {
+  border: 2px solid #FF8906;
+}
+
+.natural #chordCanvas {
+  border: 2px solid #40916C;
+}
+
+.galactic #chordCanvas {
+  border: 2px solid #3282B8;
+}
+
+.retro #chordCanvas {
+  border: 2px solid #FF6F61;
+}
+
+.vintage #chordCanvas {
+  border: 2px solid #FFB300;
+}
+
+.redblack #chordCanvas {
+  border: 2px solid #C74B50;
+}
+
+/* ---------- ESCALAS ---------- */
+.scales-container {
+  text-align: center;
+  padding: 2rem;
+}
+
+.scale-selector {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+.scale-display {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.scale-name {
+  margin-top: 1rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+#scaleCanvas {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #888;
+  border-radius: 5px;
+}
+
+.JamVault #scaleCanvas {
+  border: 2px solid #FF8906;
+}
+
+.natural #scaleCanvas {
+  border: 2px solid #40916C;
+}
+
+.redblack #scaleCanvas {
+  border: 2px solid #C74B50;
+}
+
+.vintage #scaleCanvas {
+  border: 2px solid #FFB300;
+}
+
+.galactic #scaleCanvas {
+  border: 2px solid #3282B8;
+}
+
+.retro #scaleCanvas {
+  border: 2px solid #FF6F61;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 900px) {
+  header {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 1rem 0 0 0;
+  }
+
+  .logo-title {
+    margin-bottom: 1rem;
+  }
+
+  .menu {
+    margin-left: 0;
+    margin-top: 1rem;
+  }
+
+  .container {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  header {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .Logo {
+    width: 90px;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    gap: 0.4rem;
+    margin: 0;
+  }
+
+  .btn {
+    width: 100%;
+    text-align: center;
+    margin: 0.2rem 0;
+  }
+
+  .menu {
+    width: 90%;
+    margin: 1rem auto;
+    padding: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+  }
+
+  p {
+    font-size: 0.9rem;
+  }
+
+  .container {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  #chordCanvas,
+  #scaleCanvas {
+    width: 95%;
+    max-width: 400px;
+    height: auto;
+  }
+}
+
+/* ========== DAW STYLES ========== */
+
+/* Arm Button */
+.arm-btn {
+  background: #666 !important;
+  color: #fff !important;
+  font-size: 1.2rem;
+  padding: 0.4rem 0.8rem !important;
+  transition: all 0.3s ease;
+}
+
+.arm-btn:hover {
+  background: #888 !important;
+}
+
+.arm-btn.active {
+  background: #e74c3c !important;
+  color: #fff !important;
+  box-shadow: 0 0 10px rgba(231, 76, 60, 0.6);
+  animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-red {
+
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(231, 76, 60, 0.6);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(231, 76, 60, 0.9);
+  }
+}
+
+/* Effects Section */
+.effects-section {
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.effects-section h4 {
+  margin: 0 0 0.8rem 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+.effect-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  padding: 0.4rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.effect-control label {
+  min-width: 80px;
+  font-size: 0.85rem;
+}
+
+.effect-control input[type="checkbox"] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}
+
+.effect-control input[type="range"] {
+  flex: 1;
+  cursor: pointer;
+}
+
+.effect-control span {
+  min-width: 45px;
+  text-align: right;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+/* Input/Output Routing */
+.mixer-row select {
+  width: 100%;
+  padding: 0.4rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid #888;
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.mixer-row select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Monitor Button */
+.monitor-btn {
+  background: #666 !important;
+  color: #fff !important;
+  font-size: 1.2rem;
+  padding: 0.4rem 0.8rem !important;
+  transition: all 0.3s ease;
+}
+
+.monitor-btn:hover {
+  background: #888 !important;
+}
+
+.monitor-btn.active {
+  background: #2ecc71 !important;
+  /* Green */
+  color: #fff !important;
+  box-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
+}
+
+/* VU Meter */
+.track-item {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.vu-meter {
+  width: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+  margin: 5px 0;
+}
+
+.vu-level {
+  width: 100%;
+  height: 0%;
+  background: #2ecc71;
+  position: absolute;
+  bottom: 0;
+  transition: height 0.05s ease, background-color 0.1s ease;
+}

@@ -1,0 +1,1639 @@
+:root {
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* ---------- LOGO ---------- */
+.logo-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+  user-select: none;
+  background-color: #2E1A47;
+  border-radius: 20px;
+  padding: 10px 16px;
+  min-height: 60px;
+  min-width: 200px;
+}
+
+.logo-title img {
+  height: 100px;
+  width: auto;
+  display: block;
+}
+
+.galactic .logo-title {
+  background-color: #1B262C;
+}
+
+.natural .logo-title {
+  background-color: #F4F9F4;
+  color: #000;
+}
+
+.redblack .logo-title {
+  background-color: #121212;
+}
+
+.JamVault .logo-title {
+  background-color: #0f0e17f0;
+}
+
+.vintage .logo-title {
+  background-color: #1F1A16;
+  color: #fff;
+}
+
+/* ---------- BASE ---------- */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  transition: background 0.3s, color 0.3s;
+  text-align: center;
+}
+
+header {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.btn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+/* ---------- THEMES ---------- */
+
+/* JamVault */
+.JamVault {
+  background: #0d0c14;
+  color: #ffffff;
+}
+
+.JamVault header {
+  background: #00000043;
+}
+
+.JamVault .btn {
+  background: #FF8906;
+  color: #000;
+}
+
+.JamVault .btn:hover {
+  background: #ff9d39;
+  color: #000;
+}
+
+/* Natural */
+.natural {
+  background: #1a1f1b;
+  color: #DDE6D5;
+}
+
+.natural header {
+  background: #3A5A40;
+}
+
+.natural .btn {
+  background: #8FB996;
+  color: #000;
+}
+
+.natural .btn:hover {
+  background: #2a6048;
+  color: #fff;
+}
+
+/* Galactic */
+.galactic {
+  background: #0C1B33;
+  color: #C9E7FF;
+}
+
+.galactic header {
+  background: #1E4C7E;
+}
+
+.galactic .btn {
+  background: #00B4D8;
+  color: #000;
+}
+
+.galactic .btn:hover {
+  background: #0093b8;
+  color: #fff;
+}
+
+/* Retro */
+.retro {
+  background: #1E1A2B;
+  color: #F0EDEE;
+}
+
+.retro header {
+  background: #FF5C8D;
+}
+
+.retro .btn {
+  background: #FFD460;
+  color: #000;
+}
+
+.retro .btn:hover {
+  background: #ffb347;
+  color: #000;
+}
+
+/* Vintage */
+.vintage {
+  background: #1F1A16;
+  color: #EAE0D5;
+}
+
+.vintage header {
+  background: #C67F00;
+}
+
+.vintage .btn {
+  background: #A6C48A;
+  color: #000;
+}
+
+.vintage .btn:hover {
+  background: #c59f65;
+  color: #fff;
+}
+
+/* Red & Black */
+.redblack {
+  background: #1A0B0B;
+  color: #E0E0E0;
+}
+
+.redblack header {
+  background: #7B193A;
+}
+
+.redblack .btn {
+  background: #C74B50;
+  color: #FFF;
+}
+
+.redblack .btn:hover {
+  background: #9e3540;
+  color: #FFF;
+}
+
+.redblack {
+  --shadow-color: rgb(59, 59, 59);
+}
+
+/* ---------- ELEMENTOS ---------- */
+button {
+  text-decoration: none;
+}
+
+.Logo {
+  width: 90px;
+}
+
+.title-logo {
+  float: left;
+}
+
+#toggleTheme {
+  margin-left: auto;
+}
+
+.nav-links {
+  margin-left: auto;
+}
+
+/* ---------- TARJETAS (MENÚ) — ESTILO JAMVAULT ---------- */
+.menu {
+  display: inline-block;
+  background-color: #3a3037;
+  padding: 2.2rem;
+  margin: 20px;
+  width: 360px;
+  cursor: pointer;
+  border-radius: 22px;
+  box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.menu:hover {
+  transform: scale(1.05);
+  box-shadow: 40px 40px 0px var(--shadow-color);
+}
+
+/* hover por tema */
+.JamVault .menu:hover {
+  background-color: #ff8920;
+  color: #000;
+}
+
+.natural .menu:hover {
+  background-color: #7dac8b;
+  color: #000;
+}
+
+.galactic .menu:hover {
+  background-color: #00a4cc;
+  color: #000;
+}
+
+.retro .menu:hover {
+  background-color: #ffc44d;
+  color: #000;
+}
+
+.vintage .menu:hover {
+  background-color: #b7d49b;
+  color: #000;
+}
+
+.redblack .menu:hover {
+  background-color: #c74b50;
+  color: #fff;
+}
+
+.menus {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.cardlink {
+  text-decoration: none;
+}
+
+a {
+  color: inherit;
+}
+
+/* ---------- HERO ---------- */
+.hero-title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-top: 3rem;
+}
+
+.hero-subtitle {
+  max-width: 900px;
+  margin: 1rem auto;
+  font-size: 1.1rem;
+  opacity: 0.85;
+  line-height: 1.6;
+}
+
+.hero-btn {
+  background: #FF8906;
+  color: #000;
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: background 0.25s, transform 0.25s;
+}
+
+.hero-btn:hover {
+  background: #ff9d39;
+  transform: translateY(-3px);
+}
+
+/* ---------- AFINADOR ---------- */
+.tuner-container {
+  text-align: center;
+  padding: 30px;
+}
+
+.note-display {
+  margin-top: 20px;
+  border: 2px solid #fff;
+  padding: 20px;
+  border-radius: 15px;
+  background-color: rgba(255, 255, 255, 0.1);
+  display: inline-block;
+}
+
+.natural .note-display,
+.vintage .note-display {
+  border-color: #000;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.note-display h1 {
+  font-size: 4rem;
+  margin: 0;
+}
+
+/* ---------- ACORDES ---------- */
+.chords-container {
+  text-align: center;
+  padding: 2rem;
+}
+
+.chord-selector {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+.chord-display {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chord-name {
+  margin-top: 1rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.JamVault #chordCanvas {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid #FF8906;
+  border-radius: 15px;
+}
+
+.natural #chordCanvas {
+  border: 2px solid #40916C;
+}
+
+.galactic #chordCanvas {
+  border: 2px solid #3282B8;
+}
+
+.retro #chordCanvas {
+  border: 2px solid #FF6F61;
+}
+
+.vintage #chordCanvas {
+  border: 2px solid #FFB300;
+}
+
+.redblack #chordCanvas {
+  border: 2px solid #C74B50;
+}
+
+/* Colores de notas en acordes por tema */
+/* JamVault */
+.JamVault #chordCanvas ellipse,
+.JamVault #chordCanvas rect {
+  fill: #FF8906;
+}
+
+.JamVault #chordCanvas .root-note ellipse,
+.JamVault #chordCanvas .root-note rect {
+  fill: #C65D00;
+}
+
+/* Natural */
+.natural #chordCanvas ellipse,
+.natural #chordCanvas rect {
+  fill: #8FB996;
+}
+
+.natural #chordCanvas .root-note ellipse,
+.natural #chordCanvas .root-note rect {
+  fill: #2a6048;
+}
+
+/* Galactic */
+.galactic #chordCanvas ellipse,
+.galactic #chordCanvas rect {
+  fill: #3282B8;
+}
+
+.galactic #chordCanvas .root-note ellipse,
+.galactic #chordCanvas .root-note rect {
+  fill: #1E4C7E;
+}
+
+/* Retro */
+.retro #chordCanvas ellipse,
+.retro #chordCanvas rect {
+  fill: #FFD460;
+}
+
+.retro #chordCanvas .root-note ellipse,
+.retro #chordCanvas .root-note rect {
+  fill: #FF5C8D;
+}
+
+/* Vintage */
+.vintage #chordCanvas ellipse,
+.vintage #chordCanvas rect {
+  fill: #A6C48A;
+}
+
+.vintage #chordCanvas .root-note ellipse,
+.vintage #chordCanvas .root-note rect {
+  fill: #6B8E4E;
+}
+
+/* Red & Black */
+.redblack #chordCanvas ellipse,
+.redblack #chordCanvas rect {
+  fill: #C74B50;
+}
+
+.redblack #chordCanvas .root-note ellipse,
+.redblack #chordCanvas .root-note rect {
+  fill: #7B193A;
+}
+
+.chord-label {
+  fill: currentColor;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* ---------- ESCALAS ---------- */
+.scales-container {
+  text-align: center;
+  padding: 2rem;
+}
+
+.scale-selector {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+.scale-display {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.scale-name {
+  margin-top: 1rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+#scaleCanvas {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #888;
+  border-radius: 15px;
+}
+
+.JamVault #scaleCanvas {
+  border: 2px solid #FF8906;
+}
+
+.natural #scaleCanvas {
+  border: 2px solid #40916C;
+}
+
+.galactic #scaleCanvas {
+  border: 2px solid #3282B8;
+}
+
+.retro #scaleCanvas {
+  border: 2px solid #FF6F61;
+}
+
+.vintage #scaleCanvas {
+  border: 2px solid #FFB300;
+}
+
+.redblack #scaleCanvas {
+  border: 2px solid #C74B50;
+}
+
+/* Colores de notas en SVG por tema */
+/* JamVault */
+.JamVault #fretboard ellipse {
+  fill: #FF8906;
+}
+
+.JamVault #fretboard .root-note ellipse {
+  fill: #C65D00;
+}
+
+/* Natural */
+.natural #fretboard ellipse {
+  fill: #8FB996;
+}
+
+.natural #fretboard .root-note ellipse {
+  fill: #2a6048;
+}
+
+/* Galactic */
+.galactic #fretboard ellipse {
+  fill: #3282B8;
+}
+
+.galactic #fretboard .root-note ellipse {
+  fill: #1E4C7E;
+}
+
+/* Retro */
+.retro #fretboard ellipse {
+  fill: #FFD460;
+}
+
+.retro #fretboard .root-note ellipse {
+  fill: #FF5C8D;
+}
+
+/* Vintage */
+.vintage #fretboard ellipse {
+  fill: #A6C48A;
+}
+
+.vintage #fretboard .root-note ellipse {
+  fill: #6B8E4E;
+}
+
+/* Red & Black */
+.redblack #fretboard ellipse {
+  fill: #C74B50;
+}
+
+.redblack #fretboard .root-note ellipse {
+  fill: #7B193A;
+}
+
+/* ---------- SONGBOOK ---------- */
+.songbook-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 2rem;
+  flex-wrap: wrap;
+}
+
+.songbook-column {
+  flex: 1 1 300px;
+  min-height: 60vh;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px var(--shadow-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.songbook-column:hover {
+  transform: scale(1.02);
+}
+
+.songbook-header {
+  padding: 1rem;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.songbook-list {
+  flex-grow: 1;
+  padding: 1rem;
+}
+
+.want .songbook-header {
+  background-color: #e84a5f;
+}
+
+.inprocess .songbook-header {
+  background-color: #f6b352;
+  color: #000;
+}
+
+.done .songbook-header {
+  background-color: #d8d8d8;
+  color: #000;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 900px) {
+  header {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 1rem 0 0 0;
+  }
+
+  .logo-title {
+    margin-bottom: 1rem;
+  }
+
+  .menu {
+    margin-top: 1rem;
+  }
+
+  .container {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 800px) {
+  .songbook-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .songbook-column {
+    width: 90%;
+  }
+}
+
+@media (max-width: 600px) {
+  header {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .Logo {
+    width: 70px;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    gap: 0.4rem;
+    margin: 0;
+  }
+
+  .btn {
+    width: 100%;
+    text-align: center;
+    margin: 0.2rem 0;
+  }
+
+  .menu {
+    width: 90%;
+    margin: 1rem auto;
+    padding: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+  }
+
+  p {
+    font-size: 0.9rem;
+  }
+
+  .container {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  #chordCanvas,
+  #scaleCanvas {
+    width: 95%;
+    max-width: 400px;
+    height: auto;
+  }
+}
+
+/* ---------- EFFECTS SIDEBAR ---------- */
+.effects-sidebar {
+  position: fixed;
+  top: 0;
+  right: -320px;
+  /* Oculto por defecto */
+  width: 300px;
+  height: 100vh;
+  background: rgba(15, 14, 23, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  transition: right 0.3s ease;
+  padding: 20px;
+  overflow-y: auto;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.effects-sidebar.open {
+  right: 0;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 10px;
+}
+
+.close-btn {
+  background: transparent;
+  font-size: 1.5rem;
+  padding: 0 10px;
+}
+
+.effect-module {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.effect-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.effect-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 10px;
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.effect-toggle input:checked~.effect-name {
+  color: #FF8906;
+  /* Default accent */
+}
+
+.effect-toggle input:checked~.effect-name::before {
+  content: "● ";
+}
+
+/* Activar controles cuando el checkbox está marcado */
+.effect-toggle input:checked+.effect-name+.effect-controls,
+.effect-toggle input:checked~.effect-controls {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.floating-effects-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 900;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  padding: 12px 24px;
+  font-size: 1.1rem;
+}
+
+/* Temas para el sidebar */
+.natural .effects-sidebar {
+  background: rgba(26, 31, 27, 0.95);
+  border-left-color: #40916C;
+}
+
+.natural .effect-toggle input:checked~.effect-name {
+  color: #8FB996;
+}
+
+.galactic .effects-sidebar {
+  background: rgba(12, 27, 51, 0.95);
+  border-left-color: #3282B8;
+}
+
+.galactic .effect-toggle input:checked~.effect-name {
+  color: #00B4D8;
+}
+
+.retro .effects-sidebar {
+  background: rgba(30, 26, 43, 0.95);
+  border-left-color: #FF6F61;
+}
+
+.retro .effect-toggle input:checked~.effect-name {
+  color: #FFD460;
+}
+
+.vintage .effects-sidebar {
+  background: rgba(31, 26, 22, 0.95);
+  border-left-color: #FFB300;
+}
+
+.vintage .effect-toggle input:checked~.effect-name {
+  color: #A6C48A;
+}
+
+.redblack .effects-sidebar {
+  background: rgba(26, 11, 11, 0.95);
+  border-left-color: #C74B50;
+}
+
+.redblack .effect-toggle input:checked~.effect-name {
+  color: #C74B50;
+}
+
+/* ========== DAW / JAMSTUDIO STYLES ========== */
+
+/* Transport Controls Bar */
+.daw-transport {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.8rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+}
+
+.transport-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.record-btn {
+  background: #ff4444;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.record-btn.recording {
+  animation: pulse-red 1s infinite;
+}
+
+@keyframes pulse-red {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 68, 68, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 68, 68, 0);
+  }
+}
+
+.time-display {
+  font-family: 'Courier New', monospace;
+  font-size: 1.5rem;
+  font-weight: bold;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  gap: 0.5rem;
+}
+
+.time-separator {
+  opacity: 0.5;
+}
+
+.tempo-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.bpm-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.3rem 0.8rem;
+  border-radius: 8px;
+}
+
+.bpm-input {
+  width: 60px;
+  padding: 0.3rem 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  color: inherit;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.bpm-input:focus {
+  outline: none;
+  border-color: #FF8906;
+}
+
+.bpm-label {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  font-weight: bold;
+}
+
+.progress-bar-container {
+  flex: 1;
+  max-width: 300px;
+  padding: 0 1rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: height 0.2s;
+}
+
+.progress-bar:hover {
+  height: 12px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #FF8906;
+  border-radius: 10px;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+.master-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+}
+
+/* Main DAW Interface */
+.daw-main {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  /* 2 Columns: Track List | Timeline */
+  height: calc(100vh - 140px);
+  /* Adjust based on header + transport height */
+  overflow: hidden;
+}
+
+/* Track List (Left Panel) */
+.track-list {
+  background: rgba(0, 0, 0, 0.2);
+  border-right: 2px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.track-list-header {
+  padding: 1rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.track-list-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.add-track-btn {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+}
+
+.track-list-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.track-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 0.8rem;
+  margin-bottom: 0;
+  /* Removed margin to align with rows */
+  border-left: 4px solid #ccc;
+  /* Default track color */
+  transition: all 0.3s ease;
+  height: 100px;
+  /* Fixed height initially */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.track-item.expanded {
+  height: auto;
+  /* Allow expansion */
+  min-height: 220px;
+}
+
+.track-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.track-name {
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.track-header-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.mixer-toggle-btn {
+  padding: 2px 6px;
+  font-size: 0.9rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.track-delete {
+  background: transparent;
+  border: none;
+  color: #ff4444;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0 5px;
+}
+
+.track-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.mute-btn,
+.solo-btn {
+  flex: 1;
+  font-size: 0.7rem;
+  padding: 0.3rem;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.mute-btn.active {
+  background: #ff4444;
+  color: white;
+}
+
+.solo-btn.active {
+  background: #ffbb33;
+  color: black;
+}
+
+/* Embedded Mixer Styles */
+.track-mixer {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mixer-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
+.mixer-row label {
+  width: 30px;
+  opacity: 0.7;
+}
+
+.mixer-row input {
+  flex: 1;
+}
+
+.track-actions {
+  padding: 1rem;
+  border-top: 2px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  gap: 0.5rem;
+}
+
+.clear-btn {
+  background: #ff4444;
+  color: white;
+}
+
+.clear-btn:hover {
+  background: #cc0000;
+}
+
+.export-btn {
+  background: #44ff44;
+  color: #000;
+}
+
+.export-btn:hover {
+  background: #33cc33;
+}
+
+/* Timeline Section (Center Panel) */
+.timeline-section {
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.timeline-ruler {
+  height: 40px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 5px;
+  min-width: 100%;
+  position: relative;
+}
+
+.time-marker {
+  position: absolute;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 5px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  padding-left: 5px;
+}
+
+.timeline-playhead,
+.playhead {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: #ff0000;
+  z-index: 20;
+  cursor: ew-resize;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+.timeline-playhead::before,
+.playhead::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -5px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 10px solid #ff0000;
+}
+
+.recording-indicator {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background: #ff0000;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  z-index: 1000;
+  animation: pulse 1s infinite;
+}
+
+.recording-indicator.hidden {
+  display: none;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.timeline-playhead::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -5px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 10px solid #ff0000;
+}
+
+.tracks-container {
+  position: relative;
+  min-height: calc(100% - 40px);
+  padding: 0.5rem 0;
+  /* Match track list padding if any */
+}
+
+.track-row {
+  height: 100px;
+  /* Match .track-item height */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+  transition: height 0.3s ease;
+  /* Smooth resize */
+  box-sizing: border-box;
+}
+
+.track-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.waveform-canvas {
+  height: 100%;
+  display: block;
+}
+
+/* Recording Indicator */
+.recording-indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 0, 0, 0.9);
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: bold;
+  z-index: 1000;
+  box-shadow: 0 4px 15px rgba(255, 0, 0, 0.5);
+  animation: pulse-indicator 1s infinite;
+}
+
+.recording-indicator.hidden {
+  display: none;
+}
+
+@keyframes pulse-indicator {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.recording-dot {
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* Theme-specific colors for DAW */
+/* JamVault */
+.JamVault .track-item {
+  border-left-color: #FF8906;
+}
+
+/* Natural */
+.natural .track-item {
+  border-left-color: #8FB996;
+}
+
+/* Galactic */
+.galactic .track-item {
+  border-left-color: #00B4D8;
+}
+
+/* Retro */
+.retro .track-item {
+  border-left-color: #FFD460;
+}
+
+/* Vintage */
+.vintage .track-item {
+  border-left-color: #A6C48A;
+}
+
+/* Red & Black */
+.redblack .track-item {
+  border-left-color: #C74B50;
+}
+
+/* Responsive DAW Layout */
+@media (max-width: 1200px) {
+  .daw-transport {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .daw-main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .track-list {
+    max-height: 200px;
+    border-right: none;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .daw-transport {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .master-controls {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .transport-controls {
+    flex-wrap: wrap;
+  }
+
+  .track-row {
+    height: 80px;
+  }
+}
+
+/* ========== RANGE SLIDER STYLES ========== */
+/* Base styles for all range inputs */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+input[type="range"]:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Webkit (Chrome, Safari, Edge) - Track */
+input[type="range"]::-webkit-slider-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Webkit - Thumb */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #FF8906;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 10px rgba(255, 137, 6, 0.5);
+}
+
+/* Firefox - Track */
+input[type="range"]::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Firefox - Thumb */
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #FF8906;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 10px rgba(255, 137, 6, 0.5);
+}
+
+/* ========== THEME-SPECIFIC SLIDER COLORS ========== */
+/* JamVault */
+.JamVault input[type="range"]::-webkit-slider-thumb {
+  background: #FF8906;
+}
+
+.JamVault input[type="range"]::-moz-range-thumb {
+  background: #FF8906;
+}
+
+.JamVault .progress-fill {
+  background: #FF8906;
+}
+
+.JamVault .bpm-input:focus {
+  border-color: #FF8906;
+}
+
+/* Natural */
+.natural input[type="range"]::-webkit-slider-thumb {
+  background: #8FB996;
+}
+
+.natural input[type="range"]::-moz-range-thumb {
+  background: #8FB996;
+}
+
+.natural .progress-fill {
+  background: #8FB996;
+}
+
+.natural .bpm-input:focus {
+  border-color: #8FB996;
+}
+
+/* Galactic */
+.galactic input[type="range"]::-webkit-slider-thumb {
+  background: #00B4D8;
+}
+
+.galactic input[type="range"]::-moz-range-thumb {
+  background: #00B4D8;
+}
+
+.galactic .progress-fill {
+  background: #00B4D8;
+}
+
+.galactic .bpm-input:focus {
+  border-color: #00B4D8;
+}
+
+/* Retro */
+.retro input[type="range"]::-webkit-slider-thumb {
+  background: #FFD460;
+}
+
+.retro input[type="range"]::-moz-range-thumb {
+  background: #FFD460;
+}
+
+.retro .progress-fill {
+  background: #FFD460;
+}
+
+.retro .bpm-input:focus {
+  border-color: #FFD460;
+}
+
+/* Vintage */
+.vintage input[type="range"]::-webkit-slider-thumb {
+  background: #A6C48A;
+}
+
+.vintage input[type="range"]::-moz-range-thumb {
+  background: #A6C48A;
+}
+
+.vintage .progress-fill {
+  background: #A6C48A;
+}
+
+.vintage .bpm-input:focus {
+  border-color: #A6C48A;
+}
+
+/* Red & Black */
+.redblack input[type="range"]::-webkit-slider-thumb {
+  background: #C74B50;
+}
+
+.redblack input[type="range"]::-moz-range-thumb {
+  background: #C74B50;
+}
+
+.redblack .progress-fill {
+  background: #C74B50;
+}
+
+.redblack .bpm-input:focus {
+  border-color: #C74B50;
+}
+
+/* Slider hover effects by theme */
+.JamVault input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 3px 10px rgba(255, 137, 6, 0.6);
+}
+
+.natural input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 3px 10px rgba(143, 185, 150, 0.6);
+}
+
+.galactic input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 3px 10px rgba(0, 180, 216, 0.6);
+}
+
+.retro input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 3px 10px rgba(255, 212, 96, 0.6);
+}
+
+.vintage input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 3px 10px rgba(166, 196, 138, 0.6);
+}
+
+.redblack input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 3px 10px rgba(199, 75, 80, 0.6);
+}

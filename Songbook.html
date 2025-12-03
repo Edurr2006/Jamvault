@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Libro de Canciones</title>
+
+  <!-- Enlace al CSS general -->
+  <link rel="stylesheet" href="IndexStyles_fixed.css" />
+
+  <!-- Script que gestiona el cambio de tema -->
+  <script src="LocalStorage.js" defer></script>
+</head>
+
+<body class="JamVault"> <!-- Esta clase se actualiza dinámicamente con localstorage.js -->
+
+  <!-- ========== HEADER GLOBAL ========== -->
+  <header>
+    <a href="index.html">
+      <div class="logo-title">
+        <img src="imagenes/logo.png" alt="Logo" class="Logo" />
+      </div>
+    </a>
+
+    <div class="nav-links">
+      <a href="Acordes.html" class="btn">Acordes</a>
+      <a href="Escalas.html" class="btn">Escalas</a>
+      <a href="Tabs.html" class="btn">Tabs</a>
+      <a href="Afinador.html" class="btn">Afinador</a>
+      <a href="Jamstudio.html" class="btn">JamStudio</a>
+      <a href="Songbook.html" class="btn">Canciones</a>
+    </div>
+
+    <button id="toggleTheme" class="btn">Cambiar Tema</button>
+  </header>
+
+  <!-- ========== CONTENIDO PRINCIPAL ========== -->
+  <main class="container">
+    <h1>Libro de Canciones</h1>
+
+    <section class="songbook-container">
+      <div class="songbook-column want">
+        <h2 class="songbook-header">Quiero Aprenderlas</h2>
+        <div class="songbook-list" id="want-list">
+          <!-- Canciones pendientes -->
+        </div>
+      </div>
+
+      <div class="songbook-column inprocess">
+        <h2 class="songbook-header">En Proceso</h2>
+        <div class="songbook-list" id="progress-list">
+          <!-- Canciones en práctica -->
+        </div>
+      </div>
+
+      <div class="songbook-column done">
+        <h2 class="songbook-header">Canciones</h2>
+        <div class="songbook-list" id="done-list">
+          <!-- Canciones aprendidas -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+</body>
+
+</html>

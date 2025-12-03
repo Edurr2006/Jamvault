@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JamStudio | JamVault</title>
+  <link rel="stylesheet" href="IndexStyles_fixed.css">
+</head>
+
+<body class="JamVault">
+  <!-- ========== HEADER GLOBAL ========== -->
+  <header>
+    <a href="INDEX.html">
+      <div class="logo-title">
+        <img src="imagenes/logo.png" alt="Logo" class="Logo">
+      </div>
+    </a>
+    <div class="nav-links">
+      <a href="Acordes.html" class="btn">Acordes</a>
+      <a href="Escalas.html" class="btn">Escalas</a>
+      <a href="Tabs.html" class="btn">Tabs</a>
+      <a href="Afinador.html" class="btn">Afinador</a>
+      <a href="Jamstudio.html" class="btn">JamStudio</a>
+      <a href="Songbook.html" class="btn">Canciones</a>
+    </div>
+    <button id="toggleTheme" class="btn">Cambiar Tema</button>
+  </header>
+
+  <!-- ========== DAW CONTROLS ========== -->
+  <div class="daw-transport">
+    <div class="transport-controls">
+      <button id="recordBtn" class="btn record-btn" title="Grabar (R)">
+        <span class="record-icon">●</span> Grabar
+      </button>
+      <button id="playBtn" class="btn play-btn" title="Reproducir (Espacio)">▶ Play</button>
+      <button id="pauseBtn" class="btn pause-btn" title="Pausar (Espacio)" disabled>⏸ Pausa</button>
+      <button id="stopBtn" class="btn stop-btn" title="Detener">⏹ Stop</button>
+    </div>
+
+    <div class="time-display">
+      <span id="currentTime">00:00.0</span>
+      <span class="time-separator">/</span>
+      <span id="totalTime">00:00.0</span>
+    </div>
+
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <div class="tempo-controls">
+      <label for="metronomeToggle">
+        <input type="checkbox" id="metronomeToggle">
+        Metrónomo
+      </label>
+      <div class="bpm-input-group">
+        <input type="number" id="bpmInput" class="bpm-input" min="40" max="240" value="120">
+        <span class="bpm-label">BPM</span>
+      </div>
+    </div>
+
+    <div class="master-controls">
+      <label>Master Volume</label>
+      <input type="range" id="masterVolume" min="0" max="100" value="80" class="master-fader">
+      <span id="masterVolumeValue">80%</span>
+    </div>
+  </div>
+
+  <!-- ========== MAIN DAW INTERFACE ========== -->
+  <main class="daw-main">
+    <!-- Track List (Left Panel) -->
+    <aside class="track-list">
+      <div class="track-list-header">
+        <h3>Pistas</h3>
+        <button id="addTrackBtn" class="btn add-track-btn">+ Nueva Pista</button>
+      </div>
+      <div id="trackListContainer" class="track-list-items">
+        <!-- Tracks will be added dynamically -->
+      </div>
+      <div class="track-actions">
+        <button id="clearAllBtn" class="btn clear-btn">Limpiar Todo</button>
+        <button id="exportBtn" class="btn export-btn">💾 Exportar</button>
+      </div>
+    </aside>
+
+    <!-- Timeline (Center Panel) -->
+    <section class="timeline-section">
+      <div class="timeline-ruler" id="timelineRuler">
+        <!-- Time markers will be generated dynamically -->
+      </div>
+      <div id="tracksContainer" class="tracks-container">
+        <!-- Waveform tracks will be added dynamically -->
+      </div>
+      <div id="playhead" class="playhead"></div>
+      <div id="recordingIndicator" class="recording-indicator hidden">● REC</div>
+    </section>
+  </main>
+
+  <!-- Tone.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <script src="Jamstudio.js"></script>
+  <script src="LocalStorage.js"></script>
+</body>
+
+</html>

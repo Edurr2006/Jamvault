@@ -1,0 +1,52 @@
+/* contenedor principal dividido en tres columnas: pistas, timeline, mezclador */
+.studio-main {
+  display: grid;
+  grid-template-columns: 200px 1fr 250px;
+  height: calc(100vh - 80px); /* restando header */
+}
+
+/* lista de pistas (lado izquierdo) */
+.track-list {
+  background: rgba(0,0,0,0.2);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+/* área central de timeline / clips */
+.timeline {
+  position: relative;
+  background: rgba(255,255,255,0.05);
+  overflow: auto;
+}
+
+/* regla de tiempo arriba */
+.ruler {
+  height: 30px;
+  border-bottom: 1px solid #666;
+  display: flex;
+}
+
+/* cada pista fila */
+.track-row {
+  position: relative;
+  height: 80px;
+  border-bottom: 1px solid #444;
+}
+
+/* mezclador a la derecha */
+.mixer-panel {
+  background: rgba(0,0,0,0.2);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+/* controles de volumen */
+.volume-fader {
+  width: 100%;
+  margin: 0.5rem 0;
+}
+
+/* botones pequeño estilo */
+.fx {
+  font-size: 0.8rem;
+}

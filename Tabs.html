@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JamVault - Tablaturas</title>
+  <link rel="stylesheet" href="IndexStyles_fixed.css">
+</head>
+</head>
+
+<body class="JamVault">
+  <header>
+    <a href="INDEX.html">
+      <div class="logo-title">
+        <img src="imagenes/logo.png" alt="Logo" class="Logo" />
+        <div class="title-logo"></div>
+      </div>
+    </a>
+    <div class="nav-links">
+      <a href="Acordes.html" class="btn">Acordes</a>
+      <a href="Escalas.html" class="btn">Escalas</a>
+      <a href="Tabs.html" class="btn">Tabs</a>
+      <a href="Afinador.html" class="btn">Afinador</a>
+      <a href="Jamstudio.html" class="btn">JamStudio</a>
+      <a href="Songbook.html" class="btn">Canciones</a>
+    </div>
+    <button id="toggleTheme" class="btn">Cambiar Tema</button>
+  </header>
+
+  <div class="container">
+    <h2>Buscador de Tablaturas 🎸</h2>
+    <p>Busca cualquier artista o canción y se abrirá la búsqueda en Songsterr.</p>
+
+    <div class="search-section">
+      <input type="text" id="searchInput" placeholder="Ej: Metallica, Nothing Else Matters" class="btn"
+        style="width:60%; max-width:400px;">
+      <br><br><button id="searchBtn" class="btn">Buscar</button>
+    </div>
+
+    <div id="results" style="margin-top:2rem;"></div>
+  </div>
+  <script src="Tabs.js"></script>
+  <script src="LocalStorage.js"></script>
+</body>
+
+</html>

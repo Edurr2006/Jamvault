@@ -1,0 +1,285 @@
+/* ========== TRACK CONTROLS STYLING ========== */
+
+/* Botón de Armar (Record) */
+.arm-btn {
+    background-color: #444;
+    color: #999;
+    border: 2px solid #666;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.arm-btn:hover {
+    background-color: #555;
+    border-color: #888;
+}
+
+.arm-btn.active {
+    background-color: #dc3545;
+    color: white;
+    border-color: #c82333;
+    box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(220, 53, 69, 0.8);
+    }
+}
+
+/* Botón de Monitoreo */
+.monitor-btn {
+    background-color: #444;
+    color: #999;
+    border: 2px solid #666;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.monitor-btn:hover {
+    background-color: #555;
+    border-color: #888;
+}
+
+.monitor-btn.active {
+    background-color: #28a745;
+    color: white;
+    border-color: #218838;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+}
+
+/* Botón de Mute */
+.mute-btn {
+    background-color: #444;
+    color: #999;
+    border: 2px solid #666;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mute-btn:hover {
+    background-color: #555;
+}
+
+.mute-btn.active {
+    background-color: #ffc107;
+    color: #000;
+    border-color: #e0a800;
+}
+
+/* Botón de Solo */
+.solo-btn {
+    background-color: #444;
+    color: #999;
+    border: 2px solid #666;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.solo-btn:hover {
+    background-color: #555;
+}
+
+.solo-btn.active {
+    background-color: #17a2b8;
+    color: white;
+    border-color: #138496;
+}
+
+/* Botón de Import */
+.import-btn {
+    background-color: #444;
+    color: #999;
+    border: 2px solid #666;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.import-btn:hover {
+    background-color: #555;
+    border-color: #888;
+}
+
+/* Botón de Mixer Toggle */
+.mixer-toggle-btn {
+    background-color: #444;
+    color: #999;
+    border: 2px solid #666;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mixer-toggle-btn:hover {
+    background-color: #555;
+    border-color: #888;
+}
+
+/* Track Controls Layout */
+.track-controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+/* Recording Indicator */
+.recording-indicator {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: #dc3545;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: bold;
+    z-index: 1000;
+    animation: blink 1s infinite;
+}
+
+.recording-indicator.hidden {
+    display: none;
+}
+
+@keyframes blink {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0.3;
+    }
+}
+
+/* VU Meter */
+.vu-meter {
+    width: 20px;
+    height: 100%;
+    background-color: #222;
+    border: 1px solid #444;
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+}
+
+.vu-level {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background-color: #2ecc71;
+    transition: height 0.1s ease;
+}
+
+/* Track Item Layout */
+.track-item {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.track-content {
+    flex: 1;
+}
+
+.track-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.track-name {
+    font-weight: bold;
+    color: #fff;
+}
+
+.track-header-actions {
+    display: flex;
+    gap: 0.3rem;
+}
+
+.track-delete {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.track-delete:hover {
+    background-color: #c82333;
+}
+
+/* Mixer Panel */
+.track-mixer {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 0.8rem;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+}
+
+.mixer-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.mixer-row label {
+    min-width: 40px;
+    color: #ccc;
+}
+
+.mixer-row input[type="range"] {
+    flex: 1;
+}
+
+.mixer-row span {
+    min-width: 50px;
+    text-align: right;
+    color: #fff;
+}
+
+/* Preset Buttons */
+.track-mixer button {
+    margin-right: 0.3rem;
+    margin-bottom: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    background-color: #555;
+    color: white;
+    border: 1px solid #777;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.track-mixer button:hover {
+    background-color: #666;
+}
+
+.track-mixer h4 {
+    color: #fff;
+    margin-top: 0.8rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
