@@ -1295,9 +1295,6 @@ class JamStudioPro {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'audio/*';
-        input.style.display = 'none';
-        // Append to DOM to ensure file picker works in all browsers/environments
-        document.body.appendChild(input);
 
         input.onchange = async (e) => {
             const file = e.target.files[0];
@@ -1332,9 +1329,6 @@ class JamStudioPro {
             } catch (error) {
                 console.error('Error loading audio file:', error);
                 alert('Error al cargar el archivo de audio.');
-            } finally {
-                // Remove input from DOM after use
-                try { document.body.removeChild(input); } catch (err) { /* ignore */ }
             }
         };
 
