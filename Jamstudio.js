@@ -1,136 +1,181 @@
-// ========== JAMSTUDIO DAW - Web Audio API Implementation ==========
+// ========== JAMSTUDIO PRO - Professional Guitar DAW ==========
+// Complete implementation with modular architecture and professional signal chain
 
-class JamStudioDAW {
+import { AudioEngine } from './AudioEngine.js';
+import { SignalChain } from './SignalChain.js';
+import { AudioMath } from './utils/AudioMath.js';
+import { TimelineManager } from './TimelineManager.js';
+
+class JamStudioPro {
     constructor() {
-        this.audioContext = null;
+        // Core audio engine
+        this.audioEngine = null;
+
+        // Timeline manager for clip-based editing
+        this.timelineManager = new TimelineManager();
+
+        // Tracks
         this.tracks = [];
+        this.nextTrackId = 1;
+
+        // Playback state
         this.isPlaying = false;
         this.isPaused = false;
         this.isRecording = false;
         this.currentTime = 0;
         this.startTime = 0;
         this.pauseTime = 0;
-        this.seekTime = 0;
         this.animationId = null;
-        this.mediaRecorder = null;
-        this.recordedChunks = [];
-        this.masterGain = null;
+
+        // Recording
+        this.recordingStream = null;
+
+        // Metronome
         this.metronomeEnabled = false;
         this.bpm = 120;
-        this.nextTrackId = 1;
         this.metronomeInterval = null;
         this.metronomeGain = null;
-        this.pixelsPerSecond = 50; // Zoom level: pixels per second of audio
-        this.minZoom = 10; // Minimum zoom (10px/sec)
-        this.maxZoom = 200; // Maximum zoom (200px/sec)
-        this.isDraggingTimeline = false; // Track timeline dragging state
+
+        // Timeline
+        this.pixelsPerSecond = 50;
+        this.minZoom = 10;
+        this.maxZoom = 200;
+        this.isDraggingTimeline = false;
+
+        // Meter update
+        this.meterInterval = null;
 
         this.init();
     }
 
     async init() {
-        // Initialize Audio Context
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        this.masterGain = this.audioContext.createGain();
-        this.masterGain.connect(this.audioContext.destination);
-        this.masterGain.gain.value = 0.8;
+        try {
+            // Initialize audio engine
+            this.audioEngine = new AudioEngine(48000);
+            await this.audioEngine.init();
 
-        // Setup metronome gain
-        this.metronomeGain = this.audioContext.createGain();
-        this.metronomeGain.connect(this.audioContext.destination);
-        this.metronomeGain.gain.value = 0.3;
+            // Setup metronome
+            this.metronomeGain = this.audioEngine.createGain(0.3);
+            this.metronomeGain.connect(this.audioEngine.audioContext.destination);
 
-        // Setup UI event listeners
-        this.setupEventListeners();
+            // Setup UI event listeners
+            this.setupEventListeners();
 
-        // Initialize timeline
-        this.initializeTimeline();
+            // Initialize timeline
+            this.initializeTimeline();
 
-        console.log('JamStudio DAW initialized');
+            // Enumerate audio devices
+            await this.enumerateAudioDevices();
+
+            // Start meter updates
+            this.updateMeters();
+
+            console.log('JamStudio Pro initialized successfully');
+
+        } catch (error) {
+            console.error('Error initializing JamStudio Pro:', error);
+            alert('Error al inicializar el sistema de audio. Por favor, recarga la página.');
+        }
     }
 
     setupEventListeners() {
         // Transport controls
-        document.getElementById('recordBtn').addEventListener('click', () => this.startRecording());
-        document.getElementById('playBtn').addEventListener('click', () => this.play());
-        document.getElementById('pauseBtn').addEventListener('click', () => this.pause());
-        document.getElementById('stopBtn').addEventListener('click', () => this.stop());
+        document.getElementById('recordBtn')?.addEventListener('click', () => this.startRecording());
+        document.getElementById('playBtn')?.addEventListener('click', () => this.play());
+        document.getElementById('pauseBtn')?.addEventListener('click', () => this.pause());
+        document.getElementById('stopBtn')?.addEventListener('click', () => this.stop());
 
         // Track management
-        document.getElementById('addTrackBtn').addEventListener('click', () => this.addEmptyTrack());
-        document.getElementById('clearAllBtn').addEventListener('click', () => this.clearAllTracks());
-        document.getElementById('exportBtn').addEventListener('click', () => this.exportMix());
+        document.getElementById('addTrackBtn')?.addEventListener('click', () => this.addEmptyTrack());
+        document.getElementById('clearAllBtn')?.addEventListener('click', () => this.clearAllTracks());
+        document.getElementById('exportBtn')?.addEventListener('click', () => this.exportMix());
 
         // Master controls
-        document.getElementById('masterVolume').addEventListener('input', (e) => {
-            const value = e.target.value / 100;
-            this.masterGain.gain.value = value;
-            document.getElementById('masterVolumeValue').textContent = e.target.value + '%';
-        });
+        const masterVolume = document.getElementById('masterVolume');
+        if (masterVolume) {
+            masterVolume.addEventListener('input', (e) => {
+                const value = e.target.value / 100;
+                this.audioEngine.setMasterVolume(value);
+                document.getElementById('masterVolumeValue').textContent = e.target.value + '%';
+            });
+        }
 
         // Metronome
-        document.getElementById('metronomeToggle').addEventListener('change', (e) => {
-            this.metronomeEnabled = e.target.checked;
-            if (this.metronomeEnabled && this.isPlaying) {
-                this.startMetronome();
-            } else {
-                this.stopMetronome();
-            }
-        });
+        const metronomeToggle = document.getElementById('metronomeToggle');
+        if (metronomeToggle) {
+            metronomeToggle.addEventListener('change', (e) => {
+                this.metronomeEnabled = e.target.checked;
+                if (this.metronomeEnabled && this.isPlaying) {
+                    this.startMetronome();
+                } else {
+                    this.stopMetronome();
+                }
+            });
+        }
 
         // BPM Input
         const bpmInput = document.getElementById('bpmInput');
-        bpmInput.addEventListener('input', (e) => {
-            let value = parseInt(e.target.value);
-            if (value < 40) value = 40;
-            if (value > 240) value = 240;
-            this.bpm = value;
-            e.target.value = value;
+        if (bpmInput) {
+            bpmInput.addEventListener('input', (e) => {
+                let value = parseInt(e.target.value);
+                value = AudioMath.clamp(value, 40, 240);
+                this.bpm = value;
+                e.target.value = value;
 
-            // Restart metronome if playing
-            if (this.metronomeEnabled && this.isPlaying) {
-                this.stopMetronome();
-                this.startMetronome();
-            }
-        });
+                // Update all track delays
+                this.tracks.forEach(track => {
+                    if (track.signalChain) {
+                        track.signalChain.delay.setBPM(this.bpm);
+                    }
+                });
 
-        // Progress bar - draggable
+                // Restart metronome if playing
+                if (this.metronomeEnabled && this.isPlaying) {
+                    this.stopMetronome();
+                    this.startMetronome();
+                }
+            });
+        }
+
+        // Progress bar dragging
         const progressBar = document.getElementById('progressBar');
-        let isDraggingProgress = false;
+        if (progressBar) {
+            let isDraggingProgress = false;
 
-        const updateProgressPosition = (e) => {
-            const rect = progressBar.getBoundingClientRect();
-            const clickX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-            const percentage = clickX / rect.width;
-            const maxDuration = Math.max(...this.tracks.map(t => t.audioBuffer?.duration || 0), 60);
-            const newTime = percentage * maxDuration;
-            this.seekTo(newTime);
-        };
+            const updateProgressPosition = (e) => {
+                const rect = progressBar.getBoundingClientRect();
+                const clickX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+                const percentage = clickX / rect.width;
+                const maxDuration = Math.max(...this.tracks.map(t => t.audioBuffer?.duration || 0), 60);
+                const newTime = percentage * maxDuration;
+                this.seekTo(newTime);
+            };
 
-        progressBar.addEventListener('mousedown', (e) => {
-            isDraggingProgress = true;
-            updateProgressPosition(e);
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (isDraggingProgress) {
+            progressBar.addEventListener('mousedown', (e) => {
+                isDraggingProgress = true;
                 updateProgressPosition(e);
-            }
-        });
+            });
 
-        window.addEventListener('mouseup', () => {
-            isDraggingProgress = false;
-        });
+            window.addEventListener('mousemove', (e) => {
+                if (isDraggingProgress) updateProgressPosition(e);
+            });
 
-        // Zoom with mouse wheel on timeline
+            window.addEventListener('mouseup', () => {
+                isDraggingProgress = false;
+            });
+        }
+
+        // Zoom with mouse wheel
         const timelineSection = document.querySelector('.timeline-section');
-        timelineSection.addEventListener('wheel', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                const zoomDelta = e.deltaY > 0 ? -5 : 5; // Zoom out or in
-                this.setZoom(this.pixelsPerSecond + zoomDelta);
-            }
-        }, { passive: false });
+        if (timelineSection) {
+            timelineSection.addEventListener('wheel', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    const zoomDelta = e.deltaY > 0 ? -5 : 5;
+                    this.setZoom(this.pixelsPerSecond + zoomDelta);
+                }
+            }, { passive: false });
+        }
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
@@ -146,26 +191,60 @@ class JamStudioDAW {
                 this.startRecording();
             }
         });
+
+        // Audio device selection
+        const inputDeviceSelect = document.getElementById('audioInputDevice');
+        if (inputDeviceSelect) {
+            inputDeviceSelect.addEventListener('change', (e) => {
+                this.selectedInputDevice = e.target.value;
+                console.log('Input device changed to:', e.target.value);
+            });
+        }
+
+        const outputDeviceSelect = document.getElementById('audioOutputDevice');
+        if (outputDeviceSelect) {
+            outputDeviceSelect.addEventListener('change', async (e) => {
+                this.selectedOutputDevice = e.target.value;
+                console.log('Output device changed to:', e.target.value);
+                // Note: Web Audio API doesn't support output device selection yet
+                // This is a placeholder for future implementation
+            });
+        }
+    }
+
+    // ========== TIMELINE ==========
+
+    getMaxDuration() {
+        // Calculate max duration from all clips across all tracks
+        let maxDuration = 60; // Default minimum
+        this.tracks.forEach(track => {
+            const clips = this.timelineManager.getClips(track.id);
+            if (clips && clips.length > 0) {
+                clips.forEach(clip => {
+                    const clipEnd = clip.startTime + clip.duration;
+                    if (clipEnd > maxDuration) {
+                        maxDuration = clipEnd;
+                    }
+                });
+            }
+        });
+        return maxDuration;
     }
 
     initializeTimeline() {
         const ruler = document.getElementById('timelineRuler');
+        if (!ruler) return;
+
         ruler.innerHTML = '';
 
-        // Calculate maximum duration from all tracks (minimum 60 seconds)
-        const maxDuration = Math.max(...this.tracks.map(t => t.audioBuffer?.duration || 0), 60);
+        const maxDuration = this.getMaxDuration();
 
-        // Determine marker interval based on zoom level
+        // Determine marker interval based on zoom
         let markerInterval;
-        if (this.pixelsPerSecond >= 100) {
-            markerInterval = 1; // Every 1 second when zoomed in
-        } else if (this.pixelsPerSecond >= 50) {
-            markerInterval = 2; // Every 2 seconds at medium zoom
-        } else if (this.pixelsPerSecond >= 25) {
-            markerInterval = 5; // Every 5 seconds
-        } else {
-            markerInterval = 10; // Every 10 seconds when zoomed out
-        }
+        if (this.pixelsPerSecond >= 100) markerInterval = 1;
+        else if (this.pixelsPerSecond >= 50) markerInterval = 2;
+        else if (this.pixelsPerSecond >= 25) markerInterval = 5;
+        else markerInterval = 10;
 
         // Create time markers
         const totalMarkers = Math.ceil(maxDuration / markerInterval);
@@ -177,214 +256,302 @@ class JamStudioDAW {
             marker.className = 'time-marker';
             marker.style.left = `${time * this.pixelsPerSecond}px`;
 
-            // Format time display
             const minutes = Math.floor(time / 60);
             const seconds = time % 60;
-            if (minutes > 0) {
-                marker.textContent = `${minutes}:${String(seconds).padStart(2, '0')}`;
-            } else {
-                marker.textContent = `${time}s`;
-            }
+            marker.textContent = minutes > 0
+                ? `${minutes}:${String(seconds).padStart(2, '0')}`
+                : `${time}s`;
 
             ruler.appendChild(marker);
         }
 
-        // Set ruler width to accommodate all content
         ruler.style.width = `${maxDuration * this.pixelsPerSecond}px`;
 
-        // Setup draggable playhead logic
-        this.setupTimelineDragging(maxDuration);
+        this.setupTimelineDragging();
     }
 
-    setupTimelineDragging(maxDuration) {
+    setupTimelineDragging() {
         const timelineSection = document.querySelector('.timeline-section');
+        if (!timelineSection) return;
 
-        // Remove old event listeners if they exist
+        // Remove old listeners
         if (this.timelineMouseDown) {
             timelineSection.removeEventListener('mousedown', this.timelineMouseDown);
-        }
-        if (this.timelineMouseMove) {
             document.removeEventListener('mousemove', this.timelineMouseMove);
-        }
-        if (this.timelineMouseUp) {
             document.removeEventListener('mouseup', this.timelineMouseUp);
         }
 
-        // Create bound event handlers
         this.timelineMouseDown = (e) => {
-            if (e.target.closest('.track-row') || e.target.closest('.timeline-ruler')) {
+            // Allow dragging on the ruler or the playhead itself
+            if (e.target.closest('.timeline-ruler') || e.target.id === 'playhead') {
                 this.isDraggingTimeline = true;
-                this.updatePlayheadPosition(e, maxDuration);
+                this.updatePlayheadPosition(e);
             }
         };
 
         this.timelineMouseMove = (e) => {
             if (this.isDraggingTimeline) {
-                this.updatePlayheadPosition(e, maxDuration);
+                this.updatePlayheadPosition(e);
             }
         };
 
         this.timelineMouseUp = () => {
             this.isDraggingTimeline = false;
+            if (this.scrollAnimationId) {
+                cancelAnimationFrame(this.scrollAnimationId);
+                this.scrollAnimationId = null;
+            }
         };
 
-        // Add event listeners
         timelineSection.addEventListener('mousedown', this.timelineMouseDown);
         document.addEventListener('mousemove', this.timelineMouseMove);
         document.addEventListener('mouseup', this.timelineMouseUp);
     }
 
-    updatePlayheadPosition(e, maxDuration) {
+    updatePlayheadPosition(e) {
         const timelineSection = document.querySelector('.timeline-section');
+        if (!timelineSection) return;
+
         const rect = timelineSection.getBoundingClientRect();
 
-        // Calculate exact position including scroll
-        const clickX = e.clientX - rect.left + timelineSection.scrollLeft;
+        // Calculate time based on current scroll + mouse position relative to container
+        // We use e.clientX directly to handle dragging even if mouse goes outside container
+        let relativeX = e.clientX - rect.left;
+
+        // Clamp relativeX to visible area for calculation purposes
+        relativeX = Math.max(0, Math.min(relativeX, rect.width));
+
+        const clickX = relativeX + timelineSection.scrollLeft;
         const clickTime = Math.max(0, clickX / this.pixelsPerSecond);
 
-        // Update playhead state
-        this.pauseTime = clickTime;
-        this.isPaused = true;
-        this.currentTime = clickTime;
+        // Use seekTo to properly sync audio playback with visual position
+        this.seekTo(clickTime);
 
-        // Position playhead exactly at click position
-        const playhead = document.getElementById('playhead');
-        playhead.style.left = `${clickX}px`;
+        // Handle Auto-scroll
+        this.handleAutoScroll(e.clientX, rect, timelineSection);
+    }
 
-        // Update progress bar
-        const percentage = (clickTime / maxDuration) * 100;
-        document.getElementById('progressFill').style.width = `${Math.min(percentage, 100)}%`;
+    handleAutoScroll(mouseX, rect, container) {
+        const edgeThreshold = 100; // Larger threshold for better control
+        const maxScrollSpeed = 30; // Faster max speed
 
-        // Update time display
-        const minutes = Math.floor(clickTime / 60);
-        const seconds = Math.floor(clickTime % 60);
-        const tenths = Math.floor((clickTime % 1) * 10);
-        document.getElementById('currentTime').textContent =
-            `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
+        // Clear existing scroll interval if any
+        if (this.scrollAnimationId) {
+            cancelAnimationFrame(this.scrollAnimationId);
+            this.scrollAnimationId = null;
+        }
 
-        // Auto-scroll when dragging near edges
-        const edgeThreshold = 50;
-        const scrollSpeed = 15;
+        let scrollDelta = 0;
 
-        if (e.clientX - rect.left < edgeThreshold && timelineSection.scrollLeft > 0) {
-            timelineSection.scrollLeft -= scrollSpeed;
-        } else if (rect.right - e.clientX < edgeThreshold) {
-            timelineSection.scrollLeft += scrollSpeed;
+        // Check left edge
+        if (mouseX - rect.left < edgeThreshold) {
+            // Calculate speed based on distance (closer to edge = faster)
+            const distance = Math.max(0, mouseX - rect.left);
+            const intensity = 1 - (distance / edgeThreshold);
+            scrollDelta = -maxScrollSpeed * intensity;
+        }
+        // Check right edge
+        else if (rect.right - mouseX < edgeThreshold) {
+            const distance = Math.max(0, rect.right - mouseX);
+            const intensity = 1 - (distance / edgeThreshold);
+            scrollDelta = maxScrollSpeed * intensity;
+        }
+
+        // If scrolling is needed, start animation loop
+        if (scrollDelta !== 0) {
+            const scrollLoop = () => {
+                if (!this.isDraggingTimeline) {
+                    cancelAnimationFrame(this.scrollAnimationId);
+                    return;
+                }
+
+                container.scrollLeft += scrollDelta;
+
+                // Update playhead position as we scroll
+                // We need to recalculate time because scrollLeft changed
+                const currentRelativeX = mouseX - rect.left;
+                const clampedRelativeX = Math.max(0, Math.min(currentRelativeX, rect.width));
+                const newClickX = clampedRelativeX + container.scrollLeft;
+                const newClickTime = Math.max(0, newClickX / this.pixelsPerSecond);
+                this.seekTo(newClickTime);
+
+                this.scrollAnimationId = requestAnimationFrame(scrollLoop);
+            };
+            this.scrollAnimationId = requestAnimationFrame(scrollLoop);
         }
     }
 
     setZoom(newPixelsPerSecond) {
-        // Clamp zoom level
-        newPixelsPerSecond = Math.max(this.minZoom, Math.min(this.maxZoom, newPixelsPerSecond));
-
+        newPixelsPerSecond = AudioMath.clamp(newPixelsPerSecond, this.minZoom, this.maxZoom);
         if (newPixelsPerSecond === this.pixelsPerSecond) return;
 
-        // Store current scroll position as a time value
         const timelineSection = document.querySelector('.timeline-section');
-        const currentScrollTime = timelineSection.scrollLeft / this.pixelsPerSecond;
+        if (!timelineSection) return;
 
-        // Update zoom level
+        const currentScrollTime = timelineSection.scrollLeft / this.pixelsPerSecond;
         this.pixelsPerSecond = newPixelsPerSecond;
 
-        // Redraw timeline ruler
         this.initializeTimeline();
 
         // Redraw all waveforms
         this.tracks.forEach(track => {
-            if (track.audioBuffer) {
-                this.drawWaveform(track);
-            }
+            if (track.audioBuffer) this.drawWaveform(track);
         });
 
-        // Update playhead position
-        if (this.isPaused || !this.isPlaying) {
-            document.getElementById('playhead').style.left = `${this.pauseTime * this.pixelsPerSecond}px`;
-        } else {
-            const elapsed = this.audioContext.currentTime - this.startTime;
-            document.getElementById('playhead').style.left = `${elapsed * this.pixelsPerSecond}px`;
+        // Update playhead
+        const playhead = document.getElementById('playhead');
+        if (playhead) {
+            const time = this.isPaused || !this.isPlaying ? this.pauseTime
+                : this.audioEngine.getCurrentTime() - this.startTime;
+            playhead.style.left = `${time * this.pixelsPerSecond}px`;
         }
 
-        // Restore scroll position (maintain the same time in view)
         timelineSection.scrollLeft = currentScrollTime * this.pixelsPerSecond;
-
         console.log('Zoom set to:', this.pixelsPerSecond, 'px/sec');
     }
 
     seekTo(time) {
-        // Clamp time to valid range
-        const maxDuration = Math.max(...this.tracks.map(t => t.audioBuffer?.duration || 0), 60);
-        time = Math.max(0, Math.min(time, maxDuration));
+        const maxDuration = this.getMaxDuration();
+        time = AudioMath.clamp(time, 0, maxDuration);
 
-        this.seekTime = time;
-
-        // If playing, restart from new position
         if (this.isPlaying && !this.isPaused) {
-            this.stop();
+            this.stop(false); // Don't reset UI/Scroll
             this.pauseTime = time;
             this.isPaused = true;
             this.play();
         } else {
-            // Just update the playhead position and mark as paused at this position
             this.pauseTime = time;
-            this.isPaused = true; // Mark as paused so play() will resume from this position
+            this.isPaused = true;
             this.currentTime = time;
-            document.getElementById('playhead').style.left = `${time * this.pixelsPerSecond}px`;
 
-            // Update progress bar
-            const percentage = (time / maxDuration) * 100;
-            document.getElementById('progressFill').style.width = `${Math.min(percentage, 100)}%`;
+            const playhead = document.getElementById('playhead');
+            if (playhead) playhead.style.left = `${time * this.pixelsPerSecond}px`;
 
-            // Update time display
-            const minutes = Math.floor(time / 60);
-            const seconds = Math.floor(time % 60);
-            const tenths = Math.floor((time % 1) * 10);
-            document.getElementById('currentTime').textContent =
-                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
-        }
+            const progressFill = document.getElementById('progressFill');
+            if (progressFill) {
+                const percentage = (time / maxDuration) * 100;
+                progressFill.style.width = `${Math.min(percentage, 100)}%`;
+            }
 
-        // Auto-scroll timeline to the seeked position
-        const timelineSection = document.querySelector('.timeline-section');
-        const playheadPosition = time * this.pixelsPerSecond;
-        const viewportWidth = timelineSection.clientWidth;
-
-        // Center the playhead in the viewport
-        const targetScroll = playheadPosition - (viewportWidth / 2);
-        timelineSection.scrollLeft = Math.max(0, targetScroll);
-
-        console.log('Seeked to:', time, '- isPaused:', this.isPaused);
-    }
-
-    async startRecording() {
-        // Check if any tracks are armed
-        const armedTracks = this.tracks.filter(t => t.armed);
-
-        if (armedTracks.length === 0) {
-            alert('No hay pistas armadas para grabar. Por favor, arma al menos una pista primero.');
-            return;
-        }
-
-        // Check if any armed tracks have existing audio
-        const tracksWithAudio = armedTracks.filter(t => t.audioBuffer !== null);
-        if (tracksWithAudio.length > 0) {
-            const trackNames = tracksWithAudio.map(t => t.name).join(', ');
-            const confirmed = confirm(
-                `Las siguientes pistas tienen audio que será sobrescrito:\n${trackNames}\n\n¿Deseas continuar?`
-            );
-            if (!confirmed) {
-                return;
+            const currentTimeEl = document.getElementById('currentTime');
+            if (currentTimeEl) {
+                const minutes = Math.floor(time / 60);
+                const seconds = Math.floor(time % 60);
+                const tenths = Math.floor((time % 1) * 10);
+                currentTimeEl.textContent =
+                    `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
             }
         }
 
+        // Auto-scroll timeline (only if not dragging manually)
+        const timelineSection = document.querySelector('.timeline-section');
+        if (timelineSection && !this.isDraggingTimeline) {
+            const playheadPosition = time * this.pixelsPerSecond;
+            const viewportWidth = timelineSection.clientWidth;
+            const targetScroll = playheadPosition - (viewportWidth / 2);
+            timelineSection.scrollLeft = Math.max(0, targetScroll);
+        }
+    }
+
+    // ========== AUDIO DEVICES ==========
+
+    async enumerateAudioDevices() {
         try {
-            // Request microphone access
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // Request permission first
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            // Enumerate devices
+            const devices = await navigator.mediaDevices.enumerateDevices();
+
+            const inputDeviceSelect = document.getElementById('audioInputDevice');
+            const outputDeviceSelect = document.getElementById('audioOutputDevice');
+
+            if (inputDeviceSelect) {
+                // Clear existing options except default
+                inputDeviceSelect.innerHTML = '<option value="default">Default</option>';
+
+                // Add audio input devices
+                devices.filter(device => device.kind === 'audioinput').forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.textContent = device.label || `Microphone ${inputDeviceSelect.options.length}`;
+                    inputDeviceSelect.appendChild(option);
+                });
+            }
+
+            if (outputDeviceSelect) {
+                // Clear existing options except default
+                outputDeviceSelect.innerHTML = '<option value="default">Default</option>';
+
+                // Add audio output devices
+                devices.filter(device => device.kind === 'audiooutput').forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.textContent = device.label || `Speaker ${outputDeviceSelect.options.length}`;
+                    outputDeviceSelect.appendChild(option);
+                });
+            }
+
+            console.log('Audio devices enumerated:', devices.length);
+
+        } catch (error) {
+            console.warn('Could not enumerate audio devices:', error);
+        }
+    }
+
+    // ========== RECORDING ==========
+
+    async startRecording() {
+        // Ensure audio context is running
+        await this.audioEngine.resume();
+
+        const armedTracks = this.tracks.filter(t => t.armed);
+
+        if (armedTracks.length === 0) {
+            alert('No hay pistas armadas para grabar.');
+            return;
+        }
+
+        try {
+            // Build constraints with selected device
+            const constraints = {
+                audio: {
+                    echoCancellation: false,
+                    autoGainControl: false,
+                    noiseSuppression: false,
+                    latency: 0
+                }
+            };
+
+            // Use selected input device if available
+            if (this.selectedInputDevice && this.selectedInputDevice !== 'default') {
+                constraints.audio.deviceId = { exact: this.selectedInputDevice };
+            }
+
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
             this.isRecording = true;
+            this.recordingStream = stream;
 
-            // Setup recording for each armed track
+            // Start playback if not already playing (to move playhead)
+            if (!this.isPlaying) {
+                this.play();
+            }
+
+            // CRITICAL: Capture playhead position
+            const recordingStartTime = this.currentTime;
+
             for (const track of armedTracks) {
                 track.recordedChunks = [];
+                track.recordingStartTime = recordingStartTime;
                 track.mediaRecorder = new MediaRecorder(stream);
+
+                // Setup real-time visualization
+                if (track.analyserNode) {
+                    track.recordingSource = this.audioEngine.createMediaStreamSource(stream);
+                    track.recordingSource.connect(track.analyserNode);
+                    track.lastDrawTime = this.currentTime;
+                }
 
                 track.mediaRecorder.ondataavailable = (e) => {
                     if (e.data.size > 0) {
@@ -393,33 +560,41 @@ class JamStudioDAW {
                 };
 
                 track.mediaRecorder.onstop = async () => {
+                    // Cleanup visualization source
+                    if (track.recordingSource) {
+                        track.recordingSource.disconnect();
+                        track.recordingSource = null;
+                    }
+
                     const blob = new Blob(track.recordedChunks, { type: 'audio/webm' });
-                    track.audioBlob = blob;
-
-                    // Convert blob to AudioBuffer
                     const arrayBuffer = await blob.arrayBuffer();
-                    track.audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+                    const audioBuffer = await this.audioEngine.decodeAudioData(arrayBuffer);
 
-                    // Update UI
+                    // Create clip
+                    const clip = {
+                        id: this.timelineManager.generateClipId(),
+                        startTime: track.recordingStartTime,
+                        duration: audioBuffer.duration,
+                        audioBuffer: audioBuffer,
+                        audioBlob: blob,
+                        bufferOffset: 0
+                    };
+
+                    // Add to timeline
+                    this.timelineManager.addClip(track.id, clip);
                     this.drawWaveform(track);
-
-                    console.log('Recording completed for track', track.id);
+                    console.log(`Clip created at ${clip.startTime}s`);
                 };
 
                 track.mediaRecorder.start();
-                console.log('Recording started for track', track.id);
             }
 
-            // Stop all tracks on the stream when recording stops
-            this.recordingStream = stream;
-
-            // Update UI
-            document.getElementById('recordBtn').classList.add('recording');
-            document.getElementById('recordingIndicator').classList.remove('hidden');
+            document.getElementById('recordBtn')?.classList.add('recording');
+            document.getElementById('recordingIndicator')?.classList.remove('hidden');
 
         } catch (error) {
-            console.error('Error accessing microphone:', error);
-            alert('No se pudo acceder al micrófono. Por favor, concede permisos.');
+            console.error('Error:', error);
+            alert('No se pudo acceder al micrófono.');
         }
     }
 
@@ -443,10 +618,353 @@ class JamStudioDAW {
         this.isRecording = false;
 
         // Update UI
-        document.getElementById('recordBtn').classList.remove('recording');
-        document.getElementById('recordingIndicator').classList.add('hidden');
+        document.getElementById('recordBtn')?.classList.remove('recording');
+        document.getElementById('recordingIndicator')?.classList.add('hidden');
 
         console.log('Recording stopped');
+    }
+
+    // ========== PLAYBACK ==========
+
+    async play() {
+        // Ensure audio context is running (browser autoplay policy)
+        await this.audioEngine.resume();
+
+        if (this.isPlaying && !this.isPaused) return;
+
+        console.log('Play called - isPaused:', this.isPaused, 'pauseTime:', this.pauseTime);
+
+        const startOffset = this.isPaused ? this.pauseTime : 0;
+
+        if (this.isPaused) {
+            this.startTime = this.audioEngine.getCurrentTime() - this.pauseTime;
+            this.isPaused = false;
+        } else {
+            this.startTime = this.audioEngine.getCurrentTime() - startOffset;
+            this.currentTime = startOffset;
+        }
+
+        this.isPlaying = true;
+
+        // Play all non-muted tracks
+        const soloTracks = this.tracks.filter(t => t.solo);
+        const tracksToPlay = soloTracks.length > 0 ? soloTracks : this.tracks.filter(t => !t.muted);
+
+        tracksToPlay.forEach(track => {
+            this.playTrack(track, startOffset);
+        });
+
+        // Start metronome if enabled
+        if (this.metronomeEnabled) {
+            this.startMetronome();
+        }
+
+        // Update UI
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        if (playBtn) playBtn.disabled = true;
+        if (pauseBtn) pauseBtn.disabled = false;
+
+        // Start playhead animation
+        this.updatePlayhead();
+
+        console.log('Playback started from:', startOffset);
+    }
+
+    playTrack(track, globalStartTime = 0) {
+        const clips = this.timelineManager.getClips(track.id);
+        if (!clips || clips.length === 0) return;
+
+        if (!track.sources) track.sources = [];
+
+        // Connect signal chain to master ONCE per playback session
+        // track.signalChain.connect(this.audioEngine.getDestination());
+
+        // Ensure gain node is connected
+        if (!track.gainNode) {
+            track.gainNode = this.audioEngine.createGain(track.volume / 100);
+            track.gainNode.connect(this.audioEngine.getDestination());
+        }
+
+        clips.forEach(clip => {
+            if (!clip.audioBuffer) return;
+
+            const clipEnd = clip.startTime + clip.duration;
+            if (clipEnd <= globalStartTime) return;
+
+            const source = this.audioEngine.createBufferSource(clip.audioBuffer);
+
+            // Connect to track gain node
+            source.connect(track.gainNode);
+            // source.connect(track.signalChain.input);
+
+            const audioContextNow = this.audioEngine.getCurrentTime();
+            const clipStartDelay = Math.max(0, clip.startTime - globalStartTime);
+            const scheduleTime = audioContextNow + clipStartDelay;
+            const clipOffset = Math.max(0, globalStartTime - clip.startTime);
+            const playDuration = clip.duration - clipOffset;
+
+            if (playDuration > 0) {
+                source.start(scheduleTime, clipOffset + (clip.bufferOffset || 0), playDuration);
+                track.sources.push(source);
+            }
+        });
+    }
+
+    pause() {
+        if (!this.isPlaying || this.isPaused) return;
+
+        this.isPlaying = false;
+        this.isPaused = true;
+        this.pauseTime = this.audioEngine.getCurrentTime() - this.startTime;
+
+        // Stop all playing tracks
+        // Stop all playing tracks
+        this.tracks.forEach(track => {
+            if (track.sources) {
+                track.sources.forEach(source => {
+                    try {
+                        source.stop();
+                    } catch (e) {
+                        // Ignore
+                    }
+                });
+                track.sources = [];
+            }
+
+            // Disconnect signal chain to silence effects/tails
+            // if (track.signalChain) {
+            //    track.signalChain.disconnect();
+            // }
+            // Gain node stays connected as it is simple volume control
+        });
+
+        // Stop metronome
+        this.stopMetronome();
+
+        // Update UI
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        if (playBtn) playBtn.disabled = false;
+        if (pauseBtn) pauseBtn.disabled = true;
+
+        // Stop playhead animation
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+        }
+
+        console.log('Playback paused at:', this.pauseTime);
+    }
+
+    stop(resetUI = true) {
+        // Stop recording if active
+        if (this.isRecording) {
+            this.stopRecording();
+        }
+
+        if (!this.isPlaying && !this.isPaused) return;
+
+        this.isPlaying = false;
+        this.isPaused = false;
+        this.currentTime = 0;
+        this.pauseTime = 0;
+
+        // Stop all playing tracks
+        this.tracks.forEach(track => {
+            if (track.sources) {
+                track.sources.forEach(source => {
+                    try {
+                        source.stop();
+                    } catch (e) {
+                        // Ignore
+                    }
+                });
+                track.sources = [];
+            }
+        });
+
+        // Stop metronome
+        this.stopMetronome();
+
+        // Update UI only if requested
+        if (resetUI) {
+            const playBtn = document.getElementById('playBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const currentTimeEl = document.getElementById('currentTime');
+            const playhead = document.getElementById('playhead');
+            const progressFill = document.getElementById('progressFill');
+
+            if (playBtn) playBtn.disabled = false;
+            if (pauseBtn) pauseBtn.disabled = true;
+            if (currentTimeEl) currentTimeEl.textContent = '00:00.0';
+            if (playhead) playhead.style.left = '0px';
+            if (progressFill) progressFill.style.width = '0%';
+
+            // Scroll timeline back to the beginning
+            const timelineSection = document.querySelector('.timeline-section');
+            if (timelineSection) {
+                timelineSection.scrollLeft = 0;
+            }
+        }
+
+        // Stop playhead animation
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+        }
+
+        console.log('Playback stopped');
+    }
+
+    updatePlayhead() {
+        if (!this.isPlaying || this.isPaused) return;
+
+        const elapsed = this.audioEngine.getCurrentTime() - this.startTime;
+        this.currentTime = elapsed;
+
+        // Update time display
+        const currentTimeEl = document.getElementById('currentTime');
+        if (currentTimeEl) {
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = Math.floor(elapsed % 60);
+            const tenths = Math.floor((elapsed % 1) * 10);
+            currentTimeEl.textContent =
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
+        }
+
+        // Update playhead position
+        const playhead = document.getElementById('playhead');
+        if (playhead) {
+            playhead.style.left = `${elapsed * this.pixelsPerSecond}px`;
+        }
+
+        // Update progress bar
+        const progressFill = document.getElementById('progressFill');
+        if (progressFill) {
+            const maxDuration = this.getMaxDuration();
+            const percentage = (elapsed / maxDuration) * 100;
+            progressFill.style.width = `${Math.min(percentage, 100)}%`;
+        }
+
+        // Auto-scroll timeline during playback
+        const timelineSection = document.querySelector('.timeline-section');
+        if (timelineSection && !this.isDraggingTimeline) {
+            const playheadPosition = elapsed * this.pixelsPerSecond;
+            const viewportWidth = timelineSection.clientWidth;
+
+            // Scroll if playhead is getting close to the right edge or is off-screen
+            // We keep it centered or at least visible
+            const currentScroll = timelineSection.scrollLeft;
+            const relativePosition = playheadPosition - currentScroll;
+
+            // If playhead moves past 75% of the screen, scroll to center it
+            if (relativePosition > viewportWidth * 0.75) {
+                const targetScroll = playheadPosition - (viewportWidth / 2);
+                timelineSection.scrollLeft = Math.max(0, targetScroll);
+            }
+        }
+
+        // Draw recording visuals if recording
+        if (this.isRecording) {
+            this.drawRecordingVisuals();
+        }
+
+        // Continue animation
+        this.animationId = requestAnimationFrame(() => this.updatePlayhead());
+    }
+
+    drawRecordingVisuals() {
+        const armedTracks = this.tracks.filter(t => t.armed && t.analyserNode);
+
+        armedTracks.forEach(track => {
+            const canvas = document.getElementById(`waveform-${track.id}`);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const analyser = track.analyserNode;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteTimeDomainData(dataArray);
+
+            // Calculate position
+            const startX = track.lastDrawTime * this.pixelsPerSecond;
+            const endX = this.currentTime * this.pixelsPerSecond;
+            const width = endX - startX;
+
+            if (width < 1) return; // Don't draw if too small
+
+            // Calculate average amplitude for this slice
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0; // 0..2
+                const y = v - 1; // -1..1
+                sum += Math.abs(y);
+            }
+            const average = sum / bufferLength;
+
+            // Draw red waveform block
+            const height = canvas.height;
+            const amp = height / 2;
+            const y = height / 2;
+            const barHeight = Math.max(2, average * height); // Minimum 2px height
+
+            ctx.fillStyle = '#ff4444'; // Red for recording
+            ctx.fillRect(startX, y - barHeight / 2, width, barHeight);
+
+            track.lastDrawTime = this.currentTime;
+        });
+    }
+
+    // ========== TRACK MANAGEMENT ==========
+
+    addEmptyTrack() {
+        const trackId = this.nextTrackId++;
+        const track = {
+            id: trackId,
+            name: `Track ${trackId}`,
+            audioBuffer: null,
+            audioBlob: null,
+            source: null,
+            source: null,
+            // signalChain: new SignalChain(this.audioEngine.audioContext, this.audioEngine.irLoader), // Removed per user request
+            gainNode: null, // Initialized below
+            volume: 80,
+            pan: 0,
+            muted: false,
+            solo: false,
+            armed: false,
+            monitoring: false,
+            monitorNode: null,
+            analyserNode: null,
+            inputDevice: 'default',
+            outputDevice: 'master',
+            mediaRecorder: null,
+            outputDevice: 'master',
+            mediaRecorder: null,
+            recordedChunks: [],
+            sources: [] // Array to hold active source nodes for clips
+        };
+
+        // Create analyser for VU meter
+        track.analyserNode = this.audioEngine.createAnalyser(256);
+
+        // Set default volume and pan
+        // track.signalChain.setVolume(track.volume / 100);
+        // track.signalChain.setPan(track.pan / 100);
+
+        // Create audio chain: gainNode -> panNode -> destination
+        track.gainNode = this.audioEngine.createGain(track.volume / 100);
+        track.panNode = this.audioEngine.createPanner(track.pan / 100);
+        track.gainNode.connect(track.panNode);
+        track.panNode.connect(this.audioEngine.getDestination());
+
+        // Apply default preset
+        // track.signalChain.presetCleanGuitar(); // Disabled to prevent noise issues
+
+        this.tracks.push(track);
+        this.addTrackToUI(track);
+        this.initializeTimeline();
+
+        console.log('Empty track added:', trackId);
     }
 
     addTrackToUI(track) {
@@ -488,77 +1006,57 @@ class JamStudioDAW {
                    oninput="daw.setTrackPan(${track.id}, this.value)">
             <span>${track.pan}</span>
         </div>
-
-        <div class="mixer-row">
-            <label>In</label>
-            <select onchange="daw.setTrackInput(${track.id}, this.value)">
-                <option value="default" ${track.inputDevice === 'default' ? 'selected' : ''}>Default Input</option>
-            </select>
-        </div>
-        <div class="mixer-row">
-            <label>Out</label>
-            <select onchange="daw.setTrackOutput(${track.id}, this.value)">
-                <option value="master" ${track.outputDevice === 'master' ? 'selected' : ''}>Master</option>
-            </select>
-        </div>
-
-        <!-- Effects Section -->
-        <div class="effects-section">
-            <h4>Efectos</h4>
-            
-            <!-- Distortion -->
-            <div class="effect-control">
-                <label>Distortion</label>
-                <input type="checkbox" ${track.effects.distortion.enabled ? 'checked' : ''}
-                       onchange="daw.toggleTrackEffect(${track.id}, 'distortion', this.checked)">
-                <input type="range" min="0" max="1" step="0.01" value="${track.effects.distortion.drive}"
-                       title="Drive"
-                       oninput="daw.setTrackEffectParam(${track.id}, 'distortion', 'drive', this.value)">
-            </div>
-
-            <!-- Reverb -->
-            <div class="effect-control">
-                <label>Reverb</label>
-                <input type="checkbox" ${track.effects.reverb.enabled ? 'checked' : ''}
-                       onchange="daw.toggleTrackEffect(${track.id}, 'reverb', this.checked)">
-                <input type="range" min="0.1" max="10" step="0.1" value="${track.effects.reverb.decay}"
-                       title="Decay"
-                       oninput="daw.setTrackEffectParam(${track.id}, 'reverb', 'decay', this.value)">
-            </div>
-
-            <!-- Delay -->
-            <div class="effect-control">
-                <label>Delay</label>
-                <input type="checkbox" ${track.effects.delay.enabled ? 'checked' : ''}
-                       onchange="daw.toggleTrackEffect(${track.id}, 'delay', this.checked)">
-                <input type="range" min="0" max="1" step="0.01" value="${track.effects.delay.feedback}"
-                       title="Feedback"
-                       oninput="daw.setTrackEffectParam(${track.id}, 'delay', 'feedback', this.value)">
-            </div>
-
-            <!-- Chorus -->
-            <div class="effect-control">
-                <label>Chorus</label>
-                <input type="checkbox" ${track.effects.chorus.enabled ? 'checked' : ''}
-                       onchange="daw.toggleTrackEffect(${track.id}, 'chorus', this.checked)">
-                <input type="range" min="0" max="1" step="0.01" value="${track.effects.chorus.depth}"
-                       title="Depth"
-                       oninput="daw.setTrackEffectParam(${track.id}, 'chorus', 'depth', this.value)">
-            </div>
-        </div>
+        
+        <h4>Presets</h4>
+        <button class="btn" onclick="daw.applyPreset(${track.id}, 'clean')">Clean</button>
+        <button class="btn" onclick="daw.applyPreset(${track.id}, 'rock')">Rock</button>
+        <button class="btn" onclick="daw.applyPreset(${track.id}, 'metal')">Metal</button>
+        <button class="btn" onclick="daw.applyPreset(${track.id}, 'lead')">Lead</button>
       </div>
-      </div>`; // Close track-content and track-item
-        document.getElementById('trackListContainer').appendChild(trackItem);
+      </div>`;
+
+        document.getElementById('trackListContainer')?.appendChild(trackItem);
 
         // Add to timeline (center panel)
         const trackRow = document.createElement('div');
         trackRow.className = 'track-row';
         trackRow.dataset.trackId = track.id;
         trackRow.innerHTML = `<canvas class="waveform-canvas" id="waveform-${track.id}"></canvas>`;
-        document.getElementById('tracksContainer').appendChild(trackRow);
+        document.getElementById('tracksContainer')?.appendChild(trackRow);
 
-        // Refresh timeline to accommodate new track duration
-        this.initializeTimeline();
+        // Setup clip interaction
+        this.setupClipInteraction(track);
+    }
+
+    deleteTrack(trackId) {
+        const index = this.tracks.findIndex(t => t.id === trackId);
+        if (index === -1) return;
+
+        const track = this.tracks[index];
+
+        // If playing, stop everything and reset
+        if (this.isPlaying || this.isPaused) {
+            this.stop();
+        }
+
+        // Stop track if playing
+        if (track.source) {
+            track.source.stop();
+        }
+
+        // Cleanup signal chain
+        if (track.signalChain) {
+            track.signalChain.destroy();
+        }
+
+        // Remove from array
+        this.tracks.splice(index, 1);
+
+        // Remove from UI
+        document.querySelector(`.track-item[data-track-id="${trackId}"]`)?.remove();
+        document.querySelector(`.track-row[data-track-id="${trackId}"]`)?.remove();
+
+        console.log('Track deleted:', trackId);
     }
 
     toggleMixer(trackId) {
@@ -566,242 +1064,25 @@ class JamStudioDAW {
         const trackItem = document.querySelector(`.track-item[data-track-id="${trackId}"]`);
         const trackRow = document.querySelector(`.track-row[data-track-id="${trackId}"]`);
 
+        if (!mixerDiv) return;
+
         if (mixerDiv.style.display === 'none') {
             mixerDiv.style.display = 'block';
-            trackItem.classList.add('expanded');
-            // Sync height
+            trackItem?.classList.add('expanded');
             setTimeout(() => {
-                trackRow.style.height = `${trackItem.offsetHeight}px`;
-                this.drawWaveform(this.tracks.find(t => t.id === trackId)); // Redraw waveform to fit new height
+                if (trackRow) trackRow.style.height = `${trackItem.offsetHeight}px`;
+                const track = this.tracks.find(t => t.id === trackId);
+                if (track) this.drawWaveform(track);
             }, 0);
         } else {
             mixerDiv.style.display = 'none';
-            trackItem.classList.remove('expanded');
-            // Sync height
+            trackItem?.classList.remove('expanded');
             setTimeout(() => {
-                trackRow.style.height = `${trackItem.offsetHeight}px`;
-                this.drawWaveform(this.tracks.find(t => t.id === trackId));
+                if (trackRow) trackRow.style.height = `${trackItem.offsetHeight}px`;
+                const track = this.tracks.find(t => t.id === trackId);
+                if (track) this.drawWaveform(track);
             }, 0);
         }
-    }
-
-    drawWaveform(track) {
-        const canvas = document.getElementById(`waveform-${track.id}`);
-        if (!canvas || !track.audioBuffer) return;
-
-        const ctx = canvas.getContext('2d');
-
-        // Set canvas width based on audio duration
-        const duration = track.audioBuffer.duration;
-        const width = canvas.width = duration * this.pixelsPerSecond;
-        const height = canvas.height = canvas.offsetHeight;
-
-        const data = track.audioBuffer.getChannelData(0);
-        const step = Math.ceil(data.length / width);
-        const amp = height / 2;
-
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-        ctx.fillRect(0, 0, width, height);
-
-        // Get theme color
-        const themeColor = this.getThemeColor();
-        ctx.strokeStyle = themeColor;
-        ctx.lineWidth = 1;
-
-        ctx.beginPath();
-        for (let i = 0; i < width; i++) {
-            const min = Math.min(...data.slice(i * step, (i + 1) * step));
-            const max = Math.max(...data.slice(i * step, (i + 1) * step));
-            ctx.moveTo(i, (1 + min) * amp);
-            ctx.lineTo(i, (1 + max) * amp);
-        }
-        ctx.stroke();
-    }
-
-    getThemeColor() {
-        const body = document.body;
-        if (body.classList.contains('JamVault')) return '#FF8906';
-        if (body.classList.contains('natural')) return '#8FB996';
-        if (body.classList.contains('galactic')) return '#00B4D8';
-        if (body.classList.contains('retro')) return '#FFD460';
-        if (body.classList.contains('vintage')) return '#A6C48A';
-        if (body.classList.contains('redblack')) return '#C74B50';
-        return '#FF8906';
-    }
-
-    play() {
-        // If already playing and not paused, do nothing
-        if (this.isPlaying && !this.isPaused) return;
-
-        console.log('Play called - isPaused:', this.isPaused, 'pauseTime:', this.pauseTime);
-
-        const startOffset = this.isPaused ? this.pauseTime : 0;
-
-        if (this.isPaused) {
-            // Resume from pause
-            this.startTime = this.audioContext.currentTime - this.pauseTime;
-            this.isPaused = false;
-            console.log('Resuming from pause at:', this.pauseTime);
-        } else {
-            // Start from beginning or seek position
-            this.startTime = this.audioContext.currentTime - startOffset;
-            this.currentTime = startOffset;
-            console.log('Starting from beginning');
-        }
-
-        this.isPlaying = true;
-
-        // Play all non-muted tracks
-        const soloTracks = this.tracks.filter(t => t.solo);
-        const tracksToPlay = soloTracks.length > 0 ? soloTracks : this.tracks.filter(t => !t.muted);
-
-        tracksToPlay.forEach(track => {
-            if (track.audioBuffer) {
-                this.playTrack(track, startOffset);
-            }
-        });
-
-        // Start metronome if enabled
-        if (this.metronomeEnabled) {
-            this.startMetronome();
-        }
-
-        // Update UI
-        document.getElementById('playBtn').disabled = true;
-        document.getElementById('pauseBtn').disabled = false;
-
-        // Start playhead animation
-        this.updatePlayhead();
-
-        console.log('Playback started from:', startOffset);
-    }
-
-    playTrack(track, offset = 0) {
-        const source = this.audioContext.createBufferSource();
-        source.buffer = track.audioBuffer;
-
-        // Create gain node for volume
-        const gainNode = this.audioContext.createGain();
-        gainNode.gain.value = track.volume / 100;
-
-        // Create pan node
-        const panNode = this.audioContext.createStereoPanner();
-        panNode.pan.value = track.pan / 100;
-
-        // Connect nodes
-        source.connect(gainNode);
-        gainNode.connect(panNode);
-        panNode.connect(this.masterGain);
-
-        // Store references
-        track.source = source;
-        track.gainNode = gainNode;
-        track.panNode = panNode;
-
-        // Start playback from offset
-        const duration = track.audioBuffer.duration - offset;
-        if (duration > 0) {
-            source.start(0, offset, duration);
-        }
-
-        // Handle end of playback
-        source.onended = () => {
-            if (this.isPlaying) {
-                this.stop();
-            }
-        };
-    }
-
-    pause() {
-        if (!this.isPlaying || this.isPaused) return;
-
-        this.isPlaying = false;
-        this.isPaused = true;
-        this.pauseTime = this.audioContext.currentTime - this.startTime;
-
-        // Stop all playing tracks
-        this.tracks.forEach(track => {
-            if (track.source) {
-                track.source.stop();
-                track.source = null;
-            }
-        });
-
-        // Stop metronome
-        this.stopMetronome();
-
-        // Update UI
-        document.getElementById('playBtn').disabled = false;
-        document.getElementById('pauseBtn').disabled = true;
-
-        // Stop playhead animation
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-        }
-
-        console.log('Playback paused at:', this.pauseTime);
-    }
-
-    stop() {
-        if (!this.isPlaying && !this.isPaused) return;
-
-        this.isPlaying = false;
-        this.isPaused = false;
-        this.currentTime = 0;
-        this.pauseTime = 0;
-
-        // Stop all playing tracks
-        this.tracks.forEach(track => {
-            if (track.source) {
-                track.source.stop();
-                track.source = null;
-            }
-        });
-
-        // Stop metronome
-        this.stopMetronome();
-
-        // Update UI
-        document.getElementById('playBtn').disabled = false;
-        document.getElementById('pauseBtn').disabled = true;
-        document.getElementById('currentTime').textContent = '00:00.0';
-
-        // Reset playhead and progress bar
-        document.getElementById('playhead').style.left = '0px';
-        document.getElementById('progressFill').style.width = '0%';
-
-        // Stop playhead animation
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-        }
-
-        console.log('Playback stopped');
-    }
-
-    updatePlayhead() {
-        if (!this.isPlaying || this.isPaused) return;
-
-        const elapsed = this.audioContext.currentTime - this.startTime;
-        this.currentTime = elapsed;
-
-        // Update time display
-        const minutes = Math.floor(elapsed / 60);
-        const seconds = Math.floor(elapsed % 60);
-        const tenths = Math.floor((elapsed % 1) * 10);
-        document.getElementById('currentTime').textContent =
-            `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
-
-        // Update playhead position
-        const playhead = document.getElementById('playhead');
-        playhead.style.left = `${elapsed * this.pixelsPerSecond}px`;
-
-        // Update progress bar
-        const maxDuration = Math.max(...this.tracks.map(t => t.audioBuffer?.duration || 0), 60);
-        const percentage = (elapsed / maxDuration) * 100;
-        document.getElementById('progressFill').style.width = `${Math.min(percentage, 100)}%`;
-
-        // Continue animation
-        this.animationId = requestAnimationFrame(() => this.updatePlayhead());
     }
 
     toggleMute(trackId) {
@@ -810,13 +1091,12 @@ class JamStudioDAW {
 
         track.muted = !track.muted;
 
-        // Update UI
         const btn = document.querySelector(`.track-item[data-track-id="${trackId}"] .mute-btn`);
-        btn.classList.toggle('active');
+        btn?.classList.toggle('active');
 
-        // Update gain if playing
-        if (track.gainNode) {
-            track.gainNode.gain.value = track.muted ? 0 : track.volume / 100;
+        // Update signal chain volume
+        if (track.signalChain) {
+            track.signalChain.setVolume(track.muted ? 0 : track.volume / 100);
         }
     }
 
@@ -826,13 +1106,12 @@ class JamStudioDAW {
 
         track.solo = !track.solo;
 
-        // Update UI
         const btn = document.querySelector(`.track-item[data-track-id="${trackId}"] .solo-btn`);
-        btn.classList.toggle('active');
+        btn?.classList.toggle('active');
 
-        // If playing, restart playback with new solo state
+        // If playing, restart playback
         if (this.isPlaying) {
-            const currentTime = this.audioContext.currentTime - this.startTime;
+            const currentTime = this.audioEngine.getCurrentTime() - this.startTime;
             this.stop();
             this.pauseTime = currentTime;
             this.isPaused = true;
@@ -844,17 +1123,17 @@ class JamStudioDAW {
         const track = this.tracks.find(t => t.id === trackId);
         if (!track) return;
 
-        track.volume = parseInt(value);
+        track.volume = parseFloat(value);
 
-        // Update all volume displays for this track
-        document.querySelectorAll(`[data-track-id="${trackId}"] .track-volume span:last-child, 
-                               [data-track-id="${trackId}"] .mixer-value`).forEach(el => {
-            el.textContent = value + '%';
-        });
+        // Update the gain node
+        if (track.gainNode) {
+            track.gainNode.gain.value = track.volume / 100;
+        }
 
-        // Update gain if playing
-        if (track.gainNode && !track.muted) {
-            track.gainNode.gain.value = value / 100;
+        // Update UI display
+        const volumeDisplay = document.querySelector(`#mixer-${trackId} .mixer-row:nth-child(1) span`);
+        if (volumeDisplay) {
+            volumeDisplay.textContent = `${Math.round(track.volume)}%`;
         }
     }
 
@@ -862,26 +1141,19 @@ class JamStudioDAW {
         const track = this.tracks.find(t => t.id === trackId);
         if (!track) return;
 
-        track.pan = parseInt(value);
+        track.pan = parseFloat(value);
 
-        // Update pan if playing
+        // Update the pan node (it's always initialized now)
         if (track.panNode) {
-            track.panNode.pan.value = value / 100;
+            track.panNode.pan.value = track.pan / 100;
         }
-    }
 
-    setTrackInput(trackId, deviceId) {
-        const track = this.tracks.find(t => t.id === trackId);
-        if (!track) return;
-        track.inputDevice = deviceId;
-        console.log(`Track ${trackId} input set to ${deviceId}`);
-    }
-
-    setTrackOutput(trackId, deviceId) {
-        const track = this.tracks.find(t => t.id === trackId);
-        if (!track) return;
-        track.outputDevice = deviceId;
-        console.log(`Track ${trackId} output set to ${deviceId}`);
+        // Update UI display
+        const panDisplay = document.querySelector(`#mixer-${trackId} .mixer-row:nth-child(2) span`);
+        if (panDisplay) {
+            const panText = track.pan === 0 ? 'C' : track.pan > 0 ? `R${Math.round(track.pan)}` : `L${Math.round(Math.abs(track.pan))}`;
+            panDisplay.textContent = panText;
+        }
     }
 
     toggleTrackArm(trackId) {
@@ -890,229 +1162,14 @@ class JamStudioDAW {
 
         track.armed = !track.armed;
 
-        // Update UI
         const btn = document.querySelector(`.track-item[data-track-id="${trackId}"] .arm-btn`);
         if (track.armed) {
-            btn.classList.add('active');
+            btn?.classList.add('active');
         } else {
-            btn.classList.remove('active');
+            btn?.classList.remove('active');
         }
 
         console.log(`Track ${trackId} ${track.armed ? 'armed' : 'disarmed'} for recording`);
-    }
-
-    initializeTrackEffects(track) {
-        // Create Tone.js effects
-        track.effectsChain.distortionNode = new Tone.Distortion(0.4).toDestination();
-        track.effectsChain.reverbNode = new Tone.Reverb(1.5).toDestination();
-        track.effectsChain.delayNode = new Tone.FeedbackDelay("8n", 0.5).toDestination();
-        track.effectsChain.chorusNode = new Tone.Chorus(4, 2.5, 0.5).toDestination();
-
-        // Disconnect initially (we'll route manually)
-        track.effectsChain.distortionNode.disconnect();
-        track.effectsChain.reverbNode.disconnect();
-        track.effectsChain.delayNode.disconnect();
-        track.effectsChain.chorusNode.disconnect();
-    }
-
-    toggleTrackEffect(trackId, effectName, enabled) {
-        const track = this.tracks.find(t => t.id === trackId);
-        if (!track) return;
-
-        track.effects[effectName].enabled = enabled;
-        this.connectTrackEffects(track);
-
-        console.log(`Effect ${effectName} ${enabled ? 'enabled' : 'disabled'} for track ${trackId}`);
-    }
-
-    setTrackEffectParam(trackId, effectName, param, value) {
-        const track = this.tracks.find(t => t.id === trackId);
-        if (!track) return;
-
-        // Update state
-        track.effects[effectName][param] = parseFloat(value);
-
-        // Update Tone.js node
-        const nodeName = `${effectName}Node`;
-        const node = track.effectsChain[nodeName];
-
-        if (node) {
-            if (param === 'wet') {
-                node.wet.value = parseFloat(value);
-            } else if (param === 'drive') { // Distortion
-                node.distortion = parseFloat(value);
-            } else if (param === 'decay') { // Reverb
-                node.decay = parseFloat(value);
-            } else if (param === 'time') { // Delay
-                node.delayTime.value = parseFloat(value);
-            } else if (param === 'feedback') { // Delay
-                node.feedback.value = parseFloat(value);
-            } else if (param === 'depth') { // Chorus
-                node.depth = parseFloat(value);
-            } else if (param === 'frequency') { // Chorus
-                node.frequency.value = parseFloat(value);
-            }
-        }
-    }
-
-    connectTrackEffects(track) {
-        if (!track.source) return;
-
-        // Disconnect everything first
-        track.source.disconnect();
-
-        // Disconnect all effects
-        Object.values(track.effectsChain).forEach(node => {
-            if (node) node.disconnect();
-        });
-
-        // Build chain: Source -> [Effects] -> Gain -> Pan -> Master
-        let currentNode = track.source;
-
-        // Distortion
-        if (track.effects.distortion.enabled && track.effectsChain.distortionNode) {
-            currentNode.connect(track.effectsChain.distortionNode);
-            currentNode = track.effectsChain.distortionNode;
-        }
-
-        // Reverb
-        if (track.effects.reverb.enabled && track.effectsChain.reverbNode) {
-            currentNode.connect(track.effectsChain.reverbNode);
-            currentNode = track.effectsChain.reverbNode;
-        }
-
-        // Delay
-        if (track.effects.delay.enabled && track.effectsChain.delayNode) {
-            currentNode.connect(track.effectsChain.delayNode);
-            currentNode = track.effectsChain.delayNode;
-        }
-
-        // Chorus
-        if (track.effects.chorus.enabled && track.effectsChain.chorusNode) {
-            currentNode.connect(track.effectsChain.chorusNode);
-            currentNode = track.effectsChain.chorusNode;
-        }
-
-        // Connect to track gain/pan
-        if (track.gainNode) {
-            currentNode.connect(track.gainNode);
-            // Gain -> Pan -> Master is already set up in playTrack/addTrackToUI logic usually, 
-            // but we need to ensure the chain continues.
-            // In playTrack, we usually do source.connect(gainNode).
-            // Here we inserted effects in between.
-        }
-    }
-
-    deleteTrack(trackId) {
-        const index = this.tracks.findIndex(t => t.id === trackId);
-        if (index === -1) return;
-
-        // Stop track if playing
-        const track = this.tracks[index];
-        if (track.source) {
-            track.source.stop();
-        }
-
-        // Remove from array
-        this.tracks.splice(index, 1);
-
-        // Remove from UI
-        document.querySelector(`.track-item[data-track-id="${trackId}"]`)?.remove();
-        document.querySelector(`.track-row[data-track-id="${trackId}"]`)?.remove();
-        document.querySelector(`.mixer-channel[data-track-id="${trackId}"]`)?.remove();
-
-        console.log('Track deleted:', trackId);
-    }
-
-    addEmptyTrack() {
-        const trackId = this.nextTrackId++;
-        const track = {
-            id: trackId,
-            name: `Track ${trackId}`,
-            audioBuffer: null,
-            audioBlob: null,
-            source: null,
-            gainNode: null,
-            panNode: null,
-            volume: 80,
-            pan: 0,
-            muted: false,
-            solo: false,
-            startTime: 0,
-            armed: false,
-            monitoring: false, // NEW: Monitoring state
-            monitorNode: null, // NEW: Source node for monitoring
-            analyserNode: null, // NEW: Analyser for VU meter
-            inputDevice: 'default',
-            outputDevice: 'master',
-            mediaRecorder: null,
-            recordedChunks: [],
-            effects: {
-                distortion: { enabled: false, wet: 0, drive: 0.4 },
-                reverb: { enabled: false, wet: 0, decay: 1.5 },
-                delay: { enabled: false, wet: 0, time: 0.25, feedback: 0.5 },
-                chorus: { enabled: false, wet: 0, depth: 0.5, frequency: 2.5 }
-            },
-            effectsChain: {
-                distortionNode: null,
-                reverbNode: null,
-                delayNode: null,
-                chorusNode: null
-            }
-        };
-
-        // Create AnalyserNode
-        track.analyserNode = this.audioContext.createAnalyser();
-        track.analyserNode.fftSize = 256;
-
-        this.tracks.push(track);
-        this.initializeTrackEffects(track);
-        this.addTrackToUI(track);
-        this.drawWaveform(track);
-
-        // Start meter update loop if not already running
-        if (!this.meterInterval) {
-            this.updateMeters();
-        }
-
-        console.log('Empty track added:', trackId);
-    }
-
-    updateMeters() {
-        this.meterInterval = requestAnimationFrame(() => this.updateMeters());
-
-        this.tracks.forEach(track => {
-            if (!track.analyserNode) return;
-
-            const bufferLength = track.analyserNode.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            track.analyserNode.getByteFrequencyData(dataArray);
-
-            // Calculate average volume
-            let sum = 0;
-            for (let i = 0; i < bufferLength; i++) {
-                sum += dataArray[i];
-            }
-            const average = sum / bufferLength;
-
-            // Map to 0-100%
-            const volume = Math.min(100, (average / 50) * 100);
-
-            // Update UI
-            const meterEl = document.querySelector(`.track-item[data-track-id="${track.id}"] .vu-level`);
-            if (meterEl) {
-                meterEl.style.height = `${volume}%`;
-
-                // Color change based on level
-                if (volume > 90) {
-                    meterEl.style.backgroundColor = '#e74c3c'; // Red
-                } else if (volume > 70) {
-                    meterEl.style.backgroundColor = '#f1c40f'; // Yellow
-                } else {
-                    meterEl.style.backgroundColor = '#2ecc71'; // Green
-                }
-            }
-        });
     }
 
     async toggleTrackMonitoring(trackId) {
@@ -1121,13 +1178,13 @@ class JamStudioDAW {
 
         track.monitoring = !track.monitoring;
 
-        // Update UI
         const btn = document.querySelector(`.track-item[data-track-id="${trackId}"] .monitor-btn`);
+
         if (track.monitoring) {
-            btn.classList.add('active');
+            btn?.classList.add('active');
 
             try {
-                // Get microphone stream if not already available
+                // Get microphone stream
                 let stream = this.recordingStream;
                 if (!stream) {
                     stream = await navigator.mediaDevices.getUserMedia({
@@ -1141,71 +1198,31 @@ class JamStudioDAW {
                     });
                 }
 
-                // Create source node for monitoring
+                // Create source node
                 if (!track.monitorNode) {
-                    track.monitorNode = this.audioContext.createMediaStreamSource(stream);
+                    track.monitorNode = this.audioEngine.createMediaStreamSource(stream);
                 }
 
-                // Connect to Analyser (for VU meter)
+                // Connect to analyser for VU meter visualization only
                 if (track.analyserNode) {
                     track.monitorNode.connect(track.analyserNode);
                 }
 
-                // Connect to effects chain
-                // We treat the monitor node as the source for the effects chain temporarily
-                // Note: This might conflict if we are playing back recorded audio at the same time.
-                // For a simple DAW, usually monitoring is for input.
+                // IMPORTANT: Lines below are commented to prevent feedback loop
+                // If you want to hear yourself, use headphones and uncomment these lines:
+                // track.monitorNode.connect(track.signalChain.input);
+                // track.signalChain.connect(this.audioEngine.getDestination());
 
-                // Disconnect existing source if any (e.g. playback)
-                if (track.source) {
-                    track.source.disconnect();
-                }
-
-                // Connect monitor node to effects chain
-                // We need to manually route it because connectTrackEffects expects track.source
-                // Let's temporarily set track.source to monitorNode for the routing logic to work, 
-                // or better, manually route here to avoid state confusion.
-
-                // Actually, let's use a dedicated method or just manual routing here.
-                // Re-using connectTrackEffects is risky if it relies on track.source being the buffer source.
-
-                // Let's route: monitorNode -> effects -> gain -> pan -> master
-                let currentNode = track.monitorNode;
-
-                // Apply effects (same logic as connectTrackEffects but with monitorNode)
-                if (track.effects.distortion.enabled && track.effectsChain.distortionNode) {
-                    currentNode.connect(track.effectsChain.distortionNode);
-                    currentNode = track.effectsChain.distortionNode;
-                }
-                if (track.effects.reverb.enabled && track.effectsChain.reverbNode) {
-                    currentNode.connect(track.effectsChain.reverbNode);
-                    currentNode = track.effectsChain.reverbNode;
-                }
-                if (track.effects.delay.enabled && track.effectsChain.delayNode) {
-                    currentNode.connect(track.effectsChain.delayNode);
-                    currentNode = track.effectsChain.delayNode;
-                }
-                if (track.effects.chorus.enabled && track.effectsChain.chorusNode) {
-                    currentNode.connect(track.effectsChain.chorusNode);
-                    currentNode = track.effectsChain.chorusNode;
-                }
-
-                // Connect to track gain
-                if (track.gainNode) {
-                    currentNode.connect(track.gainNode);
-                }
-
-                console.log(`Monitoring enabled for track ${trackId}`);
+                console.log(`Monitoring enabled for track ${trackId} (VU meter only - no audio output)`);
 
             } catch (error) {
                 console.error('Error enabling monitoring:', error);
                 alert('Error al activar el monitoreo. Verifica los permisos del micrófono.');
                 track.monitoring = false;
-                btn.classList.remove('active');
+                btn?.classList.remove('active');
             }
-
         } else {
-            btn.classList.remove('active');
+            btn?.classList.remove('active');
 
             // Disconnect monitoring
             if (track.monitorNode) {
@@ -1213,11 +1230,62 @@ class JamStudioDAW {
                 track.monitorNode = null;
             }
 
-            // If we were recording, we might want to keep the stream open, 
-            // but for now let's just disconnect the node.
-
             console.log(`Monitoring disabled for track ${trackId}`);
         }
+    }
+
+    setTrackVolume(trackId, value) {
+        const track = this.tracks.find(t => t.id === trackId);
+        if (!track) return;
+
+        track.volume = parseInt(value);
+
+        // Update UI
+        const span = document.querySelector(`#mixer-${trackId} .mixer-row:first-child span`);
+        if (span) span.textContent = value + '%';
+
+        // Update signal chain
+        if (track.signalChain && !track.muted) {
+            track.signalChain.setVolume(value / 100);
+        }
+    }
+
+    setTrackPan(trackId, value) {
+        const track = this.tracks.find(t => t.id === trackId);
+        if (!track) return;
+
+        track.pan = parseInt(value);
+
+        // Update UI
+        const span = document.querySelector(`#mixer-${trackId} .mixer-row:nth-child(2) span`);
+        if (span) span.textContent = value;
+
+        // Update signal chain
+        if (track.signalChain) {
+            track.signalChain.setPan(value / 100);
+        }
+    }
+
+    applyPreset(trackId, presetName) {
+        const track = this.tracks.find(t => t.id === trackId);
+        if (!track || !track.signalChain) return;
+
+        switch (presetName) {
+            case 'clean':
+                track.signalChain.presetCleanGuitar();
+                break;
+            case 'rock':
+                track.signalChain.presetRockGuitar();
+                break;
+            case 'metal':
+                track.signalChain.presetMetalGuitar();
+                break;
+            case 'lead':
+                track.signalChain.presetLeadGuitar();
+                break;
+        }
+
+        console.log(`Applied ${presetName} preset to track ${trackId}`);
     }
 
     importAudioToTrack(trackId) {
@@ -1234,10 +1302,20 @@ class JamStudioDAW {
 
             try {
                 const arrayBuffer = await file.arrayBuffer();
-                const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+                const audioBuffer = await this.audioEngine.decodeAudioData(arrayBuffer);
 
-                track.audioBuffer = audioBuffer;
-                track.audioBlob = file;
+                // Create clip
+                const clip = {
+                    id: this.timelineManager.generateClipId(),
+                    startTime: this.currentTime,
+                    duration: audioBuffer.duration,
+                    audioBuffer: audioBuffer,
+                    audioBlob: file,
+                    bufferOffset: 0
+                };
+
+                this.timelineManager.addClip(track.id, clip);
+
                 track.name = file.name.replace(/\.[^/.]+$/, '');
 
                 const nameEl = document.querySelector(`.track-item[data-track-id="${trackId}"] .track-name`);
@@ -1262,10 +1340,13 @@ class JamStudioDAW {
 
         this.stop();
 
-        // Clear all tracks
+        // Cleanup all tracks
         this.tracks.forEach(track => {
             if (track.source) {
                 track.source.stop();
+            }
+            if (track.signalChain) {
+                track.signalChain.destroy();
             }
         });
 
@@ -1273,12 +1354,125 @@ class JamStudioDAW {
         this.nextTrackId = 1;
 
         // Clear UI
-        document.getElementById('trackListContainer').innerHTML = '';
-        document.getElementById('tracksContainer').innerHTML = '';
-        // document.getElementById('mixerContainer').innerHTML = ''; // Mixer is now per-track
+        const trackListContainer = document.getElementById('trackListContainer');
+        const tracksContainer = document.getElementById('tracksContainer');
+        if (trackListContainer) trackListContainer.innerHTML = '';
+        if (tracksContainer) tracksContainer.innerHTML = '';
 
         console.log('All tracks cleared');
     }
+
+    drawWaveform(track) {
+        const canvas = document.getElementById(`waveform-${track.id}`);
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const clips = this.timelineManager.getClips(track.id);
+
+        const maxDuration = this.timelineManager.getTotalDuration() || 60;
+        canvas.width = maxDuration * this.pixelsPerSecond;
+        canvas.height = canvas.offsetHeight;
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        clips.forEach(clip => {
+            const startX = clip.startTime * this.pixelsPerSecond;
+            const width = clip.duration * this.pixelsPerSecond;
+            this.drawClipWaveform(ctx, clip, startX, width, canvas.height);
+        if (body.classList.contains('natural')) return '#8FB996';
+        if (body.classList.contains('galactic')) return '#00B4D8';
+        if (body.classList.contains('retro')) return '#FFD460';
+        if (body.classList.contains('vintage')) return '#A6C48A';
+        if (body.classList.contains('redblack')) return '#C74B50';
+        return '#FF8906';
+    }
+
+    // ========== VU METERS ==========
+
+    updateMeters() {
+        this.meterInterval = requestAnimationFrame(() => this.updateMeters());
+
+        this.tracks.forEach(track => {
+            if (!track.analyserNode) return;
+
+            const bufferLength = track.analyserNode.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            track.analyserNode.getByteFrequencyData(dataArray);
+
+            // Calculate average volume
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+                sum += dataArray[i];
+            }
+            const average = sum / bufferLength;
+            const volume = Math.min(100, (average / 50) * 100);
+
+            // Update UI
+            const meterEl = document.querySelector(`.track-item[data-track-id="${track.id}"] .vu-level`);
+            if (meterEl) {
+                meterEl.style.height = `${volume}%`;
+
+                // Color change based on level
+                if (volume > 90) {
+                    meterEl.style.backgroundColor = '#e74c3c'; // Red
+                } else if (volume > 70) {
+                    meterEl.style.backgroundColor = '#f1c40f'; // Yellow
+                } else {
+                    meterEl.style.backgroundColor = '#2ecc71'; // Green
+                }
+            }
+        });
+    }
+
+    // ========== METRONOME ==========
+
+    startMetronome() {
+        if (this.metronomeInterval) {
+            this.stopMetronome();
+        }
+
+        const intervalMs = (60 / this.bpm) * 1000;
+
+        // Play first click immediately
+        this.playMetronomeClick();
+
+        // Then play subsequent clicks
+        this.metronomeInterval = setInterval(() => {
+            this.playMetronomeClick();
+        }, intervalMs);
+
+        console.log('Metronome started at', this.bpm, 'BPM');
+    }
+
+    stopMetronome() {
+        if (this.metronomeInterval) {
+            clearInterval(this.metronomeInterval);
+            this.metronomeInterval = null;
+            console.log('Metronome stopped');
+        }
+    }
+
+    playMetronomeClick() {
+        const clickDuration = 0.05; // 50ms click
+        const now = this.audioEngine.getCurrentTime();
+
+        // Create oscillator for click sound
+        const oscillator = this.audioEngine.createOscillator('sine', 1000);
+        const clickGain = this.audioEngine.createGain(0);
+
+        oscillator.connect(clickGain);
+        clickGain.connect(this.metronomeGain);
+
+        // Quick attack and decay
+        clickGain.gain.setValueAtTime(0.5, now);
+        clickGain.gain.exponentialRampToValueAtTime(0.01, now + clickDuration);
+
+        oscillator.start(now);
+        oscillator.stop(now + clickDuration);
+    }
+
+    // ========== EXPORT ==========
 
     async exportMix() {
         if (this.tracks.length === 0) {
@@ -1289,15 +1483,11 @@ class JamStudioDAW {
         try {
             // Create offline context for rendering
             const maxDuration = Math.max(...this.tracks.map(t => t.audioBuffer?.duration || 0));
-            const offlineContext = new OfflineAudioContext(
-                2, // stereo
-                maxDuration * this.audioContext.sampleRate,
-                this.audioContext.sampleRate
-            );
+            const offlineContext = this.audioEngine.createOfflineContext(maxDuration, 2);
 
             // Create master gain
             const masterGain = offlineContext.createGain();
-            masterGain.gain.value = this.masterGain.gain.value;
+            masterGain.gain.value = this.audioEngine.getMasterVolume();
             masterGain.connect(offlineContext.destination);
 
             // Add all non-muted tracks
@@ -1334,7 +1524,7 @@ class JamStudioDAW {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `jamstudio-mix-${Date.now()}.wav`;
+            a.download = `JamVault-Export-${Date.now()}.wav`;
             a.click();
             URL.revokeObjectURL(url);
 
@@ -1345,6 +1535,103 @@ class JamStudioDAW {
             console.error('Error exporting mix:', error);
             alert('Error al exportar el mix.');
         }
+    }
+
+    // ========== CLIP INTERACTION ==========
+
+    setupClipInteraction(track) {
+        const canvas = document.getElementById(`waveform-${track.id}`);
+        if (!canvas) return;
+
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault(); // Prevent default browser context menu
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+
+            const clip = this.timelineManager.getClipAtPosition(track.id, x, this.pixelsPerSecond);
+
+            if (clip) {
+                // Select clip
+                this.timelineManager.selectClip(track.id, clip.id);
+                this.highlightSelectedClip(track, clip);
+
+                // Show clip menu
+                this.showClipContextMenu(track, clip, e.clientX, e.clientY);
+            } else {
+                this.timelineManager.deselectClip();
+            }
+        });
+    }
+
+    showClipContextMenu(track, clip, x, y) {
+        // Remove existing menu
+        const existingMenu = document.getElementById('clip-context-menu');
+        if (existingMenu) existingMenu.remove();
+
+        // Create menu
+        const menu = document.createElement('div');
+        menu.id = 'clip-context-menu';
+        menu.style.position = 'fixed';
+        menu.style.left = `${x}px`;
+        menu.style.top = `${y}px`;
+        menu.style.backgroundColor = '#333';
+        menu.style.border = '1px solid #666';
+        menu.style.borderRadius = '4px';
+        menu.style.padding = '0.5rem';
+        menu.style.zIndex = '10000';
+
+        menu.innerHTML = `
+            <div style="color: white; margin-bottom: 0.5rem; font-weight: bold;">Clip: ${clip.id.substr(0, 8)}...</div>
+            <button class="btn" onclick="daw.deleteClip(${track.id}, '${clip.id}')">Eliminar</button>
+            <button class="btn" onclick="daw.splitClipAtPlayhead(${track.id}, '${clip.id}')">Dividir</button>
+        `;
+
+        document.body.appendChild(menu);
+
+        // Close menu on click outside
+        setTimeout(() => {
+            document.addEventListener('click', function closeMenu(e) {
+                if (!menu.contains(e.target)) {
+                    menu.remove();
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }, 100);
+    }
+
+    highlightSelectedClip(track, clip) {
+        // Redraw waveform with highlight
+        this.drawWaveform(track);
+
+        const canvas = document.getElementById(`waveform-${track.id}`);
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const startX = clip.startTime * this.pixelsPerSecond;
+        const width = clip.duration * this.pixelsPerSecond;
+
+        // Draw highlight border
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(startX, 0, width, canvas.height);
+    }
+
+    highlightSelectedClip(track, clip) {
+        // Redraw waveform with highlight
+        this.drawWaveform(track);
+
+        const canvas = document.getElementById(`waveform-${track.id}`);
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const startX = clip.startTime * this.pixelsPerSecond;
+        const width = clip.duration * this.pixelsPerSecond;
+
+        // Draw highlight border
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(startX, 0, width, canvas.height);
     }
 
     audioBufferToWav(buffer) {
@@ -1402,160 +1689,123 @@ class JamStudioDAW {
         return arrayBuffer;
     }
 
-    // Metronome methods
-    startMetronome() {
-        if (this.metronomeInterval) {
-            this.stopMetronome();
-        }
+    // ========== CLIP INTERACTION ==========
 
-        const intervalMs = (60 / this.bpm) * 1000;
+    setupClipInteraction(track) {
+        const canvas = document.getElementById(`waveform-${track.id}`);
+        if (!canvas) return;
 
-        // Play first click immediately
-        this.playMetronomeClick();
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault(); // Prevent default browser context menu
 
-        // Then play subsequent clicks
-        this.metronomeInterval = setInterval(() => {
-            this.playMetronomeClick();
-        }, intervalMs);
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
 
-        console.log('Metronome started at', this.bpm, 'BPM');
-    }
+            const clip = this.timelineManager.getClipAtPosition(track.id, x, this.pixelsPerSecond);
 
-    stopMetronome() {
-        if (this.metronomeInterval) {
-            clearInterval(this.metronomeInterval);
-            this.metronomeInterval = null;
-            console.log('Metronome stopped');
-        }
-    }
+            if (clip) {
+                // Select clip
+                this.timelineManager.selectClip(track.id, clip.id);
+                this.highlightSelectedClip(track, clip);
 
-    playMetronomeClick() {
-        const clickDuration = 0.05; // 50ms click
-        const now = this.audioContext.currentTime;
-
-        // Create oscillator for click sound
-        const oscillator = this.audioContext.createOscillator();
-        const clickGain = this.audioContext.createGain();
-
-        oscillator.connect(clickGain);
-        clickGain.connect(this.metronomeGain);
-
-        // High-pitched click (like a woodblock)
-        oscillator.frequency.value = 1000;
-        oscillator.type = 'sine';
-
-        // Quick attack and decay for percussive sound
-        clickGain.gain.setValueAtTime(0.5, now);
-        clickGain.gain.exponentialRampToValueAtTime(0.01, now + clickDuration);
-
-        oscillator.start(now);
-        oscillator.stop(now + clickDuration);
-    }
-
-    // Tone.js Effects Integration
-    initEffects() {
-        this.effects = {
-            distortion: new Tone.Distortion(0.4).toDestination(),
-            reverb: new Tone.Reverb(1.5).toDestination(),
-            delay: new Tone.FeedbackDelay("8n", 0.5).toDestination(),
-            chorus: new Tone.Chorus(4, 2.5, 0.5).toDestination()
-        };
-
-        // Mic input
-        this.mic = new Tone.UserMedia();
-
-        // Chain: Mic -> Distortion -> Chorus -> Delay -> Reverb -> Master
-        // We'll use a disconnect/connect strategy or Tone.Chain
-
-        // Initial state: all bypassed
-        // For simplicity in this demo, we'll connect mic to all effects in parallel or series based on toggles
-        // Better approach: Mic -> Effect1 -> Effect2 ... -> Destination
-
-        this.mic.connect(Tone.Destination); // Direct signal (Dry)
-    }
-
-    setupEffectsUI() {
-        const sidebar = document.getElementById('effectsSidebar');
-        const openBtn = document.getElementById('openEffectsBtn');
-        const closeBtn = document.getElementById('closeEffectsBtn');
-
-        if (openBtn) openBtn.onclick = () => sidebar.classList.add('open');
-        if (closeBtn) closeBtn.onclick = () => sidebar.classList.remove('open');
-
-        // Toggle Effects
-        this.setupEffectToggle('distortion', this.effects.distortion);
-        this.setupEffectToggle('reverb', this.effects.reverb);
-        this.setupEffectToggle('delay', this.effects.delay);
-        this.setupEffectToggle('chorus', this.effects.chorus);
-
-        // Parameters
-        const bindParam = (id, target, prop) => {
-            const el = document.getElementById(id);
-            if (el) el.oninput = (e) => target[prop] = e.target.value;
-        };
-
-        bindParam('distortionDrive', this.effects.distortion, 'distortion');
-
-        const reverbDecay = document.getElementById('reverbDecay');
-        if (reverbDecay) reverbDecay.oninput = (e) => this.effects.reverb.decay = e.target.value;
-
-        const reverbMix = document.getElementById('reverbMix');
-        if (reverbMix) reverbMix.oninput = (e) => this.effects.reverb.wet.value = e.target.value;
-
-        const delayTime = document.getElementById('delayTime');
-        if (delayTime) delayTime.oninput = (e) => this.effects.delay.delayTime.value = e.target.value;
-
-        const delayFeedback = document.getElementById('delayFeedback');
-        if (delayFeedback) delayFeedback.oninput = (e) => this.effects.delay.feedback.value = e.target.value;
-
-        const chorusDepth = document.getElementById('chorusDepth');
-        if (chorusDepth) chorusDepth.oninput = (e) => this.effects.chorus.depth = e.target.value;
-    }
-
-    setupEffectToggle(name, effect) {
-        const toggle = document.getElementById(`${name}Toggle`);
-        if (!toggle) return;
-
-        // Initially disconnect
-        effect.disconnect();
-
-        toggle.onchange = async (e) => {
-            if (e.target.checked) {
-                // Ensure mic is open
-                if (this.mic.state !== 'started') {
-                    await this.mic.open();
-                    console.log('Mic opened for effects');
-                }
-
-                // Connect Mic -> Effect -> Destination
-                this.mic.connect(effect);
-                console.log(`${name} enabled`);
+                // Show clip menu
+                this.showClipContextMenu(track, clip, e.clientX, e.clientY);
             } else {
-                this.mic.disconnect(effect);
-                console.log(`${name} disabled`);
+                this.timelineManager.deselectClip();
             }
-        };
+        });
+    }
+
+    showClipContextMenu(track, clip, x, y) {
+        // Remove existing menu
+        const existingMenu = document.getElementById('clip-context-menu');
+        if (existingMenu) existingMenu.remove();
+
+        // Create menu
+        const menu = document.createElement('div');
+        menu.id = 'clip-context-menu';
+        menu.style.position = 'fixed';
+        menu.style.left = `${x}px`;
+        menu.style.top = `${y}px`;
+        menu.style.backgroundColor = '#333';
+        menu.style.border = '1px solid #666';
+        menu.style.borderRadius = '4px';
+        menu.style.padding = '0.5rem';
+        menu.style.zIndex = '10000';
+
+        menu.innerHTML = `
+            <div style="color: white; margin-bottom: 0.5rem; font-weight: bold;">Clip: ${clip.id.substr(0, 8)}...</div>
+            <button class="btn" onclick="daw.deleteClip(${track.id}, '${clip.id}')">Eliminar</button>
+            <button class="btn" onclick="daw.splitClipAtPlayhead(${track.id}, '${clip.id}')">Dividir</button>
+        `;
+
+        document.body.appendChild(menu);
+
+        // Close menu on click outside
+        setTimeout(() => {
+            document.addEventListener('click', function closeMenu(e) {
+                if (!menu.contains(e.target)) {
+                    menu.remove();
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }, 100);
+    }
+
+    highlightSelectedClip(track, clip) {
+        // Redraw waveform with highlight
+        this.drawWaveform(track);
+
+        const canvas = document.getElementById(`waveform-${track.id}`);
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const startX = clip.startTime * this.pixelsPerSecond;
+        const width = clip.duration * this.pixelsPerSecond;
+
+        // Draw highlight border
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(startX, 0, width, canvas.height);
+    }
+
+    // ========== CLIP EDITING ==========
+
+    deleteClip(trackId, clipId) {
+        this.timelineManager.removeClip(trackId, clipId);
+        const track = this.tracks.find(t => t.id === trackId);
+        if (track) this.drawWaveform(track);
+        const menu = document.getElementById('clip-context-menu');
+        if (menu) menu.remove();
+    }
+
+    splitClipAtPlayhead(trackId, clipId) {
+        const splitTime = this.currentTime;
+        this.timelineManager.splitClip(trackId, clipId, splitTime);
+        const track = this.tracks.find(t => t.id === trackId);
+        if (track) this.drawWaveform(track);
+        const menu = document.getElementById('clip-context-menu');
+        if (menu) menu.remove();
     }
 }
 
-
-// Initialize DAW when page loads
+// Initialize on page load
 let daw;
-window.addEventListener('DOMContentLoaded', () => {
-    daw = new JamStudioDAW();
+window.addEventListener('DOMContentLoaded', async () => {
+    daw = new JamStudioPro();
 
-    // Initialize Tone.js context on first user interaction to avoid warnings
+    // Make daw globally available for HTML onclick handlers
+    window.daw = daw;
+
+    // Resume audio context on first user interaction
     document.body.addEventListener('click', async () => {
-        if (typeof Tone !== 'undefined' && Tone.context.state !== 'running') {
-            await Tone.start();
+        if (daw.audioEngine) {
+            await daw.audioEngine.resume();
         }
     }, { once: true });
-
-    // Init effects after a slight delay or on interaction (only if effects sidebar exists)
-    setTimeout(() => {
-        if (typeof Tone !== 'undefined' && document.getElementById('effectsSidebar')) {
-            daw.initEffects();
-            daw.setupEffectsUI();
-        }
-    }, 100);
 });
+
+
+
+
+export { JamStudioPro };
