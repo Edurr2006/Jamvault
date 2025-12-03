@@ -6,7 +6,7 @@ import { SignalChain } from './SignalChain.js';
 import { AudioMath } from './utils/AudioMath.js';
 import { TimelineManager } from './TimelineManager.js';
 
-class JamStudioPro {
+class Jamstudio {
     constructor() {
         // Core audio engine
         this.audioEngine = null;
@@ -1332,7 +1332,6 @@ class JamStudioPro {
             }
         };
 
-        // Trigger file picker (user gesture originates from button click)
         input.click();
     }
 
@@ -1382,7 +1381,40 @@ class JamStudioPro {
             const width = clip.duration * this.pixelsPerSecond;
             this.drawClipWaveform(ctx, clip, startX, width, canvas.height);
         });
+    }
 
+    getThemeColor() {
+        const body = document.body;
+        if (body.classList.contains('natural')) return '#8FB996';
+        if (body.classList.contains('galactic')) return '#00B4D8';
+        if (body.classList.contains('retro')) return '#FFD460';
+        if (body.classList.contains('vintage')) return '#A6C48A';
+        if (body.classList.contains('redblack')) return '#C74B50';
+        return '#FF8906';
+    }
+
+    drawClipWaveform(ctx, clip, x, width, height) {
+        if (!clip.audioBuffer) return;
+
+        const data = clip.audioBuffer.getChannelData(0);
+        const step = Math.ceil(data.length / width);
+        const amp = height / 2;
+
+        ctx.fillStyle = this.getThemeColor();
+        ctx.beginPath();
+
+        for (let i = 0; i < width; i++) {
+            let min = 1.0;
+            let max = -1.0;
+
+            for (let j = 0; j < step; j++) {
+                const datum = data[(i * step) + j];
+                if (datum < min) min = datum;
+                if (datum > max) max = datum;
+            }
+
+            ctx.fillRect(x + i, (1 + min) * amp, 1, Math.max(1, (max - min) * amp));
+        }
     }
 
     // ========== VU METERS ==========
@@ -1789,7 +1821,7 @@ class JamStudioPro {
 // Initialize on page load
 let daw;
 window.addEventListener('DOMContentLoaded', async () => {
-    daw = new JamStudioPro();
+    daw = new Jamstudio();
 
     // Make daw globally available for HTML onclick handlers
     window.daw = daw;
@@ -1805,4 +1837,4 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 
 
-export { JamStudioPro };
+export { Jamstudio };
