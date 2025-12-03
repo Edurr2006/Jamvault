@@ -1,49 +1,52 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Afinador - JamVault</title>
-    <link rel="stylesheet" href="IndexStyles_fixed.css">
+  <link rel="stylesheet" href="IndexStyles_fixed.css">
 </head>
 </head>
+
 <body class="JamVault">
-    <center>
-  <header>
-  <a href="INDEX.html">
-    <div class="logo-title">
-      <img src="imagenes/logo.png" alt="Logo" class="Logo">
-    </div>
-  </a>
+  <center>
+    <header>
+      <a href="index.html">
+        <div class="logo-title">
+          <img src="imagenes/logo.png" alt="Logo" class="Logo">
+        </div>
+      </a>
       <div class="nav-links">
-    <a href="Acordes.html" class="btn">Acordes</a>
-    <a href="Escalas.html" class="btn">Escalas</a>
-    <a href="Tabs.html" class="btn">Tabs</a>
-    <a href="Afinador.html" class="btn">Afinador</a>
-    <a href="Jamstudio.html" class="btn">JamStudio</a>
-    <a href="Songbook.html" class="btn">Canciones</a>
+        <a href="Acordes.html" class="btn">Acordes</a>
+        <a href="Escalas.html" class="btn">Escalas</a>
+        <a href="Tabs.html" class="btn">Tabs</a>
+        <a href="Afinador.html" class="btn">Afinador</a>
+        <a href="Jamstudio.html" class="btn">JamStudio</a>
+        <a href="Songbook.html" class="btn">Canciones</a>
       </div>
-    <button id="toggleTheme" class="btn">Cambiar Tema</button>
-  </header>
-  <br><br><br>
+      <button id="toggleTheme" class="btn">Cambiar Tema</button>
+    </header>
+    <br><br><br>
 
-  <div class="tuner-container">
-    <h1>Afinador de guitarra</h1>
-    <p>Permite el micrófono y toca una cuerda para afinar.</p>
+    <div class="tuner-container">
+      <h1>Afinador de guitarra</h1>
+      <p>Permite el micrófono y toca una cuerda para afinar.</p>
 
-    <button id="startButton" class="btn">Iniciar afinador</button>
-    <br><br>
+      <button id="startButton" class="btn">Iniciar afinador</button>
+      <br><br>
 
-    <div id="note-display" class="note-display">
-      <h1 id="note">—</h1>
-      <p id="freq">Frecuencia: — Hz</p>
-      <p id="deviation">Desviación: —</p>
+      <div id="note-display" class="note-display">
+        <h1 id="note">—</h1>
+        <p id="freq">Frecuencia: — Hz</p>
+        <p id="deviation">Desviación: —</p>
+      </div>
     </div>
-  </div>
 
-  <script src="afinador.js">
-  </script>
-  <script src="LocalStorage.js"></script>
+    <script src="afinador.js">
+    </script>
+    <script src="LocalStorage.js"></script>
   </center>
 </body>
+
 </html>
