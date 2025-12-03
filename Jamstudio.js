@@ -1646,22 +1646,7 @@ class Jamstudio {
         ctx.strokeRect(startX, 0, width, canvas.height);
     }
 
-    highlightSelectedClip(track, clip) {
-        // Redraw waveform with highlight
-        this.drawWaveform(track);
 
-        const canvas = document.getElementById(`waveform-${track.id}`);
-        if (!canvas) return;
-
-        const ctx = canvas.getContext('2d');
-        const startX = clip.startTime * this.pixelsPerSecond;
-        const width = clip.duration * this.pixelsPerSecond;
-
-        // Draw highlight border
-        ctx.strokeStyle = '#FFD700';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(startX, 0, width, canvas.height);
-    }
 
     audioBufferToWav(buffer) {
         const length = buffer.length * buffer.numberOfChannels * 2 + 44;
