@@ -991,6 +991,7 @@ class Jamstudio {
         <button class="btn solo-btn" onclick="daw.toggleSolo(${track.id})">Solo</button>
         <button class="btn import-btn" onclick="daw.importAudioToTrack(${track.id})" title="Importar Audio">📂</button>
       </div>
+      </div>
       
       <!-- Embedded Mixer Controls (Hidden by default) -->
       <div class="track-mixer" id="mixer-${track.id}" style="display: none;">
@@ -1012,7 +1013,6 @@ class Jamstudio {
         <button class="btn" onclick="daw.applyPreset(${track.id}, 'rock')">Rock</button>
         <button class="btn" onclick="daw.applyPreset(${track.id}, 'metal')">Metal</button>
         <button class="btn" onclick="daw.applyPreset(${track.id}, 'lead')">Lead</button>
-      </div>
       </div>`;
 
         document.getElementById('trackListContainer')?.appendChild(trackItem);
@@ -1070,17 +1070,17 @@ class Jamstudio {
             mixerDiv.style.display = 'block';
             trackItem?.classList.add('expanded');
             setTimeout(() => {
-                if (trackRow) trackRow.style.height = `${trackItem.offsetHeight}px`;
-                const track = this.tracks.find(t => t.id === trackId);
-                if (track) this.drawWaveform(track);
+                if (trackRow && trackItem) {
+                    trackRow.style.height = `${trackItem.offsetHeight}px`;
+                }
             }, 0);
         } else {
             mixerDiv.style.display = 'none';
             trackItem?.classList.remove('expanded');
             setTimeout(() => {
-                if (trackRow) trackRow.style.height = `${trackItem.offsetHeight}px`;
-                const track = this.tracks.find(t => t.id === trackId);
-                if (track) this.drawWaveform(track);
+                if (trackRow) {
+                    trackRow.style.height = '100px'; // Reset to default height
+                }
             }, 0);
         }
     }
@@ -1367,7 +1367,20 @@ class Jamstudio {
         if (!canvas) return;
 
         const ctx = canvas.getContext('2d');
-        const clips = this.timelineManager.getClips(track.id);
+        // Get clips for this track
+        let clips = this.timelineManager.getClips(track.id);
+
+        // Filter out clips that are being dragged TO another track (they shouldn't appear here)
+        clips = clips.filter(c => c.tempTrackId === undefined || c.tempTrackId === track.id);
+
+        // Add clips that are being dragged FROM another track TO this track
+        this.tracks.forEach(otherTrack => {
+            if (otherTrack.id !== track.id) {
+                const otherClips = this.timelineManager.getClips(otherTrack.id);
+                const incomingClips = otherClips.filter(c => c.tempTrackId === track.id);
+                clips = clips.concat(incomingClips);
+            }
+        });
 
         const maxDuration = this.timelineManager.getTotalDuration() || 60;
         canvas.width = maxDuration * this.pixelsPerSecond;
@@ -1377,9 +1390,20 @@ class Jamstudio {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         clips.forEach(clip => {
-            const startX = clip.startTime * this.pixelsPerSecond;
+            // Use temporary position if dragging, otherwise actual position
+            const startTime = clip.tempStartTime !== undefined ? clip.tempStartTime : clip.startTime;
+
+            const startX = startTime * this.pixelsPerSecond;
             const width = clip.duration * this.pixelsPerSecond;
+
+            // Draw with slight transparency if dragging
+            if (clip.tempStartTime !== undefined) {
+                ctx.globalAlpha = 0.7;
+            }
+
             this.drawClipWaveform(ctx, clip, startX, width, canvas.height);
+
+            ctx.globalAlpha = 1.0;
         });
     }
 
@@ -1395,6 +1419,10 @@ class Jamstudio {
 
     drawClipWaveform(ctx, clip, x, width, height) {
         if (!clip.audioBuffer) return;
+
+        // Draw clip background
+        ctx.fillStyle = '#0A090F';
+        ctx.fillRect(x, 0, width, height);
 
         const data = clip.audioBuffer.getChannelData(0);
         const step = Math.ceil(data.length / width);
@@ -1709,24 +1737,104 @@ class Jamstudio {
         const canvas = document.getElementById(`waveform-${track.id}`);
         if (!canvas) return;
 
+        // Context menu (Right click)
         canvas.addEventListener('contextmenu', (e) => {
-            e.preventDefault(); // Prevent default browser context menu
-
+            e.preventDefault();
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
-
             const clip = this.timelineManager.getClipAtPosition(track.id, x, this.pixelsPerSecond);
 
             if (clip) {
-                // Select clip
                 this.timelineManager.selectClip(track.id, clip.id);
                 this.highlightSelectedClip(track, clip);
-
-                // Show clip menu
                 this.showClipContextMenu(track, clip, e.clientX, e.clientY);
             } else {
                 this.timelineManager.deselectClip();
             }
+        });
+
+        // Dragging logic
+        let isDragging = false;
+        let dragStartX = 0;
+        let initialClipStartTime = 0;
+        let draggedClip = null;
+        let initialTrackId = null;
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return; // Only left click
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const clip = this.timelineManager.getClipAtPosition(track.id, x, this.pixelsPerSecond);
+
+            if (clip) {
+                isDragging = true;
+                dragStartX = e.clientX;
+                initialClipStartTime = clip.startTime;
+                draggedClip = clip;
+                initialTrackId = track.id;
+
+                // Select clip
+                this.timelineManager.selectClip(track.id, clip.id);
+                this.highlightSelectedClip(track, clip);
+
+                // Disable timeline dragging while dragging clip
+                this.isDraggingTimeline = false;
+                e.stopPropagation(); // Prevent timeline drag start
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging || !draggedClip) return;
+
+            // Calculate new time
+            const deltaX = e.clientX - dragStartX;
+            const deltaTime = deltaX / this.pixelsPerSecond;
+            let newStartTime = Math.max(0, initialClipStartTime + deltaTime);
+
+            // Calculate target track
+            // Find which track row the mouse is over
+            const trackRows = document.querySelectorAll('.track-row');
+            let targetTrackId = initialTrackId;
+
+            trackRows.forEach(row => {
+                const rect = row.getBoundingClientRect();
+                if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                    targetTrackId = parseInt(row.dataset.trackId);
+                }
+            });
+
+            // Visual feedback
+            document.body.style.cursor = 'grabbing';
+
+            // Store temporary state for redraw
+            draggedClip.tempNewStartTime = newStartTime; // Legacy prop, keeping for safety
+            draggedClip.tempStartTime = newStartTime;    // New prop for drawWaveform
+            draggedClip.tempTrackId = targetTrackId;
+
+            // Redraw ALL tracks to show the ghost clip moving across them
+            this.tracks.forEach(t => this.drawWaveform(t));
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            if (!isDragging || !draggedClip) return;
+
+            isDragging = false;
+            document.body.style.cursor = 'default';
+
+            const newStartTime = draggedClip.tempNewStartTime !== undefined ? draggedClip.tempNewStartTime : draggedClip.startTime;
+            const targetTrackId = draggedClip.tempTargetTrackId !== undefined ? draggedClip.tempTargetTrackId : initialTrackId;
+
+            // Perform move
+            this.timelineManager.moveClip(initialTrackId, draggedClip.id, newStartTime, targetTrackId);
+
+            // Cleanup temp props
+            delete draggedClip.tempNewStartTime;
+            delete draggedClip.tempTargetTrackId;
+            draggedClip = null;
+
+            // Redraw all tracks to show changes
+            this.tracks.forEach(t => this.drawWaveform(t));
         });
     }
 
@@ -1794,7 +1902,9 @@ class Jamstudio {
     }
 
     splitClipAtPlayhead(trackId, clipId) {
-        const splitTime = this.currentTime;
+        // Use pauseTime if paused/stopped to match visual playhead exactly
+        const splitTime = (this.isPaused || !this.isPlaying) ? this.pauseTime : this.currentTime;
+
         this.timelineManager.splitClip(trackId, clipId, splitTime);
         const track = this.tracks.find(t => t.id === trackId);
         if (track) this.drawWaveform(track);

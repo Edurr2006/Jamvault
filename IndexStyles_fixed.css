@@ -1035,6 +1035,8 @@ a {
 .track-list-items {
   flex: 1;
   overflow-y: auto;
+  overflow-x: visible;
+  /* Allow mixer to overflow horizontally */
   padding: 0.5rem;
 }
 
