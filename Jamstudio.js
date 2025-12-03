@@ -395,7 +395,7 @@ class Jamstudio {
 
         // Redraw all waveforms
         this.tracks.forEach(track => {
-            if (track.audioBuffer) this.drawWaveform(track);
+            this.drawWaveform(track);
         });
 
         // Update playhead
