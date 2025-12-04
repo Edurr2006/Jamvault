@@ -10,7 +10,7 @@ export class TimelineManager {
 
     // ========== CLIP MANAGEMENT ==========
 
-    addClip(trackId, clip) {
+    addClip(trackId, clip, ripple = false) {
         if (!this.clips.has(trackId)) {
             this.clips.set(trackId, []);
         }
@@ -19,69 +19,98 @@ export class TimelineManager {
         const newStart = clip.startTime;
         const newEnd = clip.startTime + clip.duration;
 
-        // Check for overlaps and handle replacement non-destructively
-        const overlapping = this.getOverlappingClips(trackId, newStart, newEnd);
+        // If NOT ripple (Punch-in/Overwrite mode - default for recording)
+        if (!ripple) {
+            // Check for overlaps and handle replacement non-destructively
+            const overlapping = this.getOverlappingClips(trackId, newStart, newEnd);
 
-        overlapping.forEach(existingClip => {
-            const existingStart = existingClip.startTime;
-            const existingEnd = existingClip.startTime + existingClip.duration;
+            overlapping.forEach(existingClip => {
+                const existingStart = existingClip.startTime;
+                const existingEnd = existingClip.startTime + existingClip.duration;
 
-            // Case 1: New clip completely covers existing clip
-            if (newStart <= existingStart && newEnd >= existingEnd) {
-                this.removeClip(trackId, existingClip.id);
-            }
-            // Case 2: New clip is strictly inside existing clip (Split)
-            else if (newStart > existingStart && newEnd < existingEnd) {
-                // Split existing clip into two parts: before and after the new clip
+                // Case 1: New clip completely covers existing clip
+                if (newStart <= existingStart && newEnd >= existingEnd) {
+                    this.removeClip(trackId, existingClip.id);
+                }
+                // Case 2: New clip is strictly inside existing clip (Split)
+                else if (newStart > existingStart && newEnd < existingEnd) {
+                    // Split existing clip into two parts: before and after the new clip
 
-                // Part 1: Before new clip
-                const firstDuration = newStart - existingStart;
-                const firstClip = {
-                    id: this.generateClipId(),
-                    startTime: existingStart,
-                    duration: firstDuration,
-                    audioBuffer: existingClip.audioBuffer,
-                    audioBlob: existingClip.audioBlob,
-                    bufferOffset: existingClip.bufferOffset || 0
-                };
+                    // Part 1: Before new clip
+                    const firstDuration = newStart - existingStart;
+                    const firstClip = {
+                        id: this.generateClipId(),
+                        startTime: existingStart,
+                        duration: firstDuration,
+                        audioBuffer: existingClip.audioBuffer,
+                        audioBlob: existingClip.audioBlob,
+                        bufferOffset: existingClip.bufferOffset || 0
+                    };
 
-                // Part 2: After new clip
-                const secondDuration = existingEnd - newEnd;
-                const secondClip = {
-                    id: this.generateClipId(),
-                    startTime: newEnd,
-                    duration: secondDuration,
-                    audioBuffer: existingClip.audioBuffer,
-                    audioBlob: existingClip.audioBlob,
-                    bufferOffset: (existingClip.bufferOffset || 0) + (newEnd - existingStart)
-                };
+                    // Part 2: After new clip
+                    const secondDuration = existingEnd - newEnd;
+                    const secondClip = {
+                        id: this.generateClipId(),
+                        startTime: newEnd,
+                        duration: secondDuration,
+                        audioBuffer: existingClip.audioBuffer,
+                        audioBlob: existingClip.audioBlob,
+                        bufferOffset: (existingClip.bufferOffset || 0) + (newEnd - existingStart)
+                    };
 
-                this.removeClip(trackId, existingClip.id);
-                clips.push(firstClip);
-                clips.push(secondClip);
-            }
-            // Case 3: Tail Overlap (New clip starts during existing clip)
-            else if (newStart > existingStart && newStart < existingEnd) {
-                // Trim end of existing clip
-                existingClip.duration = newStart - existingStart;
-            }
-            // Case 4: Head Overlap (New clip ends during existing clip)
-            else if (newEnd > existingStart && newEnd < existingEnd) {
-                // Trim start of existing clip
-                const trimAmount = newEnd - existingStart;
-                existingClip.startTime = newEnd;
-                existingClip.duration -= trimAmount;
-                existingClip.bufferOffset = (existingClip.bufferOffset || 0) + trimAmount;
-            }
-        });
+                    this.removeClip(trackId, existingClip.id);
+                    clips.push(firstClip);
+                    clips.push(secondClip);
+                }
+                // Case 3: Tail Overlap (New clip starts during existing clip)
+                else if (newStart > existingStart && newStart < existingEnd) {
+                    // Trim end of existing clip
+                    existingClip.duration = newStart - existingStart;
+                }
+                // Case 4: Head Overlap (New clip ends during existing clip)
+                else if (newEnd > existingStart && newEnd < existingEnd) {
+                    // Trim start of existing clip
+                    const trimAmount = newEnd - existingStart;
+                    existingClip.startTime = newEnd;
+                    existingClip.duration -= trimAmount;
+                    existingClip.bufferOffset = (existingClip.bufferOffset || 0) + trimAmount;
+                }
+            });
+        }
 
         clips.push(clip);
 
         // Sort by startTime
         clips.sort((a, b) => a.startTime - b.startTime);
 
-        console.log(`Clip added to track ${trackId} (Punch-in applied):`, clip);
+        // If Ripple mode, resolve overlaps by pushing
+        if (ripple) {
+            this.resolveOverlaps(trackId);
+        }
+
+        console.log(`Clip added to track ${trackId} (Ripple: ${ripple})`, clip);
         return clip;
+    }
+
+    resolveOverlaps(trackId) {
+        if (!this.clips.has(trackId)) return;
+        const clips = this.clips.get(trackId);
+
+        // Sort clips by start time
+        clips.sort((a, b) => a.startTime - b.startTime);
+
+        for (let i = 0; i < clips.length - 1; i++) {
+            const current = clips[i];
+            const next = clips[i + 1];
+            const currentEnd = current.startTime + current.duration;
+
+            if (currentEnd > next.startTime) {
+                // Overlap detected! Push 'next' clip forward
+                const shiftAmount = currentEnd - next.startTime;
+                next.startTime += shiftAmount;
+                // Continue loop, this shift might cause overlap with the *next* next clip
+            }
+        }
     }
 
     removeClip(trackId, clipId) {
@@ -211,26 +240,24 @@ export class TimelineManager {
         const clip = this.getClip(trackId, clipId);
         if (!clip) return false;
 
+        // Create a copy of the clip with new properties to ensure clean state
+        const newClip = { ...clip, startTime: newStartTime };
+
         // If moving to a different track
         if (targetTrackId && targetTrackId !== trackId) {
-            // Remove from old track
+            // Remove from old track FIRST
             this.removeClip(trackId, clipId);
 
-            // Update clip properties
-            clip.startTime = newStartTime;
-
             // Add to new track (this handles overlaps in the new track)
-            this.addClip(targetTrackId, clip);
+            // We use the same ID to preserve identity if possible, or let addClip handle it
+            // Ideally we want to keep the ID unless it conflicts
+            this.addClip(targetTrackId, newClip, true);
 
             console.log(`Clip ${clipId} moved from track ${trackId} to ${targetTrackId} at ${newStartTime}s`);
         } else {
             // Moving within same track
-            // We need to temporarily remove it to avoid self-overlap detection issues if we were to use addClip
-            // But since we are just changing start time, we can check for overlaps manually or just use addClip logic
-
             this.removeClip(trackId, clipId);
-            clip.startTime = newStartTime;
-            this.addClip(trackId, clip);
+            this.addClip(trackId, newClip, true);
 
             console.log(`Clip ${clipId} moved to ${newStartTime}s in track ${trackId}`);
         }
