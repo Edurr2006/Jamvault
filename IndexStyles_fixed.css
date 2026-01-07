@@ -72,6 +72,8 @@ header {
   border-radius: 8px;
   text-decoration: none;
   transition: background-color 0.3s, transform 0.3s;
+  user-select: none;
+  /* Prevent text selection on buttons */
 }
 
 /* ---------- THEMES ---------- */
@@ -863,12 +865,59 @@ a {
 /* Transport Controls Bar */
 .daw-transport {
   background: rgba(0, 0, 0, 0.3);
-  padding: 0.8rem 1.5rem;
+  padding: 0.5rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 2px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(5px);
+  min-height: 80px;
+  user-select: none;
+  /* Prevent text selection during transport interaction */
+}
+
+.main-controls-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.track-actions-group {
+  display: flex;
+  gap: 8px;
+}
+
+.add-track-btn-top,
+.clear-btn-top,
+.export-btn-top {
+  font-size: 0.75rem !important;
+  padding: 0.4rem 0.8rem !important;
+  white-space: nowrap;
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+.add-track-btn-top {
+  background: #FF8906 !important;
+  color: #000 !important;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.add-track-btn-top:hover {
+  background: #ffa742 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 137, 6, 0.3);
+}
+
+.clear-btn-top {
+  background: #ff4444 !important;
+  color: white !important;
+}
+
+.export-btn-top {
+  background: #44ff44 !important;
+  color: #000 !important;
 }
 
 .transport-controls {
@@ -997,220 +1046,68 @@ a {
 
 /* Main DAW Interface */
 .daw-main {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  /* 2 Columns: Track List | Timeline */
   height: calc(100vh - 140px);
-  /* Adjust based on header + transport height */
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  /* Prevent text selection globally in the DAW area */
 }
 
-/* Track List (Left Panel) */
-.track-list {
-  background: rgba(0, 0, 0, 0.2);
+.tracks-wrapper {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: auto;
+  position: relative;
+  background: #121212;
+  /* Dark uniform background for the whole DAW */
+}
+
+/* Timeline Ruler Header */
+.timeline-ruler-container {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: auto;
+  /* Remove closed context to allow inter-layering of children and playhead */
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.track-controls-spacer {
+  width: 280px;
+  flex-shrink: 0;
+  background: #1a1a1a;
+  /* Opaque background to hide elements behind it */
   border-right: 2px solid rgba(255, 255, 255, 0.1);
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.track-list-header {
-  padding: 1rem;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-}
-
-.track-list-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-.add-track-btn {
-  font-size: 0.8rem;
-  padding: 0.4rem 0.8rem;
-}
-
-.track-list-items {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: visible;
-  /* Allow mixer to overflow horizontally */
-  padding: 0.5rem;
-}
-
-.track-item {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 0.8rem;
-  margin-bottom: 0;
-  /* Removed margin to align with rows */
-  border-left: 4px solid #ccc;
-  /* Default track color */
-  transition: all 0.3s ease;
-  height: 100px;
-  /* Fixed height initially */
+  justify-content: space-between;
+  padding: 0 0.8rem;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  overflow: hidden;
+  position: sticky;
+  left: 0;
+  z-index: 11000;
+  /* Top layer: masks playhead (10000) */
 }
 
-.track-item.expanded {
-  height: auto;
-  /* Allow expansion */
-  min-height: 220px;
-}
-
-.track-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.track-name {
+.tracks-header {
+  color: #fff;
   font-weight: bold;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 120px;
-}
-
-.track-header-actions {
-  display: flex;
-  gap: 5px;
-}
-
-.mixer-toggle-btn {
-  padding: 2px 6px;
-  font-size: 0.9rem;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.track-delete {
-  background: transparent;
-  border: none;
-  color: #ff4444;
-  cursor: pointer;
   font-size: 1.1rem;
-  padding: 0 5px;
-}
-
-.track-controls {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.mute-btn,
-.solo-btn {
-  flex: 1;
-  font-size: 0.7rem;
-  padding: 0.3rem;
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.mute-btn.active {
-  background: #ff4444;
-  color: white;
-}
-
-.solo-btn.active {
-  background: #ffbb33;
-  color: black;
-}
-
-/* Embedded Mixer Styles */
-.track-mixer {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.mixer-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-  font-size: 0.8rem;
-}
-
-.mixer-row label {
-  width: 30px;
-  opacity: 0.7;
-}
-
-.mixer-row input {
-  flex: 1;
-}
-
-.track-actions {
-  padding: 1rem;
-  border-top: 2px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  gap: 0.5rem;
-}
-
-.clear-btn {
-  background: #ff4444;
-  color: white;
-}
-
-.clear-btn:hover {
-  background: #cc0000;
-}
-
-.export-btn {
-  background: #44ff44;
-  color: #000;
-}
-
-.export-btn:hover {
-  background: #33cc33;
-}
-
-/* Timeline Section (Center Panel) */
-.timeline-section {
-  position: relative;
-  background: rgba(255, 255, 255, 0.02);
-  overflow-x: auto;
-  overflow-y: hidden;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+  letter-spacing: 0.5px;
 }
 
 .timeline-ruler {
   height: 40px;
-  background: rgba(0, 0, 0, 0.3);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  position: relative;
+  flex-grow: 1;
   display: flex;
   align-items: flex-end;
   padding-bottom: 5px;
-  min-width: 100%;
-  position: relative;
+  background: #111;
+  /* Background on the flexible content ensures it spans all width */
+  z-index: 9000;
+  /* Lower than playhead (9500) to show triangle */
 }
 
 .time-marker {
@@ -1224,22 +1121,118 @@ a {
   color: rgba(255, 255, 255, 0.7);
   border-left: 1px solid rgba(255, 255, 255, 0.3);
   padding-left: 5px;
+  pointer-events: none;
 }
 
-.timeline-playhead,
+/* Unified Track Container */
+.unified-tracks-container {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 10;
+  /* Lower than playhead (5000) */
+}
+
+.track-container {
+  display: flex;
+  height: 100px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: max-content;
+  position: relative;
+  z-index: auto;
+  /* Important: allow children to be compared with siblings of track-container */
+}
+
+.track-container.expanded {
+  height: auto;
+  min-height: 220px;
+}
+
+.track-controls-module {
+  width: 280px;
+  flex-shrink: 0;
+  position: sticky;
+  left: 0;
+  z-index: 11000;
+  /* Top layer: masks playhead (10000) */
+  background: #1a1a1a;
+  border-right: 2px solid rgba(255, 255, 255, 0.1);
+  padding: 0.8rem;
+  box-sizing: border-box;
+  display: flex;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.track-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.track-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+  transition: color 0.2s;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.track-name:hover {
+  color: #ff8906;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.track-name-input {
+  background: #2a2a2a;
+  border: 1px solid #ff8906;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 2px 4px;
+  border-radius: 4px;
+  outline: none;
+  width: 120px;
+  font-family: inherit;
+}
+
+.track-timeline-module {
+  flex-grow: 1;
+  position: relative;
+  z-index: 10;
+  /* Base layer for waveforms */
+}
+
+.track-timeline-module:hover {
+  background: rgba(255, 255, 255, 0.03);
+  /* Subtle highlight when hovering */
+}
+
+.waveform-canvas {
+  height: 100%;
+  display: block;
+}
+
+/* Global Playhead */
 .playhead {
   position: absolute;
   top: 0;
-  left: 0;
+  left: 280px;
+  /* Initial position at 0s (offset by spacer) */
   width: 2px;
   height: 100%;
   background: #ff0000;
-  z-index: 20;
-  cursor: ew-resize;
+  z-index: 10000;
+  /* Above ruler (9000) but below controls (11000) */
+  pointer-events: none;
   box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+  display: block;
+  /* Ensure it's never hidden unless by the JS logic */
 }
 
-.timeline-playhead::before,
 .playhead::before {
   content: '';
   position: absolute;
@@ -1250,77 +1243,29 @@ a {
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
   border-top: 10px solid #ff0000;
+  pointer-events: none;
 }
 
-.recording-indicator {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  background: #ff0000;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: bold;
-  z-index: 1000;
-  animation: pulse 1s infinite;
-}
-
-.recording-indicator.hidden {
-  display: none;
-}
-
-@keyframes pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.timeline-playhead::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -5px;
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 10px solid #ff0000;
-}
-
-.tracks-container {
-  position: relative;
-  min-height: calc(100% - 40px);
-  padding: 0.5rem 0;
-  /* Match track list padding if any */
-}
-
-.track-row {
-  height: 100px;
-  /* Match .track-item height */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;
-  background: rgba(255, 255, 255, 0.02);
-  transition: height 0.3s ease;
-  /* Smooth resize */
-  box-sizing: border-box;
-}
-
-.track-row:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.waveform-canvas {
+/* VU Meter update */
+.vu-meter {
+  width: 12px;
   height: 100%;
-  display: block;
+  background: #111;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
-/* Recording Indicator */
+.vu-level {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: #2ecc71;
+  transition: height 0.1s ease;
+}
+
+/* Recording visuals */
 .recording-indicator {
   position: fixed;
   top: 20px;
@@ -1329,13 +1274,41 @@ a {
   color: white;
   padding: 0.8rem 1.5rem;
   border-radius: 25px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   font-weight: bold;
   z-index: 1000;
   box-shadow: 0 4px 15px rgba(255, 0, 0, 0.5);
   animation: pulse-indicator 1s infinite;
+}
+
+@keyframes pulse-indicator {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+
+  .track-controls-spacer,
+  .track-controls-module {
+    width: 200px;
+  }
+}
+
+@media (max-width: 600px) {
+
+  .track-controls-spacer,
+  .track-controls-module {
+    width: 150px;
+  }
 }
 
 .recording-indicator.hidden {

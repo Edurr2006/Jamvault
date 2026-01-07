@@ -273,67 +273,121 @@ class Jamstudio {
         ruler.style.width = `${maxDuration * this.pixelsPerSecond}px`;
 
         this.setupTimelineDragging();
+
+        // Add scroll listener to handle playhead visibility when scrolling
+        const tracksWrapper = document.getElementById('tracksWrapper');
+        if (tracksWrapper) {
+            tracksWrapper.addEventListener('scroll', () => {
+                const time = (this.isPaused || !this.isPlaying) ? this.pauseTime : this.currentTime;
+                this.updatePlayhead(time);
+            });
+        }
     }
 
     setupTimelineDragging() {
-        const timelineSection = document.querySelector('.timeline-section');
-        if (!timelineSection) return;
+        const tracksWrapper = document.getElementById('tracksWrapper');
+        if (!tracksWrapper) return;
 
         // Remove old listeners
         if (this.timelineMouseDown) {
-            timelineSection.removeEventListener('mousedown', this.timelineMouseDown);
+            tracksWrapper.removeEventListener('mousedown', this.timelineMouseDown);
+            tracksWrapper.removeEventListener('wheel', this.timelineWheel);
             document.removeEventListener('mousemove', this.timelineMouseMove);
             document.removeEventListener('mouseup', this.timelineMouseUp);
         }
 
         this.timelineMouseDown = (e) => {
-            // Allow dragging on the ruler or the playhead itself
-            if (e.target.closest('.timeline-ruler') || e.target.id === 'playhead') {
+            // Middle-button Panning (Button 1)
+            if (e.button === 1) {
+                e.preventDefault();
+                this.isPanning = true;
+                this.panStartX = e.clientX;
+                this.panScrollStart = tracksWrapper.scrollLeft;
+                document.body.style.cursor = 'grabbing';
+                return;
+            }
+
+            // Expanded interactive area: Ruler, Tracks, or Playhead
+            const target = e.target;
+            const isInteractiveArea = target.closest('.timeline-ruler') ||
+                target.closest('.unified-tracks-container') ||
+                target.id === 'playhead';
+
+            if (isInteractiveArea) {
+                // Ignore if clicking specifically on track controls
+                if (target.closest('.track-controls-module')) return;
+
+                // ALWAYS deselect when clicking on timeline/ruler empty space
+                // (If it were a clip click, propagation would have stopped in setupClipInteraction)
+                this.selectedClip = null;
+                this.tracks.forEach(t => this.drawWaveform(t));
+
                 this.isDraggingTimeline = true;
                 this.updatePlayheadPosition(e);
             }
         };
 
         this.timelineMouseMove = (e) => {
+            if (this.isPanning) {
+                const deltaX = e.clientX - this.panStartX;
+                tracksWrapper.scrollLeft = this.panScrollStart - deltaX;
+                return;
+            }
+
             if (this.isDraggingTimeline) {
                 this.updatePlayheadPosition(e);
             }
         };
 
-        this.timelineMouseUp = () => {
+        this.timelineMouseUp = (e) => {
             this.isDraggingTimeline = false;
+            this.isPanning = false;
+            document.body.style.cursor = 'default';
             if (this.scrollAnimationId) {
                 cancelAnimationFrame(this.scrollAnimationId);
                 this.scrollAnimationId = null;
             }
         };
 
-        timelineSection.addEventListener('mousedown', this.timelineMouseDown);
+        // Add Wheel functionality for scrolling
+        this.timelineWheel = (e) => {
+            if (e.shiftKey) {
+                e.preventDefault();
+                tracksWrapper.scrollLeft += e.deltaY;
+            }
+        };
+
+        tracksWrapper.addEventListener('mousedown', this.timelineMouseDown);
+        tracksWrapper.addEventListener('wheel', this.timelineWheel, { passive: false });
         document.addEventListener('mousemove', this.timelineMouseMove);
         document.addEventListener('mouseup', this.timelineMouseUp);
     }
 
     updatePlayheadPosition(e) {
-        const timelineSection = document.querySelector('.timeline-section');
-        if (!timelineSection) return;
+        const tracksWrapper = document.getElementById('tracksWrapper');
+        if (!tracksWrapper) return;
 
-        const rect = timelineSection.getBoundingClientRect();
+        const rect = tracksWrapper.getBoundingClientRect();
 
         // Calculate time based on current scroll + mouse position relative to container
-        // We use e.clientX directly to handle dragging even if mouse goes outside container
         let relativeX = e.clientX - rect.left;
 
         // Clamp relativeX to visible area for calculation purposes
         relativeX = Math.max(0, Math.min(relativeX, rect.width));
 
-        const clickX = relativeX + timelineSection.scrollLeft;
-        const clickTime = Math.max(0, clickX / this.pixelsPerSecond);
+        const clickX = relativeX + tracksWrapper.scrollLeft;
+
+        // Subtract spacer width if we are in the track rows
+        const spacer = document.querySelector('.track-controls-spacer');
+        const spacerWidth = spacer ? spacer.offsetWidth : 280;
+
+        const clickTime = Math.max(0, (clickX - spacerWidth) / this.pixelsPerSecond);
 
         // Use seekTo to properly sync audio playback with visual position
         this.seekTo(clickTime);
 
         // Handle Auto-scroll
-        this.handleAutoScroll(e.clientX, rect, timelineSection);
+        this.handleAutoScroll(e.clientX, rect, tracksWrapper);
     }
 
     handleAutoScroll(mouseX, rect, container) {
@@ -373,11 +427,14 @@ class Jamstudio {
                 container.scrollLeft += scrollDelta;
 
                 // Update playhead position as we scroll
-                // We need to recalculate time because scrollLeft changed
                 const currentRelativeX = mouseX - rect.left;
                 const clampedRelativeX = Math.max(0, Math.min(currentRelativeX, rect.width));
                 const newClickX = clampedRelativeX + container.scrollLeft;
-                const newClickTime = Math.max(0, newClickX / this.pixelsPerSecond);
+
+                const spacer = document.querySelector('.track-controls-spacer');
+                const spacerWidth = spacer ? spacer.offsetWidth : 280;
+
+                const newClickTime = Math.max(0, (newClickX - spacerWidth) / this.pixelsPerSecond);
                 this.seekTo(newClickTime);
 
                 this.scrollAnimationId = requestAnimationFrame(scrollLoop);
@@ -430,7 +487,19 @@ class Jamstudio {
             this.currentTime = time;
 
             const playhead = document.getElementById('playhead');
-            if (playhead) playhead.style.left = `${time * this.pixelsPerSecond}px`;
+            if (playhead) {
+                const spacer = document.querySelector('.track-controls-spacer');
+                const spacerWidth = spacer ? spacer.offsetWidth : 280;
+                const tracksWrapper = document.getElementById('tracksWrapper');
+                const currentScroll = tracksWrapper ? tracksWrapper.scrollLeft : 0;
+
+                const pos = spacerWidth + (time * this.pixelsPerSecond);
+                const minPos = currentScroll + spacerWidth;
+
+                // Clamp playhead to the left edge of the visible timeline
+                playhead.style.display = 'block';
+                playhead.style.left = `${Math.max(pos, minPos)}px`;
+            }
 
             const progressFill = document.getElementById('progressFill');
             if (progressFill) {
@@ -449,12 +518,14 @@ class Jamstudio {
         }
 
         // Auto-scroll timeline (only if not dragging manually)
-        const timelineSection = document.querySelector('.timeline-section');
-        if (timelineSection && !this.isDraggingTimeline) {
-            const playheadPosition = time * this.pixelsPerSecond;
-            const viewportWidth = timelineSection.clientWidth;
+        const tracksWrapper = document.getElementById('tracksWrapper');
+        if (tracksWrapper && !this.isDraggingTimeline) {
+            const spacer = document.querySelector('.track-controls-spacer');
+            const spacerWidth = spacer ? spacer.offsetWidth : 280;
+            const playheadPosition = spacerWidth + (time * this.pixelsPerSecond);
+            const viewportWidth = tracksWrapper.clientWidth;
             const targetScroll = playheadPosition - (viewportWidth / 2);
-            timelineSection.scrollLeft = Math.max(0, targetScroll);
+            tracksWrapper.scrollLeft = Math.max(0, targetScroll);
         }
     }
 
@@ -802,13 +873,17 @@ class Jamstudio {
             if (playBtn) playBtn.disabled = false;
             if (pauseBtn) pauseBtn.disabled = true;
             if (currentTimeEl) currentTimeEl.textContent = '00:00.0';
-            if (playhead) playhead.style.left = '0px';
+            if (playhead) {
+                const spacer = document.querySelector('.track-controls-spacer');
+                const spacerWidth = spacer ? spacer.offsetWidth : 280;
+                playhead.style.left = `${spacerWidth}px`;
+            }
             if (progressFill) progressFill.style.width = '0%';
 
             // Scroll timeline back to the beginning
-            const timelineSection = document.querySelector('.timeline-section');
-            if (timelineSection) {
-                timelineSection.scrollLeft = 0;
+            const tracksWrapper = document.getElementById('tracksWrapper');
+            if (tracksWrapper) {
+                tracksWrapper.scrollLeft = 0;
             }
         }
 
@@ -839,7 +914,17 @@ class Jamstudio {
         // Update playhead position
         const playhead = document.getElementById('playhead');
         if (playhead) {
-            playhead.style.left = `${elapsed * this.pixelsPerSecond}px`;
+            const spacer = document.querySelector('.track-controls-spacer');
+            const spacerWidth = spacer ? spacer.offsetWidth : 280;
+            const tracksWrapper = document.getElementById('tracksWrapper');
+            const currentScroll = tracksWrapper ? tracksWrapper.scrollLeft : 0;
+
+            const pos = spacerWidth + (elapsed * this.pixelsPerSecond);
+            const minPos = currentScroll + spacerWidth;
+
+            // Clamp playhead to the left edge of the visible timeline
+            playhead.style.display = 'block';
+            playhead.style.left = `${Math.max(pos, minPos)}px`;
         }
 
         // Update progress bar
@@ -851,20 +936,21 @@ class Jamstudio {
         }
 
         // Auto-scroll timeline during playback
-        const timelineSection = document.querySelector('.timeline-section');
-        if (timelineSection && !this.isDraggingTimeline) {
-            const playheadPosition = elapsed * this.pixelsPerSecond;
-            const viewportWidth = timelineSection.clientWidth;
+        const tracksWrapper = document.getElementById('tracksWrapper');
+        if (tracksWrapper && !this.isDraggingTimeline) {
+            const spacer = document.querySelector('.track-controls-spacer');
+            const spacerWidth = spacer ? spacer.offsetWidth : 280;
+            const playheadPosition = spacerWidth + (elapsed * this.pixelsPerSecond);
+            const viewportWidth = tracksWrapper.clientWidth;
 
             // Scroll if playhead is getting close to the right edge or is off-screen
-            // We keep it centered or at least visible
-            const currentScroll = timelineSection.scrollLeft;
+            const currentScroll = tracksWrapper.scrollLeft;
             const relativePosition = playheadPosition - currentScroll;
 
             // If playhead moves past 75% of the screen, scroll to center it
             if (relativePosition > viewportWidth * 0.75) {
                 const targetScroll = playheadPosition - (viewportWidth / 2);
-                timelineSection.scrollLeft = Math.max(0, targetScroll);
+                tracksWrapper.scrollLeft = Math.max(0, targetScroll);
             }
         }
 
@@ -873,7 +959,7 @@ class Jamstudio {
             this.drawRecordingVisuals();
         }
 
-        // Continue animation
+        // Continue animation with high precision
         this.animationId = requestAnimationFrame(() => this.updatePlayhead());
     }
 
@@ -973,64 +1059,76 @@ class Jamstudio {
     }
 
     addTrackToUI(track) {
-        // Add to track list (left panel)
-        const trackItem = document.createElement('div');
-        trackItem.className = 'track-item';
-        trackItem.dataset.trackId = track.id;
-        trackItem.innerHTML = `
-      <div class="vu-meter">
-        <div class="vu-level"></div>
-      </div>
-      <div class="track-content" style="flex: 1;">
-      <div class="track-header">
-        <span class="track-name">${track.name}</span>
-        <div class="track-header-actions">
-            <button class="btn mixer-toggle-btn" onclick="daw.toggleMixer(${track.id})" title="Abrir Mezclador">🎚️</button>
-            <button class="track-delete" onclick="daw.deleteTrack(${track.id})">✕</button>
-        </div>
-      </div>
-      <div class="track-controls">
-        <button class="btn arm-btn" onclick="daw.toggleTrackArm(${track.id})" title="Armar para grabar">⏺️</button>
-        <button class="btn monitor-btn" onclick="daw.toggleTrackMonitoring(${track.id})" title="Monitoreo en tiempo real">🎧</button>
-        <button class="btn mute-btn" onclick="daw.toggleMute(${track.id})">Mute</button>
-        <button class="btn solo-btn" onclick="daw.toggleSolo(${track.id})">Solo</button>
-        <button class="btn import-btn" onclick="daw.importAudioToTrack(${track.id})" title="Importar Audio">📂</button>
-      </div>
-      </div>
-      
-      <!-- Embedded Mixer Controls (Hidden by default) -->
-      <div class="track-mixer" id="mixer-${track.id}" style="display: none;">
-        <div class="mixer-row">
-            <label>Vol</label>
-            <input type="range" min="0" max="100" value="${track.volume}" 
-                   oninput="daw.setTrackVolume(${track.id}, this.value)">
-            <span>${track.volume}%</span>
-        </div>
-        <div class="mixer-row">
-            <label>Pan</label>
-            <input type="range" min="-100" max="100" value="${track.pan}" 
-                   oninput="daw.setTrackPan(${track.id}, this.value)">
-            <span>${track.pan}</span>
-        </div>
-        
-        <h4>Presets</h4>
-        <button class="btn" onclick="daw.applyPreset(${track.id}, 'clean')">Clean</button>
-        <button class="btn" onclick="daw.applyPreset(${track.id}, 'rock')">Rock</button>
-        <button class="btn" onclick="daw.applyPreset(${track.id}, 'metal')">Metal</button>
-        <button class="btn" onclick="daw.applyPreset(${track.id}, 'lead')">Lead</button>
-      </div>`;
+        // Create unified track container
+        const trackContainer = document.createElement('div');
+        trackContainer.className = 'track-container';
+        trackContainer.dataset.trackId = track.id;
 
-        document.getElementById('trackListContainer')?.appendChild(trackItem);
+        trackContainer.innerHTML = `
+          <!-- Track Controls Module (Menu) -->
+          <div class="track-controls-module">
+            <div class="vu-meter">
+              <div class="vu-level"></div>
+            </div>
+            <div class="track-content">
+              <div class="track-header">
+                <span class="track-name">${track.name}</span>
+                <div class="track-header-actions">
+                    <button class="btn mixer-toggle-btn" onclick="daw.toggleMixer(${track.id})" title="Abrir Mezclador">🎚️</button>
+                    <button class="track-delete" onclick="daw.deleteTrack(${track.id})">✕</button>
+                </div>
+              </div>
+              <div class="track-controls">
+                <button class="btn arm-btn" onclick="daw.toggleTrackArm(${track.id})" title="Armar para grabar">⏺️</button>
+                <button class="btn monitor-btn" onclick="daw.toggleTrackMonitoring(${track.id})" title="Monitoreo en tiempo real">🎧</button>
+                <button class="btn mute-btn" onclick="daw.toggleMute(${track.id})">Mute</button>
+                <button class="btn solo-btn" onclick="daw.toggleSolo(${track.id})">Solo</button>
+                <button class="btn import-btn" onclick="daw.importAudioToTrack(${track.id})" title="Importar Audio">📂</button>
+              </div>
+              
+              <!-- Embedded Mixer Controls -->
+              <div class="track-mixer" id="mixer-${track.id}" style="display: none;">
+                <div class="mixer-row">
+                    <label>Vol</label>
+                    <input type="range" min="0" max="100" value="${track.volume}" 
+                           oninput="daw.setTrackVolume(${track.id}, this.value)">
+                    <span>${track.volume}%</span>
+                </div>
+                <div class="mixer-row">
+                    <label>Pan</label>
+                    <input type="range" min="-100" max="100" value="${track.pan}" 
+                           oninput="daw.setTrackPan(${track.id}, this.value)">
+                    <span>${track.pan}</span>
+                </div>
+                
+                <h4>Presets</h4>
+                <div class="preset-btns">
+                    <button class="btn" onclick="daw.applyPreset(${track.id}, 'clean')">Clean</button>
+                    <button class="btn" onclick="daw.applyPreset(${track.id}, 'rock')">Rock</button>
+                    <button class="btn" onclick="daw.applyPreset(${track.id}, 'metal')">Metal</button>
+                    <button class="btn" onclick="daw.applyPreset(${track.id}, 'lead')">Lead</button>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        // Add to timeline (center panel)
-        const trackRow = document.createElement('div');
-        trackRow.className = 'track-row';
-        trackRow.dataset.trackId = track.id;
-        trackRow.innerHTML = `<canvas class="waveform-canvas" id="waveform-${track.id}"></canvas>`;
-        document.getElementById('tracksContainer')?.appendChild(trackRow);
+          <!-- Track Timeline Module (Canvas) -->
+          <div class="track-timeline-module">
+            <canvas class="waveform-canvas" id="waveform-${track.id}"></canvas>
+          </div>
+        `;
+
+        document.getElementById('unifiedTracksContainer')?.appendChild(trackContainer);
 
         // Setup clip interaction
         this.setupClipInteraction(track);
+
+        // Setup track name renaming behavior
+        const nameEl = trackContainer.querySelector('.track-name');
+        if (nameEl) {
+            nameEl.style.cursor = 'pointer';
+            nameEl.addEventListener('click', () => this.renameTrack(track.id, nameEl));
+        }
     }
 
     deleteTrack(trackId) {
@@ -1058,35 +1156,23 @@ class Jamstudio {
         this.tracks.splice(index, 1);
 
         // Remove from UI
-        document.querySelector(`.track-item[data-track-id="${trackId}"]`)?.remove();
-        document.querySelector(`.track-row[data-track-id="${trackId}"]`)?.remove();
+        document.querySelector(`.track-container[data-track-id="${trackId}"]`)?.remove();
 
         console.log('Track deleted:', trackId);
     }
 
     toggleMixer(trackId) {
         const mixerDiv = document.getElementById(`mixer-${trackId}`);
-        const trackItem = document.querySelector(`.track-item[data-track-id="${trackId}"]`);
-        const trackRow = document.querySelector(`.track-row[data-track-id="${trackId}"]`);
+        const trackContainer = document.querySelector(`.track-container[data-track-id="${trackId}"]`);
 
         if (!mixerDiv) return;
 
         if (mixerDiv.style.display === 'none') {
             mixerDiv.style.display = 'block';
-            trackItem?.classList.add('expanded');
-            setTimeout(() => {
-                if (trackRow && trackItem) {
-                    trackRow.style.height = `${trackItem.offsetHeight}px`;
-                }
-            }, 0);
+            trackContainer?.classList.add('expanded');
         } else {
             mixerDiv.style.display = 'none';
-            trackItem?.classList.remove('expanded');
-            setTimeout(() => {
-                if (trackRow) {
-                    trackRow.style.height = '100px'; // Reset to default height
-                }
-            }, 0);
+            trackContainer?.classList.remove('expanded');
         }
     }
 
@@ -1096,7 +1182,7 @@ class Jamstudio {
 
         track.muted = !track.muted;
 
-        const btn = document.querySelector(`.track-item[data-track-id="${trackId}"] .mute-btn`);
+        const btn = document.querySelector(`.track-container[data-track-id="${trackId}"] .mute-btn`);
         btn?.classList.toggle('active');
 
         // Update signal chain volume
@@ -1111,7 +1197,7 @@ class Jamstudio {
 
         track.solo = !track.solo;
 
-        const btn = document.querySelector(`.track-item[data-track-id="${trackId}"] .solo-btn`);
+        const btn = document.querySelector(`.track-container[data-track-id="${trackId}"] .solo-btn`);
         btn?.classList.toggle('active');
 
         // If playing, restart playback
@@ -1167,7 +1253,7 @@ class Jamstudio {
 
         track.armed = !track.armed;
 
-        const btn = document.querySelector(`.track-item[data-track-id="${trackId}"] .arm-btn`);
+        const btn = document.querySelector(`.track-container[data-track-id="${trackId}"] .arm-btn`);
         if (track.armed) {
             btn?.classList.add('active');
         } else {
@@ -1183,7 +1269,7 @@ class Jamstudio {
 
         track.monitoring = !track.monitoring;
 
-        const btn = document.querySelector(`.track-item[data-track-id="${trackId}"] .monitor-btn`);
+        const btn = document.querySelector(`.track-container[data-track-id="${trackId}"] .monitor-btn`);
 
         if (track.monitoring) {
             btn?.classList.add('active');
@@ -1323,7 +1409,7 @@ class Jamstudio {
 
                 track.name = file.name.replace(/\.[^/.]+$/, '');
 
-                const nameEl = document.querySelector(`.track-item[data-track-id="${trackId}"] .track-name`);
+                const nameEl = document.querySelector(`.track-container[data-track-id="${trackId}"] .track-name`);
                 if (nameEl) nameEl.textContent = track.name;
 
                 this.drawWaveform(track);
@@ -1338,6 +1424,41 @@ class Jamstudio {
         };
 
         input.click();
+    }
+
+    renameTrack(trackId, nameEl) {
+        const track = this.tracks.find(t => t.id === trackId);
+        if (!track) return;
+
+        const currentName = nameEl.textContent;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentName;
+        input.className = 'track-name-input';
+
+        const saveName = () => {
+            const newName = input.value.trim() || `Track ${trackId}`;
+            track.name = newName;
+            nameEl.textContent = newName;
+            input.remove();
+            nameEl.style.display = 'inline';
+        };
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                saveName();
+            } else if (e.key === 'Escape') {
+                input.remove();
+                nameEl.style.display = 'inline';
+            }
+        });
+
+        input.addEventListener('blur', saveName);
+
+        nameEl.style.display = 'none';
+        nameEl.parentNode.insertBefore(input, nameEl);
+        input.focus();
+        input.select();
     }
 
     clearAllTracks() {
@@ -1359,10 +1480,8 @@ class Jamstudio {
         this.nextTrackId = 1;
 
         // Clear UI
-        const trackListContainer = document.getElementById('trackListContainer');
-        const tracksContainer = document.getElementById('tracksContainer');
-        if (trackListContainer) trackListContainer.innerHTML = '';
-        if (tracksContainer) tracksContainer.innerHTML = '';
+        const unifiedTracksContainer = document.getElementById('unifiedTracksContainer');
+        if (unifiedTracksContainer) unifiedTracksContainer.innerHTML = '';
 
         console.log('All tracks cleared');
     }
@@ -1387,7 +1506,7 @@ class Jamstudio {
             }
         });
 
-        const maxDuration = this.timelineManager.getTotalDuration() || 60;
+        const maxDuration = this.getMaxDuration();
         const contentWidth = maxDuration * this.pixelsPerSecond;
         const containerWidth = canvas.parentElement.clientWidth;
         canvas.width = Math.max(contentWidth, containerWidth);
@@ -1509,7 +1628,7 @@ class Jamstudio {
             const volume = Math.min(100, (average / 50) * 100);
 
             // Update UI
-            const meterEl = document.querySelector(`.track-item[data-track-id="${track.id}"] .vu-level`);
+            const meterEl = document.querySelector(`.track-container[data-track-id="${track.id}"] .vu-level`);
             if (meterEl) {
                 meterEl.style.height = `${volume}%`;
 
@@ -1639,83 +1758,6 @@ class Jamstudio {
 
     // ========== CLIP INTERACTION ==========
 
-    setupClipInteraction(track) {
-        const canvas = document.getElementById(`waveform-${track.id}`);
-        if (!canvas) return;
-
-        canvas.addEventListener('contextmenu', (e) => {
-            e.preventDefault(); // Prevent default browser context menu
-
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-
-            const clip = this.timelineManager.getClipAtPosition(track.id, x, this.pixelsPerSecond);
-
-            if (clip) {
-                // Select clip
-                this.timelineManager.selectClip(track.id, clip.id);
-                this.highlightSelectedClip(track, clip);
-
-                // Show clip menu
-                this.showClipContextMenu(track, clip, e.clientX, e.clientY);
-            } else {
-                this.timelineManager.deselectClip();
-            }
-        });
-    }
-
-    showClipContextMenu(track, clip, x, y) {
-        // Remove existing menu
-        const existingMenu = document.getElementById('clip-context-menu');
-        if (existingMenu) existingMenu.remove();
-
-        // Create menu
-        const menu = document.createElement('div');
-        menu.id = 'clip-context-menu';
-        menu.style.position = 'fixed';
-        menu.style.left = `${x}px`;
-        menu.style.top = `${y}px`;
-        menu.style.backgroundColor = '#333';
-        menu.style.border = '1px solid #666';
-        menu.style.borderRadius = '4px';
-        menu.style.padding = '0.5rem';
-        menu.style.zIndex = '10000';
-
-        menu.innerHTML = `
-            <div style="color: white; margin-bottom: 0.5rem; font-weight: bold;">Clip: ${clip.id.substr(0, 8)}...</div>
-            <button class="btn" onclick="daw.deleteClip(${track.id}, '${clip.id}')">Eliminar</button>
-            <button class="btn" onclick="daw.splitClipAtPlayhead(${track.id}, '${clip.id}')">Dividir</button>
-        `;
-
-        document.body.appendChild(menu);
-
-        // Close menu on click outside
-        setTimeout(() => {
-            document.addEventListener('click', function closeMenu(e) {
-                if (!menu.contains(e.target)) {
-                    menu.remove();
-                    document.removeEventListener('click', closeMenu);
-                }
-            });
-        }, 100);
-    }
-
-    highlightSelectedClip(track, clip) {
-        // Redraw waveform with highlight
-        this.drawWaveform(track);
-
-        const canvas = document.getElementById(`waveform-${track.id}`);
-        if (!canvas) return;
-
-        const ctx = canvas.getContext('2d');
-        const startX = clip.startTime * this.pixelsPerSecond;
-        const width = clip.duration * this.pixelsPerSecond;
-
-        // Draw highlight border
-        ctx.strokeStyle = '#FFD700';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(startX, 0, width, canvas.height);
-    }
 
 
 
@@ -1788,11 +1830,12 @@ class Jamstudio {
             const clip = this.timelineManager.getClipAtPosition(track.id, x, this.pixelsPerSecond);
 
             if (clip) {
-                this.timelineManager.selectClip(track.id, clip.id);
-                this.highlightSelectedClip(track, clip);
+                this.selectedClip = clip;
+                this.tracks.forEach(t => this.drawWaveform(t));
                 this.showClipContextMenu(track, clip, e.clientX, e.clientY);
             } else {
-                this.timelineManager.deselectClip();
+                this.selectedClip = null;
+                this.tracks.forEach(t => this.drawWaveform(t));
             }
         });
 
@@ -1833,9 +1876,9 @@ class Jamstudio {
                 draggedClip = clip;
                 initialTrackId = track.id;
 
-                // Select clip
-                this.timelineManager.selectClip(track.id, clip.id);
-                this.highlightSelectedClip(track, clip);
+                // PERSISTENT SELECTION: Update state and redraw all to show yellow border everywhere
+                this.selectedClip = clip;
+                this.tracks.forEach(t => this.drawWaveform(t));
 
                 // Visual feedback
                 document.body.style.cursor = 'grabbing';
@@ -1848,7 +1891,7 @@ class Jamstudio {
 
                 // Disable timeline dragging while dragging clip
                 this.isDraggingTimeline = false;
-                e.stopPropagation(); // Prevent timeline drag start
+                e.stopPropagation(); // VERY IMPORTANT: Stop propagation to prevent timeline seek on top of clip
             }
         });
 
@@ -1964,7 +2007,6 @@ class Jamstudio {
         });
     }
 
-
     showClipContextMenu(track, clip, x, y) {
         // Remove existing menu
         const existingMenu = document.getElementById('clip-context-menu');
@@ -1976,46 +2018,31 @@ class Jamstudio {
         menu.style.position = 'fixed';
         menu.style.left = `${x}px`;
         menu.style.top = `${y}px`;
-        menu.style.backgroundColor = '#333';
-        menu.style.border = '1px solid #666';
-        menu.style.borderRadius = '4px';
+        menu.style.backgroundColor = '#1a1a1a';
+        menu.style.border = '1px solid rgba(255,255,255,0.1)';
+        menu.style.borderRadius = '8px';
         menu.style.padding = '0.5rem';
-        menu.style.zIndex = '10000';
+        menu.style.zIndex = '20000';
+        menu.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
 
         menu.innerHTML = `
-            <div style="color: white; margin-bottom: 0.5rem; font-weight: bold;">Clip: ${clip.id.substr(0, 8)}...</div>
-            <button class="btn" onclick="daw.deleteClip(${track.id}, '${clip.id}')">Eliminar</button>
-            <button class="btn" onclick="daw.splitClipAtPlayhead(${track.id}, '${clip.id}')">Dividir</button>
+            <div style="color: rgba(255,255,255,0.5); margin-bottom: 0.8rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Opciones de Clip</div>
+            <button class="btn" style="width: 100%; text-align: left; margin-bottom: 4px;" onclick="daw.deleteClip(${track.id}, '${clip.id}')">🗑️ Eliminar</button>
+            <button class="btn" style="width: 100%; text-align: left;" onclick="daw.splitClipAtPlayhead(${track.id}, '${clip.id}')">✂️ Dividir en Playhead</button>
         `;
 
         document.body.appendChild(menu);
 
         // Close menu on click outside
         setTimeout(() => {
-            document.addEventListener('click', function closeMenu(e) {
+            const closeMenu = (e) => {
                 if (!menu.contains(e.target)) {
                     menu.remove();
                     document.removeEventListener('click', closeMenu);
                 }
-            });
+            };
+            document.addEventListener('click', closeMenu);
         }, 100);
-    }
-
-    highlightSelectedClip(track, clip) {
-        // Redraw waveform with highlight
-        this.drawWaveform(track);
-
-        const canvas = document.getElementById(`waveform-${track.id}`);
-        if (!canvas) return;
-
-        const ctx = canvas.getContext('2d');
-        const startX = clip.startTime * this.pixelsPerSecond;
-        const width = clip.duration * this.pixelsPerSecond;
-
-        // Draw highlight border
-        ctx.strokeStyle = '#FFD700';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(startX, 0, width, canvas.height);
     }
 
     // ========== CLIP EDITING ==========
@@ -2048,15 +2075,27 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Make daw globally available for HTML onclick handlers
     window.daw = daw;
 
-    // Resume audio context on first user interaction
-    document.body.addEventListener('click', async () => {
+    // GLOBAL INTERACTION HANDLER: Resume audio + Global Deselection
+    document.body.addEventListener('click', async (e) => {
+        // Resume AudioContext
         if (daw.audioEngine) {
             await daw.audioEngine.resume();
         }
-    }, { once: true });
+
+        // GLOBAL DESELECTION: If clicking outside the "pista" area (canvases/ruler), clear selection
+        const isClipArea = e.target.closest('.waveform-canvas');
+        const isRuler = e.target.closest('.timeline-ruler');
+        const isTransport = e.target.closest('.daw-transport');
+        const isContextMenu = e.target.closest('#clip-context-menu');
+
+        if (!isClipArea && !isRuler && !isTransport && !isContextMenu) {
+            if (daw.selectedClip) {
+                daw.selectedClip = null;
+                daw.tracks.forEach(t => daw.drawWaveform(t));
+                console.log('Global deselection triggered (clicked outside pista)');
+            }
+        }
+    });
 });
-
-
-
 
 export { Jamstudio };

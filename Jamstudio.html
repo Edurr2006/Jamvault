@@ -341,13 +341,19 @@
 
     <!-- ========== DAW CONTROLS ========== -->
     <div class="daw-transport">
-        <div class="transport-controls">
-            <button id="recordBtn" class="btn record-btn" title="Grabar (R)">
-                <span class="record-icon">●</span> Grabar
-            </button>
-            <button id="playBtn" class="btn play-btn" title="Reproducir (Espacio)">▶ Play</button>
-            <button id="pauseBtn" class="btn pause-btn" title="Pausar (Espacio)" disabled>⏸ Pausa</button>
-            <button id="stopBtn" class="btn stop-btn" title="Detener">⏹ Stop</button>
+        <div class="main-controls-column">
+            <div class="transport-controls">
+                <button id="recordBtn" class="btn record-btn" title="Grabar (R)">
+                    <span class="record-icon">●</span> Grabar
+                </button>
+                <button id="playBtn" class="btn play-btn" title="Reproducir (Espacio)">▶ Play</button>
+                <button id="pauseBtn" class="btn pause-btn" title="Pausar (Espacio)" disabled>⏸ Pausa</button>
+                <button id="stopBtn" class="btn stop-btn" title="Detener">⏹ Stop</button>
+            </div>
+            <div class="track-actions-group">
+                <button id="clearAllBtn" class="btn clear-btn-top">Limpiar Todo</button>
+                <button id="exportBtn" class="btn export-btn-top">💾 Exportar</button>
+            </div>
         </div>
 
         <div class="time-display">
@@ -398,32 +404,30 @@
 
     <!-- ========== MAIN DAW INTERFACE ========== -->
     <main class="daw-main">
-        <!-- Track List (Left Panel) -->
-        <aside class="track-list">
-            <div class="track-list-header">
-                <h3>Pistas</h3>
-                <button id="addTrackBtn" class="btn add-track-btn">+ Nueva Pista</button>
+        <div class="tracks-wrapper" id="tracksWrapper">
+            <!-- Timeline Ruler (Horizontal Header) -->
+            <div class="timeline-ruler-container" id="rulerContainer">
+                <div class="track-controls-spacer">
+                    <span class="tracks-header">Pistas</span>
+                    <button id="addTrackBtn" class="btn add-track-btn-top">+ Nueva Pista</button>
+                </div>
+                <div class="timeline-ruler" id="timelineRuler">
+                    <!-- Time markers will be generated dynamically -->
+                </div>
             </div>
-            <div id="trackListContainer" class="track-list-items">
-                <!-- Tracks will be added dynamically -->
-            </div>
-            <div class="track-actions">
-                <button id="clearAllBtn" class="btn clear-btn">Limpiar Todo</button>
-                <button id="exportBtn" class="btn export-btn">💾 Exportar</button>
-            </div>
-        </aside>
 
-        <!-- Timeline (Center Panel) -->
-        <section class="timeline-section">
-            <div class="timeline-ruler" id="timelineRuler">
-                <!-- Time markers will be generated dynamically -->
+            <!-- Unified Tracks Container -->
+            <div id="unifiedTracksContainer" class="unified-tracks-container">
+                <!-- Tracks will be added dynamically: 
+                     Each track will be a div with [Controls | Timeline] -->
             </div>
-            <div id="tracksContainer" class="tracks-container">
-                <!-- Waveform tracks will be added dynamically -->
-            </div>
+
+            <!-- Global Playhead -->
             <div id="playhead" class="playhead"></div>
-            <div id="recordingIndicator" class="recording-indicator hidden">● REC</div>
-        </section>
+        </div>
+
+        <!-- Global Indicators -->
+        <div id="recordingIndicator" class="recording-indicator hidden">● REC</div>
     </main>
 
     <!-- JamStudio Pro v2 - Clip-Based Timeline System -->
