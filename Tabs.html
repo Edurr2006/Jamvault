@@ -6,17 +6,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>JamVault - Tablaturas</title>
   <link rel="stylesheet" href="IndexStyles_fixed.css">
-</head>
+  <script src="https://cdn.jsdelivr.net/npm/@alphatab/alphatab@latest/dist/alphaTab.js"></script>
+  <style>
+    .player-section {
+      display: none;
+      margin-top: 2rem;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 1.5rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .at-controls {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* Dark Theme AlphaTab */
+    #alphaTab {
+      width: 100%;
+      min-height: 500px;
+      background: #1a1a1a;
+      border-radius: 8px;
+      border: 1px solid #333;
+    }
+
+    .search-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 2rem;
+    }
+
+    #searchInput {
+      width: 100%;
+      max-width: 500px;
+      text-align: left;
+      padding: 12px 20px;
+      cursor: text;
+    }
+  </style>
 </head>
 
 <body class="JamVault">
   <header>
     <a href="index.html">
       <div class="logo-title">
-        <img src="imagenes/logo.png" alt="Logo" class="Logo" />
-        <div class="title-logo"></div>
+        <img src="imagenes/logo.png" alt="Logo" class="Logo">
       </div>
     </a>
+
     <div class="nav-links">
       <a href="Acordes.html" class="btn">Acordes</a>
       <a href="Escalas.html" class="btn">Escalas</a>
@@ -24,22 +67,37 @@
       <a href="Afinador.html" class="btn">Afinador</a>
       <a href="Jamstudio.html" class="btn">JamStudio</a>
       <a href="Songbook.html" class="btn">Canciones</a>
+      <a href="Ejercicios.html" class="btn">Ejercicios</a>
     </div>
+
     <button id="toggleTheme" class="btn">Cambiar Tema</button>
   </header>
 
   <div class="container">
-    <h2>Buscador de Tablaturas 🎸</h2>
-    <p>Busca cualquier artista o canción y se abrirá la búsqueda en Songsterr.</p>
+    <h2>Tablaturas Integradas 🎸</h2>
+    <p>Busca tus canciones favoritas y reprodúcelas directamente aquí.</p>
 
-    <div class="search-section">
-      <input type="text" id="searchInput" placeholder="Ej: Metallica, Nothing Else Matters" class="btn"
-        style="width:60%; max-width:400px;">
-      <br><br><button id="searchBtn" class="btn">Buscar</button>
+    <div class="search-area">
+      <input type="text" id="searchInput" placeholder="Ej: Metallica, AC/DC, Santana..." class="btn">
+      <button id="searchBtn" class="btn">Buscar Tablatura</button>
     </div>
 
-    <div id="results" style="margin-top:2rem;"></div>
+    <div id="loading" style="display: none; margin: 2rem 0; font-size: 1.2rem; color: #f39c12;">🤘 Buscando
+      tablaturas...</div>
+    <div id="results"
+      style="margin-top:2rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; width: 100%;">
+    </div>
+
+    <div class="player-section" id="playerSection">
+      <div class="at-controls">
+        <button id="at-play-pause" class="btn">▶️ Reproducir</button>
+        <button id="at-stop" class="btn">⏹️ Parar</button>
+        <select id="at-track-select" class="btn" style="min-width: 150px;"></select>
+      </div>
+      <div id="alphaTab" data-player="true"></div>
+    </div>
   </div>
+
   <!-- ========== SITE FOOTER ========== -->
   <footer class="site-footer">
     <div class="footer-socials">
