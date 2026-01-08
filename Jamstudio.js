@@ -221,7 +221,7 @@ class Jamstudio {
 
     getMaxDuration() {
         // Calculate max duration from all clips across all tracks
-        let maxDuration = 60; // Default minimum
+        let maxDuration = 300; // Expanded default to 5 minutes for better navigation
         this.tracks.forEach(track => {
             const clips = this.timelineManager.getClips(track.id);
             if (clips && clips.length > 0) {
@@ -307,13 +307,17 @@ class Jamstudio {
                 return;
             }
 
-            // Expanded interactive area: Ruler, Tracks, or Playhead
+            // Expanded interactive area: Ruler, Tracks, Playhead, or the Background Container itself
             const target = e.target;
             const isInteractiveArea = target.closest('.timeline-ruler') ||
                 target.closest('.unified-tracks-container') ||
-                target.id === 'playhead';
+                target.id === 'playhead' ||
+                target.id === 'tracksWrapper'; // Capture clicks on the main container background
 
             if (isInteractiveArea) {
+                // Seek only on Left Click
+                if (e.button !== 0) return;
+
                 // Ignore if clicking specifically on track controls
                 if (target.closest('.track-controls-module')) return;
 
@@ -323,6 +327,7 @@ class Jamstudio {
                 this.tracks.forEach(t => this.drawWaveform(t));
 
                 this.isDraggingTimeline = true;
+                document.body.style.cursor = 'e-resize';
                 this.updatePlayheadPosition(e);
             }
         };
@@ -342,7 +347,7 @@ class Jamstudio {
         this.timelineMouseUp = (e) => {
             this.isDraggingTimeline = false;
             this.isPanning = false;
-            document.body.style.cursor = 'default';
+            document.body.style.cursor = '';
             if (this.scrollAnimationId) {
                 cancelAnimationFrame(this.scrollAnimationId);
                 this.scrollAnimationId = null;
@@ -474,7 +479,9 @@ class Jamstudio {
 
     seekTo(time) {
         const maxDuration = this.getMaxDuration();
-        time = AudioMath.clamp(time, 0, maxDuration);
+        // Allow seeking up to the current max duration or at least 5 minutes
+        const upperLimit = Math.max(maxDuration, 300);
+        time = AudioMath.clamp(time, 0, upperLimit);
 
         if (this.isPlaying && !this.isPaused) {
             this.stop(false); // Don't reset UI/Scroll
@@ -947,10 +954,12 @@ class Jamstudio {
             const currentScroll = tracksWrapper.scrollLeft;
             const relativePosition = playheadPosition - currentScroll;
 
-            // If playhead moves past 75% of the screen, scroll to center it
-            if (relativePosition > viewportWidth * 0.75) {
-                const targetScroll = playheadPosition - (viewportWidth / 2);
-                tracksWrapper.scrollLeft = Math.max(0, targetScroll);
+            // NEW: Smooth continuous scroll logic.
+            // If playhead touches the right edge (100%), scroll is increased.
+            const threshold = viewportWidth * 0.95;
+            if (relativePosition >= threshold) {
+                // Shift the scroll to follow the playhead exactly at the edge
+                tracksWrapper.scrollLeft += (relativePosition - threshold);
             }
         }
 
@@ -1074,20 +1083,24 @@ class Jamstudio {
               <div class="track-header">
                 <span class="track-name">${track.name}</span>
                 <div class="track-header-actions">
-                    <button class="btn mixer-toggle-btn" onclick="daw.toggleMixer(${track.id})" title="Abrir Mezclador">🎚️</button>
-                    <button class="track-delete" onclick="daw.deleteTrack(${track.id})">✕</button>
+                    <button class="btn mixer-toggle-btn" onclick="daw.toggleMixer(${track.id})" title="Controles de Pista">⚙️</button>
+                    <button class="track-delete" onclick="daw.deleteTrack(${track.id})" title="Eliminar Pista">✕</button>
                 </div>
               </div>
-              <div class="track-controls">
-                <button class="btn arm-btn" onclick="daw.toggleTrackArm(${track.id})" title="Armar para grabar">⏺️</button>
-                <button class="btn monitor-btn" onclick="daw.toggleTrackMonitoring(${track.id})" title="Monitoreo en tiempo real">🎧</button>
-                <button class="btn mute-btn" onclick="daw.toggleMute(${track.id})">Mute</button>
-                <button class="btn solo-btn" onclick="daw.toggleSolo(${track.id})">Solo</button>
-                <button class="btn import-btn" onclick="daw.importAudioToTrack(${track.id})" title="Importar Audio">📂</button>
-              </div>
               
-              <!-- Embedded Mixer Controls -->
+              <!-- Floating Track Menu (Consolidated Controls) -->
               <div class="track-mixer" id="mixer-${track.id}" style="display: none;">
+                <div class="menu-title">Opciones de Pista</div>
+                <div class="track-controls">
+                    <button class="btn arm-btn" onclick="daw.toggleTrackArm(${track.id})" title="Armar para grabar">⏺️ Grabar</button>
+                    <button class="btn monitor-btn" onclick="daw.toggleTrackMonitoring(${track.id})" title="Monitoreo">🎧 Monitor</button>
+                </div>
+                <div class="track-controls">
+                    <button class="btn mute-btn" onclick="daw.toggleMute(${track.id})">Mute</button>
+                    <button class="btn solo-btn" onclick="daw.toggleSolo(${track.id})">Solo</button>
+                </div>
+                <button class="btn import-btn" style="width: 100%; margin-bottom: 1rem;" onclick="daw.importAudioToTrack(${track.id})">📂 Importar Audio</button>
+                
                 <div class="mixer-row">
                     <label>Vol</label>
                     <input type="range" min="0" max="100" value="${track.volume}" 
@@ -1099,14 +1112,6 @@ class Jamstudio {
                     <input type="range" min="-100" max="100" value="${track.pan}" 
                            oninput="daw.setTrackPan(${track.id}, this.value)">
                     <span>${track.pan}</span>
-                </div>
-                
-                <h4>Presets</h4>
-                <div class="preset-btns">
-                    <button class="btn" onclick="daw.applyPreset(${track.id}, 'clean')">Clean</button>
-                    <button class="btn" onclick="daw.applyPreset(${track.id}, 'rock')">Rock</button>
-                    <button class="btn" onclick="daw.applyPreset(${track.id}, 'metal')">Metal</button>
-                    <button class="btn" onclick="daw.applyPreset(${track.id}, 'lead')">Lead</button>
                 </div>
               </div>
             </div>
@@ -1164,15 +1169,18 @@ class Jamstudio {
     toggleMixer(trackId) {
         const mixerDiv = document.getElementById(`mixer-${trackId}`);
         const trackContainer = document.querySelector(`.track-container[data-track-id="${trackId}"]`);
-
-        if (!mixerDiv) return;
+        if (!mixerDiv || !trackContainer) return;
 
         if (mixerDiv.style.display === 'none') {
+            // Close other open mixers and remove their active class
+            document.querySelectorAll('.track-mixer').forEach(m => m.style.display = 'none');
+            document.querySelectorAll('.track-container').forEach(c => c.classList.remove('active-menu'));
+
             mixerDiv.style.display = 'block';
-            trackContainer?.classList.add('expanded');
+            trackContainer.classList.add('active-menu');
         } else {
             mixerDiv.style.display = 'none';
-            trackContainer?.classList.remove('expanded');
+            trackContainer.classList.remove('active-menu');
         }
     }
 
@@ -1357,27 +1365,6 @@ class Jamstudio {
         }
     }
 
-    applyPreset(trackId, presetName) {
-        const track = this.tracks.find(t => t.id === trackId);
-        if (!track || !track.signalChain) return;
-
-        switch (presetName) {
-            case 'clean':
-                track.signalChain.presetCleanGuitar();
-                break;
-            case 'rock':
-                track.signalChain.presetRockGuitar();
-                break;
-            case 'metal':
-                track.signalChain.presetMetalGuitar();
-                break;
-            case 'lead':
-                track.signalChain.presetLeadGuitar();
-                break;
-        }
-
-        console.log(`Applied ${presetName} preset to track ${trackId}`);
-    }
 
     importAudioToTrack(trackId) {
         const track = this.tracks.find(t => t.id === trackId);
@@ -1509,7 +1496,11 @@ class Jamstudio {
         const maxDuration = this.getMaxDuration();
         const contentWidth = maxDuration * this.pixelsPerSecond;
         const containerWidth = canvas.parentElement.clientWidth;
-        canvas.width = Math.max(contentWidth, containerWidth);
+
+        // Safety Limit: Browsers stop rendering canvases above ~32k pixels.
+        // We cap it at 30,000px to avoid the "white screen" and performance lag.
+        const SAFETY_MAX_WIDTH = 30000;
+        canvas.width = Math.min(Math.max(contentWidth, containerWidth), SAFETY_MAX_WIDTH);
 
         canvas.height = canvas.offsetHeight;
 
@@ -1587,7 +1578,13 @@ class Jamstudio {
         }
 
         const data = clip.audioBuffer.getChannelData(0);
-        const step = Math.ceil(data.length / width);
+        const sampleRate = clip.audioBuffer.sampleRate;
+        const startSample = Math.floor((clip.bufferOffset || 0) * sampleRate);
+        const durationSamples = Math.floor(clip.duration * sampleRate);
+        const endSample = Math.min(startSample + durationSamples, data.length);
+
+        const segmentLength = endSample - startSample;
+        const step = Math.ceil(segmentLength / width);
         const amp = height / 2;
 
         ctx.fillStyle = this.getThemeColor();
@@ -1598,10 +1595,16 @@ class Jamstudio {
             let max = -1.0;
 
             for (let j = 0; j < step; j++) {
-                const datum = data[(i * step) + j];
+                const sampleIdx = startSample + (i * step) + j;
+                if (sampleIdx >= endSample) break;
+
+                const datum = data[sampleIdx];
                 if (datum < min) min = datum;
                 if (datum > max) max = datum;
             }
+
+            // Ensure min/max were actually updated if step is very small
+            if (min > max) { min = 0; max = 0; }
 
             ctx.fillRect(x + i, (1 + min) * amp, 1, Math.max(1, (max - min) * amp));
         }
@@ -1858,7 +1861,7 @@ class Jamstudio {
             if (clip) {
                 canvas.style.cursor = 'grab';
             } else {
-                canvas.style.cursor = 'default';
+                canvas.style.cursor = 'e-resize';
             }
         });
 
@@ -1908,7 +1911,7 @@ class Jamstudio {
 
                 // Calculate target track
                 // Find which track row the mouse is over
-                const trackRows = document.querySelectorAll('.track-row');
+                const trackRows = document.querySelectorAll('.track-container');
                 let targetTrackId = initialTrackId;
 
                 trackRows.forEach(row => {
