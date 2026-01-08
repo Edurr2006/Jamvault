@@ -13,6 +13,12 @@ const trackSelect = document.getElementById('at-track-select');
 
 // Initialize AlphaTab
 function initAlphaTab() {
+  if (typeof AlphaTab === 'undefined') {
+    console.warn('AlphaTab not loaded yet, retrying in 500ms...');
+    setTimeout(initAlphaTab, 500);
+    return;
+  }
+
   api = new AlphaTab.AlphaTabApi(alphaTabDiv, {
     player: {
       enablePlayer: true,
@@ -71,9 +77,15 @@ searchBtn.addEventListener('click', async () => {
   playerSection.style.display = 'none';
 
   try {
-    const response = await fetch(`https://www.songsterr.com/api/search?pattern=${encodeURIComponent(query)}&size=10`);
+    const targetUrl = `https://www.songsterr.com/api/search?pattern=${encodeURIComponent(query)}&size=10`;
+    // Use AllOrigins proxy to bypass CORS
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+
+    const response = await fetch(proxyUrl);
     const data = await response.json();
-    const songs = data.records || [];
+    // AllOrigins returns the content as a string in 'contents'
+    const songData = JSON.parse(data.contents);
+    const songs = songData.records || [];
 
     loadingDiv.style.display = 'none';
 
@@ -104,19 +116,61 @@ searchBtn.addEventListener('click', async () => {
 });
 
 async function loadSong(songId) {
+  // Ensure player section is shown
   playerSection.style.display = 'block';
   resultsDiv.style.opacity = '0.3';
   resultsDiv.style.pointerEvents = 'none';
 
-  // Songsterr GP files are accessed via their revision API
-  const tabUrl = `https://www.songsterr.com/a/ra/player/song/${songId}.gp5`;
+  alphaTabDiv.innerHTML = '<div style="color:#fff; padding:3rem; font-size:1.2rem; text-align:center;">🤘 Obteniendo información de la canción...</div>';
 
-  alphaTabDiv.innerHTML = '<div style="color:#fff; padding:3rem; font-size:1.2rem; text-align:center;">🤘 Generando partitura interactiva...</div>';
+  // Function to wait for api to be ready
+  const waitForApi = () => {
+    return new Promise((resolve) => {
+      if (api) resolve();
+      else {
+        const interval = setInterval(() => {
+          if (api) {
+            clearInterval(interval);
+            resolve();
+          }
+        }, 100);
+      }
+    });
+  };
 
   try {
+    // 1. Wait for api
+    await waitForApi();
+
+    // 2. Fetch the song page to get the dynamic file URL
+    const songPageUrl = `https://www.songsterr.com/a/wa/song?id=${songId}`;
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(songPageUrl)}`;
+
+    const response = await fetch(proxyUrl);
+    const data = await response.json();
+
+    // 3. Parse the HTML to find the #state script tag
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(data.contents, 'text/html');
+    const stateScript = doc.getElementById('state');
+
+    if (!stateScript) {
+      throw new Error('No se pudo encontrar la información de la canción en Songsterr.');
+    }
+
+    const state = JSON.parse(stateScript.textContent);
+    const tabUrl = state.meta.current.source;
+
+    if (!tabUrl) {
+      throw new Error('No se encontró el archivo de música para esta canción.');
+    }
+
+    alphaTabDiv.innerHTML = '<div style="color:#fff; padding:3rem; font-size:1.2rem; text-align:center;">🤘 Generando partitura interactiva...</div>';
+
+    // 4. Load the tab
     api.tex(tabUrl);
 
-    // Listen for load failure (CORS or file access issues)
+    // Listen for load failure
     api.error.on((err) => {
       console.error('AlphaTab Error:', err);
       alphaTabDiv.innerHTML = `
@@ -134,7 +188,11 @@ async function loadSong(songId) {
 
   } catch (e) {
     console.error('Failure starting load:', e);
-    alphaTabDiv.innerHTML = '<div style="color:#ff4444; padding:3rem;">Error técnico al iniciar el reproductor.</div>';
+    alphaTabDiv.innerHTML = `<div style="color:#ff4444; padding:3rem; text-align:center;">
+            <h3>Error al cargar la canción</h3>
+            <p>${e.message}</p>
+            <button class="btn" onclick="document.getElementById('playerSection').style.display='none'; document.getElementById('results').style.opacity='1'; document.getElementById('results').style.pointerEvents='all';">Volver</button>
+        </div>`;
   }
 }
 
