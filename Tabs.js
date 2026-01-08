@@ -13,18 +13,18 @@ const trackSelect = document.getElementById('at-track-select');
 
 // Initialize AlphaTab
 function initAlphaTab() {
-  if (typeof AlphaTab === 'undefined') {
+  if (typeof alphaTab === 'undefined') {
     console.warn('AlphaTab not loaded yet, retrying in 500ms...');
     setTimeout(initAlphaTab, 500);
     return;
   }
 
-  api = new AlphaTab.AlphaTabApi(alphaTabDiv, {
+  api = new alphaTab.AlphaTabApi(alphaTabDiv, {
     player: {
       enablePlayer: true,
       enableUserInteraction: true,
       enableCursor: true,
-      soundFont: 'https://cdn.jsdelivr.net/npm/@alphatab/alphatab@latest/dist/soundfont/sonivox.sf2'
+      soundFont: 'https://cdn.jsdelivr.net/npm/@coderline/alphatab@latest/dist/soundfont/sonivox.sf2'
     }
   });
 
