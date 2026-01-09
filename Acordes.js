@@ -1,18 +1,64 @@
 const acordesDB = {
   "C": {
     "Mayor": [
-      { cuerda: 5, traste: 3, esRaiz: true, dedo: 3 },
-      { cuerda: 4, traste: 2, esRaiz: false, dedo: 2 },
-      { cuerda: 3, traste: 0, esRaiz: false, dedo: 0 },
-      { cuerda: 2, traste: 1, esRaiz: false, dedo: 1 },
-      { cuerda: 1, traste: 0, esRaiz: false, dedo: 0 }
+      [
+        { cuerda: 5, traste: 3, esRaiz: true, dedo: 3 },
+        { cuerda: 4, traste: 2, esRaiz: false, dedo: 2 },
+        { cuerda: 3, traste: 0, esRaiz: false, dedo: 0 },
+        { cuerda: 2, traste: 1, esRaiz: false, dedo: 1 },
+        { cuerda: 1, traste: 0, esRaiz: false, dedo: 0 }
+      ],
+      [
+        { cuerda: 5, traste: 3, esRaiz: true, dedo: 1 },
+        { cuerda: 4, traste: 5, esRaiz: false, dedo: 2 },
+        { cuerda: 3, traste: 5, esRaiz: false, dedo: 3 },
+        { cuerda: 2, traste: 5, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 3, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 6, traste: 8, esRaiz: true, dedo: 1 },
+        { cuerda: 5, traste: 10, esRaiz: false, dedo: 3 },
+        { cuerda: 4, traste: 10, esRaiz: false, dedo: 4 },
+        { cuerda: 3, traste: 9, esRaiz: false, dedo: 2 },
+        { cuerda: 2, traste: 8, esRaiz: false, dedo: 1 },
+        { cuerda: 1, traste: 8, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 4, traste: 10, esRaiz: true, dedo: 1 },
+        { cuerda: 3, traste: 12, esRaiz: false, dedo: 2 },
+        { cuerda: 2, traste: 13, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 12, esRaiz: false, dedo: 3 }
+      ]
     ],
     "Menor": [
-      { cuerda: 5, traste: 3, esRaiz: true, dedo: 3 },
-      { cuerda: 4, traste: 1, esRaiz: false, dedo: 1 },
-      { cuerda: 3, traste: 0, esRaiz: false, dedo: 0 },
-      { cuerda: 2, traste: 1, esRaiz: false, dedo: 2 },
-      { cuerda: 1, traste: 3, esRaiz: false, dedo: 3 }
+      [
+        { cuerda: 5, traste: 3, esRaiz: true, dedo: 3 },
+        { cuerda: 4, traste: 1, esRaiz: false, dedo: 1 },
+        { cuerda: 3, traste: 0, esRaiz: false, dedo: 0 },
+        { cuerda: 2, traste: 1, esRaiz: false, dedo: 2 },
+        { cuerda: 1, traste: 3, esRaiz: false, dedo: 3 }
+      ],
+      [
+        { cuerda: 5, traste: 3, esRaiz: true, dedo: 1 },
+        { cuerda: 4, traste: 5, esRaiz: false, dedo: 3 },
+        { cuerda: 3, traste: 5, esRaiz: false, dedo: 4 },
+        { cuerda: 2, traste: 4, esRaiz: false, dedo: 2 },
+        { cuerda: 1, traste: 3, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 6, traste: 8, esRaiz: true, dedo: 1 },
+        { cuerda: 5, traste: 10, esRaiz: false, dedo: 3 },
+        { cuerda: 4, traste: 10, esRaiz: false, dedo: 4 },
+        { cuerda: 3, traste: 8, esRaiz: false, dedo: 1 },
+        { cuerda: 2, traste: 8, esRaiz: false, dedo: 1 },
+        { cuerda: 1, traste: 8, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 4, traste: 10, esRaiz: true, dedo: 1 },
+        { cuerda: 3, traste: 12, esRaiz: false, dedo: 3 },
+        { cuerda: 2, traste: 13, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 11, esRaiz: false, dedo: 2 }
+      ]
     ],
     "7": [
       { cuerda: 5, traste: 3, esRaiz: true, dedo: 3 },
@@ -102,10 +148,33 @@ const acordesDB = {
 
   "D": {
     "Mayor": [
-      { cuerda: 4, traste: 0, esRaiz: false, dedo: 0 },
-      { cuerda: 3, traste: 2, esRaiz: false, dedo: 2 },
-      { cuerda: 2, traste: 3, esRaiz: true, dedo: 3 },
-      { cuerda: 1, traste: 2, esRaiz: false, dedo: 1 }
+      [
+        { cuerda: 4, traste: 0, esRaiz: true, dedo: 0 },
+        { cuerda: 3, traste: 2, esRaiz: false, dedo: 2 },
+        { cuerda: 2, traste: 3, esRaiz: false, dedo: 3 },
+        { cuerda: 1, traste: 2, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 5, traste: 5, esRaiz: true, dedo: 1 },
+        { cuerda: 4, traste: 7, esRaiz: false, dedo: 2 },
+        { cuerda: 3, traste: 7, esRaiz: false, dedo: 3 },
+        { cuerda: 2, traste: 7, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 5, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 6, traste: 10, esRaiz: true, dedo: 1 },
+        { cuerda: 5, traste: 12, esRaiz: false, dedo: 3 },
+        { cuerda: 4, traste: 12, esRaiz: false, dedo: 4 },
+        { cuerda: 3, traste: 11, esRaiz: false, dedo: 2 },
+        { cuerda: 2, traste: 10, esRaiz: false, dedo: 1 },
+        { cuerda: 1, traste: 10, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 4, traste: 12, esRaiz: true, dedo: 1 },
+        { cuerda: 3, traste: 14, esRaiz: false, dedo: 2 },
+        { cuerda: 2, traste: 15, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 14, esRaiz: false, dedo: 3 }
+      ]
     ],
     "Menor": [
       { cuerda: 4, traste: 0, esRaiz: false, dedo: 0 },
@@ -199,12 +268,35 @@ const acordesDB = {
 
   "E": {
     "Mayor": [
-      { cuerda: 6, traste: 0, esRaiz: true, dedo: 0 },
-      { cuerda: 5, traste: 2, esRaiz: false, dedo: 2 },
-      { cuerda: 4, traste: 2, esRaiz: false, dedo: 3 },
-      { cuerda: 3, traste: 1, esRaiz: false, dedo: 1 },
-      { cuerda: 2, traste: 0, esRaiz: false, dedo: 0 },
-      { cuerda: 1, traste: 0, esRaiz: false, dedo: 0 }
+      [
+        { cuerda: 6, traste: 0, esRaiz: true, dedo: 0 },
+        { cuerda: 5, traste: 2, esRaiz: false, dedo: 2 },
+        { cuerda: 4, traste: 2, esRaiz: false, dedo: 3 },
+        { cuerda: 3, traste: 1, esRaiz: false, dedo: 1 },
+        { cuerda: 2, traste: 0, esRaiz: false, dedo: 0 },
+        { cuerda: 1, traste: 0, esRaiz: false, dedo: 0 }
+      ],
+      [
+        { cuerda: 5, traste: 7, esRaiz: true, dedo: 1 },
+        { cuerda: 4, traste: 9, esRaiz: false, dedo: 2 },
+        { cuerda: 3, traste: 9, esRaiz: false, dedo: 3 },
+        { cuerda: 2, traste: 9, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 7, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 4, traste: 2, esRaiz: true, dedo: 1 },
+        { cuerda: 3, traste: 4, esRaiz: false, dedo: 3 },
+        { cuerda: 2, traste: 5, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 4, esRaiz: false, dedo: 2 }
+      ],
+      [
+        { cuerda: 6, traste: 12, esRaiz: true, dedo: 1 },
+        { cuerda: 5, traste: 14, esRaiz: false, dedo: 3 },
+        { cuerda: 4, traste: 14, esRaiz: false, dedo: 4 },
+        { cuerda: 3, traste: 13, esRaiz: false, dedo: 2 },
+        { cuerda: 2, traste: 12, esRaiz: false, dedo: 1 },
+        { cuerda: 1, traste: 12, esRaiz: false, dedo: 1 }
+      ]
     ],
     "Menor": [
       { cuerda: 6, traste: 0, esRaiz: true, dedo: 0 },
@@ -256,10 +348,35 @@ const acordesDB = {
 
   "F": {
     "Mayor": [
-      { cuerda: 6, traste: 1, esRaiz: true, dedo: 1 },
-      { cuerda: 5, traste: 3, esRaiz: false, dedo: 3 },
-      { cuerda: 4, traste: 3, esRaiz: false, dedo: 4 },
-      { cuerda: 3, traste: 2, esRaiz: false, dedo: 2 }
+      [
+        { cuerda: 6, traste: 1, esRaiz: true, dedo: 1 },
+        { cuerda: 5, traste: 3, esRaiz: false, dedo: 3 },
+        { cuerda: 4, traste: 3, esRaiz: false, dedo: 4 },
+        { cuerda: 3, traste: 2, esRaiz: false, dedo: 2 },
+        { cuerda: 2, traste: 1, esRaiz: false, dedo: 1 },
+        { cuerda: 1, traste: 1, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 4, traste: 3, esRaiz: true, dedo: 1 },
+        { cuerda: 3, traste: 5, esRaiz: false, dedo: 3 },
+        { cuerda: 2, traste: 6, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 5, esRaiz: false, dedo: 2 }
+      ],
+      [
+        { cuerda: 5, traste: 8, esRaiz: true, dedo: 1 },
+        { cuerda: 4, traste: 10, esRaiz: false, dedo: 2 },
+        { cuerda: 3, traste: 10, esRaiz: false, dedo: 3 },
+        { cuerda: 2, traste: 10, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 8, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 6, traste: 13, esRaiz: true, dedo: 1 },
+        { cuerda: 5, traste: 15, esRaiz: false, dedo: 3 },
+        { cuerda: 4, traste: 15, esRaiz: false, dedo: 4 },
+        { cuerda: 3, traste: 14, esRaiz: false, dedo: 2 },
+        { cuerda: 2, traste: 13, esRaiz: false, dedo: 1 },
+        { cuerda: 1, traste: 13, esRaiz: false, dedo: 1 }
+      ]
     ],
     "Menor": [
       { cuerda: 6, traste: 1, esRaiz: true, dedo: 1 },
@@ -350,12 +467,36 @@ const acordesDB = {
 
   "G": {
     "Mayor": [
-      { cuerda: 6, traste: 3, esRaiz: true, dedo: 2 },
-      { cuerda: 5, traste: 2, esRaiz: false, dedo: 1 },
-      { cuerda: 4, traste: 0, esRaiz: false, dedo: 0 },
-      { cuerda: 3, traste: 0, esRaiz: false, dedo: 0 },
-      { cuerda: 2, traste: 0, esRaiz: false, dedo: 0 },
-      { cuerda: 1, traste: 3, esRaiz: false, dedo: 3 }
+      [
+        { cuerda: 6, traste: 3, esRaiz: true, dedo: 2 },
+        { cuerda: 5, traste: 2, esRaiz: false, dedo: 1 },
+        { cuerda: 4, traste: 0, esRaiz: false, dedo: 0 },
+        { cuerda: 3, traste: 0, esRaiz: false, dedo: 0 },
+        { cuerda: 2, traste: 0, esRaiz: false, dedo: 0 },
+        { cuerda: 1, traste: 3, esRaiz: false, dedo: 3 }
+      ],
+      [
+        { cuerda: 6, traste: 3, esRaiz: true, dedo: 1 },
+        { cuerda: 5, traste: 5, esRaiz: false, dedo: 3 },
+        { cuerda: 4, traste: 5, esRaiz: false, dedo: 4 },
+        { cuerda: 3, traste: 4, esRaiz: false, dedo: 2 },
+        { cuerda: 2, traste: 3, esRaiz: false, dedo: 1 },
+        { cuerda: 1, traste: 3, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 5, traste: 10, esRaiz: true, dedo: 1 },
+        { cuerda: 4, traste: 9, esRaiz: false, dedo: 2 },
+        { cuerda: 3, traste: 7, esRaiz: false, dedo: 1 },
+        { cuerda: 2, traste: 8, esRaiz: false, dedo: 3 },
+        { cuerda: 1, traste: 7, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 5, traste: 10, esRaiz: true, dedo: 1 },
+        { cuerda: 4, traste: 12, esRaiz: false, dedo: 2 },
+        { cuerda: 3, traste: 12, esRaiz: false, dedo: 3 },
+        { cuerda: 2, traste: 12, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 10, esRaiz: false, dedo: 1 }
+      ]
     ],
     "Menor": [
       { cuerda: 6, traste: 3, esRaiz: true, dedo: 1 },
@@ -453,11 +594,34 @@ const acordesDB = {
 
   "A": {
     "Mayor": [
-      { cuerda: 5, traste: 0, esRaiz: true, dedo: 0 },
-      { cuerda: 4, traste: 2, esRaiz: false, dedo: 1 },
-      { cuerda: 3, traste: 2, esRaiz: false, dedo: 2 },
-      { cuerda: 2, traste: 2, esRaiz: false, dedo: 3 },
-      { cuerda: 1, traste: 0, esRaiz: false, dedo: 0 }
+      [
+        { cuerda: 5, traste: 0, esRaiz: true, dedo: 0 },
+        { cuerda: 4, traste: 2, esRaiz: false, dedo: 1 },
+        { cuerda: 3, traste: 2, esRaiz: false, dedo: 2 },
+        { cuerda: 2, traste: 2, esRaiz: false, dedo: 3 },
+        { cuerda: 1, traste: 0, esRaiz: false, dedo: 0 }
+      ],
+      [
+        { cuerda: 6, traste: 5, esRaiz: true, dedo: 1 },
+        { cuerda: 5, traste: 7, esRaiz: false, dedo: 3 },
+        { cuerda: 4, traste: 7, esRaiz: false, dedo: 4 },
+        { cuerda: 3, traste: 6, esRaiz: false, dedo: 2 },
+        { cuerda: 2, traste: 5, esRaiz: false, dedo: 1 },
+        { cuerda: 1, traste: 5, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 4, traste: 7, esRaiz: true, dedo: 1 },
+        { cuerda: 3, traste: 9, esRaiz: false, dedo: 3 },
+        { cuerda: 2, traste: 10, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 9, esRaiz: false, dedo: 2 }
+      ],
+      [
+        { cuerda: 5, traste: 12, esRaiz: true, dedo: 1 },
+        { cuerda: 4, traste: 14, esRaiz: false, dedo: 2 },
+        { cuerda: 3, traste: 14, esRaiz: false, dedo: 3 },
+        { cuerda: 2, traste: 14, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 12, esRaiz: false, dedo: 1 }
+      ]
     ],
     "Menor": [
       { cuerda: 5, traste: 0, esRaiz: true, dedo: 0 },
@@ -549,10 +713,34 @@ const acordesDB = {
 
   "B": {
     "Mayor": [
-      { cuerda: 5, traste: 2, esRaiz: true, dedo: 1 },
-      { cuerda: 4, traste: 4, esRaiz: false, dedo: 2 },
-      { cuerda: 3, traste: 4, esRaiz: false, dedo: 3 },
-      { cuerda: 2, traste: 4, esRaiz: false, dedo: 4 }
+      [
+        { cuerda: 5, traste: 2, esRaiz: true, dedo: 1 },
+        { cuerda: 4, traste: 4, esRaiz: false, dedo: 2 },
+        { cuerda: 3, traste: 4, esRaiz: false, dedo: 3 },
+        { cuerda: 2, traste: 4, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 2, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 6, traste: 7, esRaiz: true, dedo: 1 },
+        { cuerda: 5, traste: 9, esRaiz: false, dedo: 3 },
+        { cuerda: 4, traste: 9, esRaiz: false, dedo: 4 },
+        { cuerda: 3, traste: 8, esRaiz: false, dedo: 2 },
+        { cuerda: 2, traste: 7, esRaiz: false, dedo: 1 },
+        { cuerda: 1, traste: 7, esRaiz: false, dedo: 1 }
+      ],
+      [
+        { cuerda: 4, traste: 9, esRaiz: true, dedo: 1 },
+        { cuerda: 3, traste: 11, esRaiz: false, dedo: 2 },
+        { cuerda: 2, traste: 12, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 11, esRaiz: false, dedo: 3 }
+      ],
+      [
+        { cuerda: 5, traste: 14, esRaiz: true, dedo: 1 },
+        { cuerda: 4, traste: 16, esRaiz: false, dedo: 2 },
+        { cuerda: 3, traste: 16, esRaiz: false, dedo: 3 },
+        { cuerda: 2, traste: 16, esRaiz: false, dedo: 4 },
+        { cuerda: 1, traste: 14, esRaiz: false, dedo: 1 }
+      ]
     ],
     "Menor": [
       { cuerda: 5, traste: 2, esRaiz: true, dedo: 1 },
@@ -592,12 +780,16 @@ const acordesDB = {
       { cuerda: 3, traste: 4, esRaiz: false, dedo: 3 }
     ]
   }
-};
+};// ------------------------- ESTADO GLOBAL -------------------------
+let currentRoot = null;
+let currentType = null;
+let currentPositionIndex = 0;
 
-
-
-
-// ------------------------- TEMAS -------------------------
+function getPositions(root, type) {
+  if (!acordesDB[root] || !acordesDB[root][type]) return [];
+  const data = acordesDB[root][type];
+  return Array.isArray(data[0]) ? data : [data];
+}
 
 
 
@@ -632,18 +824,27 @@ function calcularY(traste) {
 
 // ------------------------- MOSTRAR ACORDE -------------------------
 
-function mostrarAcorde(root, tipo) {
-  const svg = document.querySelector('#chordCanvas svg');
-  // Limpiar acordes previos pero mantener las líneas y defs
-  const elementos = svg.querySelectorAll('.chord-circle, .chord-label');
-  elementos.forEach(e => e.remove());
+function mostrarAcorde(root, tipo, index = 0) {
+  currentRoot = root;
+  currentType = tipo;
+  currentPositionIndex = index;
 
-  if (!acordesDB[root] || !acordesDB[root][tipo]) {
+  const positions = getPositions(root, tipo);
+  if (positions.length === 0) {
     alert('Acorde no disponible');
     return;
   }
 
-  const posiciones = acordesDB[root][tipo];
+  const data = positions[index];
+  renderizarDiagrama(data);
+  actualizarNavegacion(positions.length, index);
+}
+
+function renderizarDiagrama(posiciones) {
+  const svg = document.querySelector('#chordCanvas svg');
+  // Limpiar acordes previos pero mantener las líneas y defs
+  const elementos = svg.querySelectorAll('.chord-circle, .chord-label');
+  elementos.forEach(e => e.remove());
 
   // Calcular el traste mínimo y máximo para determinar si necesitamos desplazar la vista
   let minFret = 20;
@@ -670,16 +871,27 @@ function mostrarAcorde(root, tipo) {
 
   // Si hay desplazamiento, mostrar el número de traste
   if (startFret > 1) {
+    const badgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    badgeGroup.classList.add('chord-label', 'fret-badge-group');
+
+    const badgeRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    badgeRect.setAttribute('x', '-45');
+    badgeRect.setAttribute('y', calcularY(1) - 18);
+    badgeRect.setAttribute('width', '42');
+    badgeRect.setAttribute('height', '36');
+    badgeRect.setAttribute('rx', '10');
+    badgeRect.classList.add('fret-badge-bg');
+
     const labelFret = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    labelFret.setAttribute('x', '-5'); // Más a la izquierda para evitar solapamiento
-    labelFret.setAttribute('y', calcularY(1) + 5); // Alineado con el primer traste visual
-    labelFret.setAttribute('text-anchor', 'end');
-    // labelFret.setAttribute('fill', 'white'); // Removed, handled by CSS .chord-label
-    // labelFret.setAttribute('font-size', '18');
-    // labelFret.setAttribute('font-weight', 'bold');
-    labelFret.classList.add('chord-label');
-    labelFret.textContent = `${startFret}`;
-    svg.appendChild(labelFret);
+    labelFret.setAttribute('x', '-24');
+    labelFret.setAttribute('y', calcularY(1) + 6);
+    labelFret.setAttribute('text-anchor', 'middle');
+    labelFret.classList.add('fret-badge-text');
+    labelFret.textContent = `${startFret}fr`;
+
+    badgeGroup.appendChild(badgeRect);
+    badgeGroup.appendChild(labelFret);
+    svg.appendChild(badgeGroup);
   }
 
   // Detectar cejillas (barres)
@@ -817,6 +1029,36 @@ function mostrarAcorde(root, tipo) {
   });
 }
 
+function actualizarNavegacion(total, actual) {
+  const info = document.getElementById('chordPositionsInfo');
+  const count = document.getElementById('positionsCount');
+  const dotsContainer = document.getElementById('positionDots');
+  const btnPrev = document.getElementById('prevChord');
+  const btnNext = document.getElementById('nextChord');
+
+  if (total > 1) {
+    info.style.display = 'block';
+    count.textContent = total;
+    dotsContainer.style.display = 'flex';
+    btnPrev.style.display = 'flex';
+    btnNext.style.display = 'flex';
+
+    // Generar dots
+    dotsContainer.innerHTML = '';
+    for (let i = 0; i < total; i++) {
+      const dot = document.createElement('div');
+      dot.className = i === actual ? 'dot active' : 'dot';
+      dot.onclick = () => mostrarAcorde(currentRoot, currentType, i);
+      dotsContainer.appendChild(dot);
+    }
+  } else {
+    info.style.display = 'none';
+    dotsContainer.style.display = 'none';
+    btnPrev.style.display = 'none';
+    btnNext.style.display = 'none';
+  }
+}
+
 
 // ------------------------- EVENT LISTENERS -------------------------
 
@@ -831,10 +1073,32 @@ document.addEventListener('DOMContentLoaded', () => {
       const type = selectType.value;
 
       if (root && type) {
-        mostrarAcorde(root, type);
+        mostrarAcorde(root, type, 0);
       } else {
         alert('Por favor selecciona una nota y un tipo de acorde.');
       }
     });
+  }
+
+  const btnPrev = document.getElementById('prevChord');
+  const btnNext = document.getElementById('nextChord');
+
+  if (btnPrev && btnNext) {
+    btnPrev.onclick = () => {
+      const positions = getPositions(currentRoot, currentType);
+      if (positions.length > 0) {
+        let newIndex = currentPositionIndex - 1;
+        if (newIndex < 0) newIndex = positions.length - 1;
+        mostrarAcorde(currentRoot, currentType, newIndex);
+      }
+    };
+
+    btnNext.onclick = () => {
+      const positions = getPositions(currentRoot, currentType);
+      if (positions.length > 0) {
+        let newIndex = (currentPositionIndex + 1) % positions.length;
+        mostrarAcorde(currentRoot, currentType, newIndex);
+      }
+    };
   }
 });

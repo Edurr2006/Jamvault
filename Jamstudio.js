@@ -215,6 +215,12 @@ class Jamstudio {
                 // This is a placeholder for future implementation
             });
         }
+
+        // Theme change listener
+        window.addEventListener('themeChanged', () => {
+            console.log('Theme change detected in Jamstudio, redrawing waveforms...');
+            this.tracks.forEach(track => this.drawWaveform(track));
+        });
     }
 
     // ========== TIMELINE ==========
@@ -1527,12 +1533,12 @@ class Jamstudio {
 
     getThemeColor() {
         const body = document.body;
-        if (body.classList.contains('natural')) return '#8FB996';
-        if (body.classList.contains('galactic')) return '#00B4D8';
-        if (body.classList.contains('retro')) return '#FFD460';
-        if (body.classList.contains('vintage')) return '#A6C48A';
-        if (body.classList.contains('redblack')) return '#C74B50';
-        return '#FF8906';
+        if (body.classList.contains('natural')) return '#27AE60'; // Verde esmeralda
+        if (body.classList.contains('galactic')) return '#2980B9'; // Azul belice
+        if (body.classList.contains('retro')) return '#D81B60';    // Rosa retro sofisticado
+        if (body.classList.contains('vintage')) return '#B7950B';  // Dorado ocre
+        if (body.classList.contains('redblack')) return '#C0392B'; // Rojo carmesí
+        return '#F39C12'; // JamVault Naranja (color por defecto)
     }
 
     drawClipWaveform(ctx, clip, x, width, height) {
