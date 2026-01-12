@@ -129,14 +129,14 @@ header {
 }
 
 .JamVault .btn {
-  background: #F39C12 !important;
+  background: #FF9F1C !important;
   color: #000 !important;
-  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.2);
+  box-shadow: 0 4px 12px rgba(255, 159, 28, 0.2);
 }
 
 .JamVault .btn:hover {
-  background: #E67E22 !important;
-  box-shadow: 0 4px 15px rgba(243, 156, 18, 0.35);
+  background: #FFB84D !important;
+  box-shadow: 0 4px 15px rgba(255, 159, 28, 0.35);
 }
 
 /* Natural */
@@ -150,14 +150,14 @@ header {
 }
 
 .natural .btn {
-  background: #27AE60 !important;
+  background: #10D96A !important;
   color: #000 !important;
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.2);
+  box-shadow: 0 4px 12px rgba(16, 217, 106, 0.2);
 }
 
 .natural .btn:hover {
-  background: #2ECC71 !important;
-  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+  background: #2EF37D !important;
+  box-shadow: 0 4px 15px rgba(16, 217, 106, 0.3);
 }
 
 /* Galactic */
@@ -171,14 +171,14 @@ header {
 }
 
 .galactic .btn {
-  background: #2980B9 !important;
+  background: #1E90FF !important;
   color: #000 !important;
-  box-shadow: 0 4px 12px rgba(41, 128, 185, 0.2);
+  box-shadow: 0 4px 12px rgba(30, 144, 255, 0.2);
 }
 
 .galactic .btn:hover {
-  background: #3498DB !important;
-  box-shadow: 0 4px 15px rgba(41, 128, 185, 0.3);
+  background: #4DA6FF !important;
+  box-shadow: 0 4px 15px rgba(30, 144, 255, 0.3);
 }
 
 /* Retro */
@@ -213,14 +213,14 @@ header {
 }
 
 .vintage .btn {
-  background: #B7950B !important;
+  background: #F1C40F !important;
   color: #000 !important;
-  box-shadow: 0 4px 12px rgba(183, 149, 11, 0.2);
+  box-shadow: 0 4px 12px rgba(241, 196, 15, 0.2);
 }
 
 .vintage .btn:hover {
-  background: #D4AC0D !important;
-  box-shadow: 0 4px 15px rgba(183, 149, 11, 0.3);
+  background: #F4D03F !important;
+  box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3);
 }
 
 /* RedBlack */
@@ -234,14 +234,14 @@ header {
 }
 
 .redblack .btn {
-  background: #C0392B !important;
+  background: #E81F2B !important;
   color: #FFF !important;
-  box-shadow: 0 4px 12px rgba(192, 57, 43, 0.2);
+  box-shadow: 0 4px 12px rgba(232, 31, 43, 0.2);
 }
 
 .redblack .btn:hover {
-  background: #E74C3C !important;
-  box-shadow: 0 4px 15px rgba(192, 57, 43, 0.35);
+  background: #FF3D47 !important;
+  box-shadow: 0 4px 15px rgba(232, 31, 43, 0.35);
 }
 
 /* ---------- ELEMENTOS COMUNES ---------- */
@@ -290,17 +290,17 @@ header {
 
 /* hover por tema vibrante */
 .JamVault .menu:hover {
-  background-color: #F39C12;
+  background-color: #FF9F1C;
   color: #000;
 }
 
 .natural .menu:hover {
-  background-color: #27AE60;
+  background-color: #10D96A;
   color: #000;
 }
 
 .galactic .menu:hover {
-  background-color: #2980B9;
+  background-color: #1E90FF;
   color: #000;
 }
 
@@ -310,12 +310,12 @@ header {
 }
 
 .vintage .menu:hover {
-  background-color: #B7950B;
+  background-color: #F1C40F;
   color: #000;
 }
 
 .redblack .menu:hover {
-  background-color: #C0392B;
+  background-color: #E81F2B;
   color: #fff;
 }
 
@@ -353,7 +353,7 @@ a {
 }
 
 .hero-btn {
-  background: #F39C12;
+  background: #FF9F1C;
   color: #000;
   padding: 14px 28px;
   border-radius: 10px;

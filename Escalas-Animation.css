@@ -1,0 +1,20 @@
+/* Scale note appearance animation */
+#fretboard .note.scale-note-appear {
+    animation: scaleNoteAppear 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes scaleNoteAppear {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Root note special styling */
+#fretboard .note.root-note ellipse {
+    fill: #FF1F1C !important;
+    /* Vibrant red for root note */
+}

@@ -18,6 +18,9 @@ class Jamstudio {
         this.tracks = [];
         this.nextTrackId = 1;
 
+        // Selection State
+        this.selectedClips = []; // Array of { trackId, clipId }
+
         // Playback state
         this.isPlaying = false;
         this.isPaused = false;
@@ -140,6 +143,21 @@ class Jamstudio {
         // Resize listener to update waveform widths
         window.addEventListener('resize', () => {
             this.tracks.forEach(track => this.drawWaveform(track));
+        });
+
+        // Initialize Global Drag Listeners for Clips
+        this.setupGlobalDragListeners();
+
+        // Global Key Listener (Delete Clips)
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'Delete' || e.key === 'Backspace') && this.selectedClips.length > 0) {
+                // Don't delete if focusing on input
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+                e.preventDefault();
+                this.selectedClips.forEach(s => this.deleteClip(s.trackId, s.clipId));
+                this.selectedClips = []; // Clear selection after delete
+            }
         });
 
         // Progress bar dragging
@@ -313,22 +331,19 @@ class Jamstudio {
                 return;
             }
 
-            // Expanded interactive area: Ruler, Tracks, Playhead, or the Background Container itself
             const target = e.target;
-            const isInteractiveArea = target.closest('.timeline-ruler') ||
-                target.closest('.unified-tracks-container') ||
-                target.id === 'playhead' ||
-                target.id === 'tracksWrapper'; // Capture clicks on the main container background
 
-            if (isInteractiveArea) {
+            // RESTRICT SEEKING TO RULER ONLY or EMPTY SPACE (not tracks)
+            // If clicking on a track (waveform canvas or container), do NOT seek playhead
+            // Only seek if clicking on the ruler
+            const isRuler = target.closest('.timeline-ruler');
+            const isPlayhead = target.id === 'playhead';
+
+            if (isRuler || isPlayhead) {
                 // Seek only on Left Click
                 if (e.button !== 0) return;
 
-                // Ignore if clicking specifically on track controls
-                if (target.closest('.track-controls-module')) return;
-
-                // ALWAYS deselect when clicking on timeline/ruler empty space
-                // (If it were a clip click, propagation would have stopped in setupClipInteraction)
+                // Deselect clips when clicking ruler
                 this.selectedClip = null;
                 this.tracks.forEach(t => this.drawWaveform(t));
 
@@ -1143,7 +1158,12 @@ class Jamstudio {
         }
 
         // Setup clip interaction
+        // Setup clip interaction
         this.setupClipInteraction(track);
+
+
+
+
 
         // Setup track name renaming behavior
         const nameEl = trackContainer.querySelector('.track-name');
@@ -1464,6 +1484,234 @@ class Jamstudio {
     }
 
 
+    setupClipInteraction(track) {
+        const canvas = document.getElementById(`waveform-${track.id}`);
+        if (!canvas) return;
+
+        // Mouse Down: Select & Start Drag
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return; // Only Left Click
+
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const timeAtClick = clickX / this.pixelsPerSecond;
+
+            // Find clicked clip
+            const clips = this.timelineManager.getClips(track.id);
+            const clickedClip = clips.find(c => timeAtClick >= c.startTime && timeAtClick <= c.startTime + c.duration);
+
+            if (clickedClip) {
+                e.preventDefault();
+                e.stopPropagation(); // Prevent timeline seeking/deselection
+
+                // Select Clip
+                this.selectedClip = { trackId: track.id, clipId: clickedClip.id };
+                this.tracks.forEach(t => this.drawWaveform(t)); // Redraw to show selection
+
+                // Init Dragging
+                this.isDraggingClip = true;
+                this.draggedClip = clickedClip;
+                this.dragStartX = e.clientX;
+                this.dragStartObjTime = clickedClip.startTime;
+                this.dragSourceTrackId = track.id;
+
+                document.body.style.cursor = 'move';
+            }
+        });
+
+        // Context Menu (Right Click)
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const timeAtClick = clickX / this.pixelsPerSecond;
+
+            const clips = this.timelineManager.getClips(track.id);
+            const clickedClip = clips.find(c => timeAtClick >= c.startTime && timeAtClick <= c.startTime + c.duration);
+
+            if (clickedClip) {
+                this.showClipContextMenu(track, clickedClip, e.clientX, e.clientY);
+            }
+        });
+    }
+
+    setupGlobalDragListeners() {
+        document.addEventListener('mousemove', (e) => {
+            if (this.isDraggingClip && this.draggedClip) {
+                // Drag Threshold Check (5px)
+                if (!this.hasMovedSignificantly) {
+                    const dist = Math.hypot(e.clientX - this.dragStartX, e.clientY - this.dragStartY);
+                    if (dist < 5) return; // Don't start dragging visual yet
+                    this.hasMovedSignificantly = true;
+                }
+
+                const deltaPx = e.clientX - this.dragStartX;
+                const deltaTime = deltaPx / this.pixelsPerSecond;
+                let newTime = this.dragStartObjTime + deltaTime;
+                if (newTime < 0) newTime = 0;
+
+                // Determine Track under mouse
+                const unifiedContainer = document.getElementById('unifiedTracksContainer');
+                const tracksWrapper = document.getElementById('tracksWrapper');
+                const rect = unifiedContainer.getBoundingClientRect();
+                const relativeY = e.clientY - rect.top + tracksWrapper.scrollTop;
+
+                // Better: find element under mouse
+                let targetTrackId = this.dragSourceTrackId;
+                const elementUnderMouse = document.elementFromPoint(e.clientX, e.clientY);
+                const trackContainer = elementUnderMouse?.closest('.track-container');
+                if (trackContainer) {
+                    targetTrackId = parseInt(trackContainer.dataset.trackId);
+                }
+
+                // --- SNAPPING LOGIC (Primary Clip) ---
+                const snapThresholdPx = 15; // Snap radius in pixels
+                const snapThresholdTime = snapThresholdPx / this.pixelsPerSecond;
+                let snappedTime = newTime;
+                let minDistance = Infinity;
+
+                // 1. Snap to Playhead
+                const playheadTime = (this.isPaused || !this.isPlaying) ? this.pauseTime : this.currentTime;
+                const distToPlayhead = Math.abs(newTime - playheadTime);
+
+                if (distToPlayhead < snapThresholdTime && distToPlayhead < minDistance) {
+                    snappedTime = playheadTime;
+                    minDistance = distToPlayhead;
+                }
+
+                // 2. Snap to ALL clips across ALL tracks (Cross-track snapping)
+                this.tracks.forEach(track => {
+                    const clips = this.timelineManager.getClips(track.id);
+                    clips.forEach(clip => {
+                        if (clip.id === this.draggedClip.id) return; // Don't snap to self
+
+                        // Snap to Start
+                        const distToStart = Math.abs(newTime - clip.startTime);
+                        if (distToStart < snapThresholdTime && distToStart < minDistance) {
+                            snappedTime = clip.startTime;
+                            minDistance = distToStart;
+                        }
+
+                        // Snap to End
+                        const clipEnd = clip.startTime + clip.duration;
+                        const distToEnd = Math.abs(newTime - clipEnd);
+                        if (distToEnd < snapThresholdTime && distToEnd < minDistance) {
+                            snappedTime = clipEnd;
+                            minDistance = distToEnd;
+                        }
+                    });
+                });
+
+                newTime = snappedTime;
+                // ----------------------
+
+                // Calculate Deltas based on Primary Dragged Clip
+                const actualDeltaTime = newTime - this.dragStartObjTime;
+                const trackDelta = targetTrackId - this.dragSourceTrackId;
+
+                // Apply to ALL selected clips
+                if (this.dragSnapshot) {
+                    this.dragSnapshot.forEach(snap => {
+                        let updatedStartTime = snap.initialStartTime + actualDeltaTime;
+                        if (updatedStartTime < 0) updatedStartTime = 0;
+
+                        // Calculate target track for this specific clip
+                        let updatedTrackId = snap.initialTrackId + trackDelta;
+
+                        // Verify track existence (simple check against min/max ID or list)
+                        // Assuming track IDs are 1..N. If updatedTrackId invalid, maybe clamp or keep original?
+                        // For now, let's clamp to valid range if possible, or just check existence.
+                        const trackExists = this.tracks.find(t => t.id === updatedTrackId);
+                        if (!trackExists) {
+                            updatedTrackId = snap.initialTrackId; // revert track change if invalid
+                        }
+
+                        // Apply to clip object (for visual feedback)
+                        if (snap.clipObj) {
+                            snap.clipObj.tempStartTime = updatedStartTime;
+                            snap.clipObj.tempTrackId = updatedTrackId;
+                        }
+                    });
+                } else {
+                    // Fallback for single clip if snapshot missing (shouldn't happen with new logic)
+                    this.draggedClip.tempStartTime = newTime;
+                    this.draggedClip.tempTrackId = targetTrackId;
+                }
+
+                // Redraw all tracks to show ghosting
+                this.tracks.forEach(t => this.drawWaveform(t));
+            }
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            if (this.isDraggingClip && this.draggedClip) {
+                try {
+                    const newTime = this.draggedClip.tempStartTime !== undefined ? this.draggedClip.tempStartTime : this.draggedClip.startTime;
+                    // Move Logic
+                    // Move Logic
+                    // Whether changing track or just time, we use the manager to handle it (sorting, safety)
+                    if (this.dragSnapshot) {
+                        this.dragSnapshot.forEach(snap => {
+                            // 1. Resolve Final Position
+                            const finalTime = snap.clipObj.tempStartTime !== undefined ? snap.clipObj.tempStartTime : snap.initialStartTime;
+                            const finalTrackId = snap.clipObj.tempTrackId !== undefined ? snap.clipObj.tempTrackId : snap.initialTrackId;
+
+                            // 2. PRE-CLEANUP: Remove temp properties from the object BEFORE moveClip copies it.
+                            // This prevents the new clip instance from inheriting the "ghost" state.
+                            if (snap.clipObj) {
+                                delete snap.clipObj.tempStartTime;
+                                delete snap.clipObj.tempTrackId;
+                            }
+
+                            // 3. Move
+                            if (finalTime !== snap.initialStartTime || finalTrackId !== snap.initialTrackId) {
+                                this.timelineManager.moveClip(snap.initialTrackId, snap.clipId, finalTime, finalTrackId);
+                            }
+                        });
+                        this.dragSnapshot = null; // Clear snapshot after processing
+                    } else {
+                        // Fallback single move
+                        const newTime = this.draggedClip.tempStartTime !== undefined ? this.draggedClip.tempStartTime : this.draggedClip.startTime;
+                        const targetTrackId = this.draggedClip.tempTrackId || this.dragSourceTrackId;
+
+                        // Pre-cleanup
+                        delete this.draggedClip.tempStartTime;
+                        delete this.draggedClip.tempTrackId;
+
+                        this.timelineManager.moveClip(this.dragSourceTrackId, this.draggedClip.id, newTime, targetTrackId);
+                    }
+
+                    // Resume playback if it was playing before drag
+                    if (this.wasPlayingBeforeDrag) {
+                        this.play();
+                        this.wasPlayingBeforeDrag = false;
+                    }
+                } catch (err) {
+                    console.error('Error dropping clip:', err);
+                } finally {
+                    // Cleanup - ALWAYS execute
+                    if (this.dragSnapshot) {
+                        this.dragSnapshot.forEach(snap => {
+                            if (snap.clipObj) {
+                                delete snap.clipObj.tempStartTime;
+                                delete snap.clipObj.tempTrackId;
+                            }
+                        });
+                        this.dragSnapshot = null;
+                    } else if (this.draggedClip) {
+                        delete this.draggedClip.tempStartTime;
+                        delete this.draggedClip.tempTrackId;
+                    }
+
+                    this.isDraggingClip = false;
+                    this.draggedClip = null;
+                    document.body.style.cursor = 'default';
+                    this.tracks.forEach(t => this.drawWaveform(t));
+                }
+            }
+        });
+    }
+
     importAudioToTrack(trackId) {
         const track = this.tracks.find(t => t.id === trackId);
         if (!track) return;
@@ -1625,12 +1873,12 @@ class Jamstudio {
 
     getThemeColor() {
         const body = document.body;
-        if (body.classList.contains('natural')) return '#27AE60'; // Verde esmeralda
-        if (body.classList.contains('galactic')) return '#2980B9'; // Azul belice
+        if (body.classList.contains('natural')) return '#10D96A'; // Verde vibrante
+        if (body.classList.contains('galactic')) return '#1E90FF'; // Azul vibrante
         if (body.classList.contains('retro')) return '#D81B60';    // Rosa retro sofisticado
-        if (body.classList.contains('vintage')) return '#B7950B';  // Dorado ocre
-        if (body.classList.contains('redblack')) return '#C0392B'; // Rojo carmesí
-        return '#F39C12'; // JamVault Naranja (color por defecto)
+        if (body.classList.contains('vintage')) return '#F1C40F';  // Dorado vibrante
+        if (body.classList.contains('redblack')) return '#E81F2B'; // Rojo vibrante
+        return '#FF9F1C'; // JamVault Naranja Vibrante (color por defecto)
     }
 
     drawClipWaveform(ctx, clip, x, width, height) {
@@ -1662,8 +1910,8 @@ class Jamstudio {
         ctx.restore();
 
         // Draw selection border if selected
-        if (this.selectedClip && this.selectedClip.id === clip.id) {
-            ctx.strokeStyle = '#FFD700'; // Gold color
+        if (this.selectedClips.some(s => s.clipId === clip.id)) {
+            ctx.strokeStyle = this.getThemeColor(); // Use dynamic theme color
             ctx.lineWidth = 3;
             drawRoundedRect(x, 0, width, height, cornerRadius);
             ctx.stroke();
@@ -1919,192 +2167,116 @@ class Jamstudio {
 
     // ========== CLIP INTERACTION ==========
 
+
+
+
     setupClipInteraction(track) {
-        const canvas = document.getElementById(`waveform - ${track.id} `);
+        const canvas = document.getElementById(`waveform-${track.id}`);
         if (!canvas) return;
 
-        // Context menu (Right click)
+        // Hover Effect (Cursor)
+        canvas.addEventListener('mousemove', (e) => {
+            if (this.isDraggingClip) return; // Don't change cursor while dragging
+
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const timeAtHover = clickX / this.pixelsPerSecond;
+
+            const clips = this.timelineManager.getClips(track.id);
+            const hoveredClip = clips.find(c => timeAtHover >= c.startTime && timeAtHover <= c.startTime + c.duration);
+
+            if (hoveredClip) {
+                canvas.style.cursor = 'grab';
+            } else {
+                canvas.style.cursor = 'default';
+            }
+        });
+
+        // Mouse Down: Select & Start Drag
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return; // Only Left Click
+
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const timeAtClick = clickX / this.pixelsPerSecond;
+
+            // Find clicked clip
+            const clips = this.timelineManager.getClips(track.id);
+            const clickedClip = clips.find(c => timeAtClick >= c.startTime && timeAtClick <= c.startTime + c.duration);
+
+            if (clickedClip) {
+                e.preventDefault();
+                e.stopPropagation(); // Prevent timeline seeking/deselection
+
+                // Select Clip logic
+                if (e.shiftKey) {
+                    const existingIndex = this.selectedClips.findIndex(s => s.clipId === clickedClip.id);
+                    if (existingIndex !== -1) {
+                        this.selectedClips.splice(existingIndex, 1);
+                    } else {
+                        this.selectedClips.push({ trackId: track.id, clipId: clickedClip.id });
+                    }
+                } else {
+                    // Standard click:
+                    // If clicked clip is ALREADY selected, DON'T deselect others yet (might be starting a group drag).
+                    // We only reset selection if we click an unselected clip.
+                    const isAlreadySelected = this.selectedClips.some(s => s.clipId === clickedClip.id);
+                    if (!isAlreadySelected) {
+                        this.selectedClips = [{ trackId: track.id, clipId: clickedClip.id }];
+                    }
+                }
+
+                this.tracks.forEach(t => this.drawWaveform(t)); // Redraw to show selection
+
+                // Init Dragging
+                this.isDraggingClip = true;
+                this.draggedClip = clickedClip;
+                this.dragStartX = e.clientX;
+                this.dragStartY = e.clientY; // Store Start Y
+                this.hasMovedSignificantly = false; // Drag Threshold Flag
+                this.dragStartObjTime = clickedClip.startTime;
+                this.dragSourceTrackId = track.id;
+
+                // SNAPSHOT for Multi-Drag: Store initial state of ALL selected clips
+                this.dragSnapshot = this.selectedClips.map(sel => {
+                    const tId = sel.trackId;
+                    const cId = sel.clipId;
+                    // Find actual clip object
+                    const clipObj = this.timelineManager.getClips(tId).find(c => c.id === cId);
+                    return {
+                        clipId: cId,
+                        initialTrackId: tId,
+                        initialStartTime: clipObj ? clipObj.startTime : 0,
+                        clipObj: clipObj // Keep reference for easier updates
+                    };
+                });
+
+                // Auto-pause if playing to allow instant update on drop
+                if (this.isPlaying) {
+                    this.pause();
+                    this.wasPlayingBeforeDrag = true;
+                } else {
+                    this.wasPlayingBeforeDrag = false;
+                }
+
+                document.body.style.cursor = 'grabbing';
+                canvas.style.cursor = 'grabbing';
+            }
+        });
+
+        // Context Menu (Right Click)
         canvas.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const clip = this.timelineManager.getClipAtPosition(track.id, x, this.pixelsPerSecond);
+            const clickX = e.clientX - rect.left;
+            const timeAtClick = clickX / this.pixelsPerSecond;
 
-            if (clip) {
-                this.selectedClip = clip;
-                this.tracks.forEach(t => this.drawWaveform(t));
-                this.showClipContextMenu(track, clip, e.clientX, e.clientY);
-            } else {
-                this.selectedClip = null;
-                this.tracks.forEach(t => this.drawWaveform(t));
+            const clips = this.timelineManager.getClips(track.id);
+            const clickedClip = clips.find(c => timeAtClick >= c.startTime && timeAtClick <= c.startTime + c.duration);
+
+            if (clickedClip) {
+                this.showClipContextMenu(track, clickedClip, e.clientX, e.clientY);
             }
-        });
-
-        // Dragging logic
-        let isDragging = false;
-        let dragStartX = 0;
-        let initialClipStartTime = 0;
-        let draggedClip = null;
-        let initialTrackId = null;
-        let animationFrameId = null;
-
-        // Hover effect (cursor: grab)
-        canvas.addEventListener('mousemove', (e) => {
-            if (isDragging) return; // Handled by window mousemove
-
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const clip = this.timelineManager.getClipAtPosition(track.id, x, this.pixelsPerSecond);
-
-            if (clip) {
-                canvas.style.cursor = 'grab';
-            } else {
-                canvas.style.cursor = 'e-resize';
-            }
-        });
-
-        canvas.addEventListener('mousedown', (e) => {
-            if (e.button !== 0) return; // Only left click
-
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const clip = this.timelineManager.getClipAtPosition(track.id, x, this.pixelsPerSecond);
-
-            if (clip) {
-                isDragging = true;
-                dragStartX = e.clientX;
-                initialClipStartTime = clip.startTime;
-                draggedClip = clip;
-                initialTrackId = track.id;
-
-                // PERSISTENT SELECTION: Update state and redraw all to show yellow border everywhere
-                this.selectedClip = clip;
-                this.tracks.forEach(t => this.drawWaveform(t));
-
-                // Visual feedback
-                document.body.style.cursor = 'grabbing';
-                canvas.style.cursor = 'grabbing';
-
-                // Auto-pause if playing
-                if (this.isPlaying) {
-                    this.pause();
-                }
-
-                // Disable timeline dragging while dragging clip
-                this.isDraggingTimeline = false;
-                e.stopPropagation(); // VERY IMPORTANT: Stop propagation to prevent timeline seek on top of clip
-            }
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (!isDragging || !draggedClip) return;
-
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-
-            animationFrameId = requestAnimationFrame(() => {
-                // Calculate new time
-                const deltaX = e.clientX - dragStartX;
-                const deltaTime = deltaX / this.pixelsPerSecond;
-                let newStartTime = Math.max(0, initialClipStartTime + deltaTime);
-
-                // Calculate target track
-                // Find which track row the mouse is over
-                const trackRows = document.querySelectorAll('.track-container');
-                let targetTrackId = initialTrackId;
-
-                trackRows.forEach(row => {
-                    const rect = row.getBoundingClientRect();
-                    if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
-                        targetTrackId = parseInt(row.dataset.trackId);
-                    }
-                });
-
-                // --- SNAPPING LOGIC ---
-                const snapThresholdPx = 15; // Snap radius in pixels
-                const snapThresholdTime = snapThresholdPx / this.pixelsPerSecond;
-                let snappedTime = newStartTime;
-                let minDistance = Infinity;
-
-                // 1. Snap to Playhead
-                const playheadTime = (this.isPaused || !this.isPlaying) ? this.pauseTime : this.currentTime;
-                const distToPlayhead = Math.abs(newStartTime - playheadTime);
-
-                if (distToPlayhead < snapThresholdTime && distToPlayhead < minDistance) {
-                    snappedTime = playheadTime;
-                    minDistance = distToPlayhead;
-                }
-
-                // 2. Snap to ALL clips across ALL tracks (Cross-track snapping)
-                this.tracks.forEach(track => {
-                    const clips = this.timelineManager.getClips(track.id);
-                    clips.forEach(clip => {
-                        if (clip.id === draggedClip.id) return; // Don't snap to self
-
-                        // Snap to Start
-                        const distToStart = Math.abs(newStartTime - clip.startTime);
-                        if (distToStart < snapThresholdTime && distToStart < minDistance) {
-                            snappedTime = clip.startTime;
-                            minDistance = distToStart;
-                        }
-
-                        // Snap to End
-                        const clipEnd = clip.startTime + clip.duration;
-                        const distToEnd = Math.abs(newStartTime - clipEnd);
-                        if (distToEnd < snapThresholdTime && distToEnd < minDistance) {
-                            snappedTime = clipEnd;
-                            minDistance = distToEnd;
-                        }
-                    });
-                });
-
-                newStartTime = snappedTime;
-                // ----------------------
-
-                // Visual feedback
-                document.body.style.cursor = 'grabbing';
-
-                // Store temporary state for redraw
-                draggedClip.tempNewStartTime = newStartTime; // Legacy prop, keeping for safety
-                draggedClip.tempStartTime = newStartTime;    // New prop for drawWaveform
-                draggedClip.tempTrackId = targetTrackId;
-
-                // Redraw ALL tracks
-                this.tracks.forEach(t => this.drawWaveform(t));
-            });
-        });
-
-        window.addEventListener('mouseup', (e) => {
-            if (!isDragging || !draggedClip) return;
-
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-
-            // Only move if position or track actually changed
-            if (draggedClip.tempStartTime !== undefined &&
-                (draggedClip.tempStartTime !== draggedClip.startTime ||
-                    draggedClip.tempTrackId !== initialTrackId)) {
-
-                // Finalize move
-                this.timelineManager.moveClip(
-                    initialTrackId,
-                    draggedClip.id,
-                    draggedClip.tempStartTime,
-                    draggedClip.tempTrackId
-                );
-            }
-
-            // Reset state
-            isDragging = false;
-            if (draggedClip) {
-                draggedClip.tempStartTime = undefined;
-                draggedClip.tempTrackId = undefined;
-            }
-            draggedClip = null;
-            initialTrackId = null;
-            document.body.style.cursor = 'default';
-            canvas.style.cursor = 'grab'; // Reset to grab if still over canvas
-
-            // Redraw
-            this.tracks.forEach(t => this.drawWaveform(t));
         });
     }
 
@@ -2188,12 +2360,13 @@ window.addEventListener('DOMContentLoaded', async () => {
         const isRuler = e.target.closest('.timeline-ruler');
         const isTransport = e.target.closest('.daw-transport');
         const isContextMenu = e.target.closest('#clip-context-menu');
+        const isButton = e.target.closest('button') || e.target.closest('.btn'); // Exclude buttons
 
-        if (!isClipArea && !isRuler && !isTransport && !isContextMenu) {
-            if (daw.selectedClip) {
-                daw.selectedClip = null;
+        if (!isClipArea && !isRuler && !isTransport && !isContextMenu && !isButton) {
+            if (daw.selectedClips.length > 0) {
+                daw.selectedClips = [];
                 daw.tracks.forEach(t => daw.drawWaveform(t));
-                console.log('Global deselection triggered (clicked outside pista)');
+                console.log('Global deselection triggered (clicked outside pista/buttons)');
             }
         }
     });
