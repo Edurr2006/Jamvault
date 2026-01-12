@@ -2139,3 +2139,492 @@ input[type="range"]::-moz-range-thumb:hover {
   padding: 10px 0 !important;
   font-size: 0.85rem;
 }
+
+/* ========== JAMSTUDIO LAYOUT (Timeline System) ========== */
+
+.tracks-wrapper {
+  overflow-x: scroll;
+  /* CRITICAL: Explicit scroll for sticky to work */
+  overflow-y: auto;
+  height: calc(100vh - 160px);
+  /* Adjust based on header+transport height */
+  position: relative;
+  background-color: #121212;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
+}
+
+/* Hide scrollbar for Chrome/Safari */
+.tracks-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+/* Header Row (Timeline Ruler area) */
+.timeline-ruler-container {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  /* Fixed left, flexible right */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: #1a1a1a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Track Row Container */
+.track-container {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  /* Match ruler columns */
+  min-height: 80px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: #121212;
+}
+
+.track-container:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Left Column: Track Controls (Grid cell 1 - EXACTLY 200px) */
+.track-controls-spacer,
+.track-controls-module {
+  width: 200px;
+  max-width: 200px;
+  min-width: 200px;
+  background-color: #1a1a1a;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  transition: background-color 0.3s ease;
+}
+
+.track-controls-module:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+/* Ensure track content takes remaining space */
+.track-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Prevent spillover */
+}
+
+/* Header spacer cell styling - MUST be 200px exact */
+.timeline-ruler-container .track-controls-spacer {
+  width: 200px;
+  max-width: 200px;
+  min-width: 200px;
+  background-color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
+  /* Include padding in width */
+}
+
+.tracks-header {
+  font-weight: bold;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+/* Track Header in Module (Name + Actions) */
+.track-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  overflow: hidden;
+  /* Prevent spillover */
+}
+
+.track-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+  /* Leave space for buttons */
+  font-size: 0.85rem;
+}
+
+.track-header-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.track-header-actions button {
+  padding: 2px 4px;
+  font-size: 0.8rem;
+}
+
+/* Right Column: Timeline Content (Grid cell 2) */
+.timeline-ruler {
+  position: relative;
+  height: 30px;
+  background-color: #1a1a1a;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
+}
+
+/* Hide scrollbar for Chrome/Safari */
+.timeline-ruler::-webkit-scrollbar {
+  display: none;
+}
+
+.track-timeline-module {
+  flex-grow: 1;
+  position: relative;
+  height: auto;
+  min-height: 80px;
+  /* Adapts to sidebar content */
+  display: flex;
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
+}
+
+/* Hide scrollbar for Chrome/Safari */
+.track-timeline-module::-webkit-scrollbar {
+  display: none;
+}
+
+/* Time Markers in Ruler */
+.time-marker {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  padding-left: 4px;
+  font-size: 0.75rem;
+  color: #888;
+  pointer-events: none;
+}
+
+/* Playhead z-index fix */
+.playhead {
+  position: absolute;
+  top: 0;
+  /* bottom: 0; Removed for dynamic height */
+  width: 2px;
+  background-color: #F39C12;
+  /* Default playback color */
+  z-index: 200;
+  /* Above ruler (z-100) and controls */
+  pointer-events: none;
+  display: none;
+  /* Hidden by default */
+}
+
+.playhead::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -6px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 10px solid #F39C12;
+}
+
+/* Ensure canvas takes full size */
+.waveform-canvas {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  /* Sharper lines */
+}
+
+/* ========== JAMSTUDIO BOTTOM TRANSPORT BAR ========== */
+
+.jamstudio-bottom-bar {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 1200px;
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  z-index: 10000;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.mixer-panel-container {
+  flex: 0 0 300px;
+  min-height: 60px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  padding-right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mixer-panel-placeholder {
+  color: #888;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.bottom-transport-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.bottom-btn {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+  box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
+}
+
+.bottom-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.bottom-btn.record-btn {
+  background: rgba(220, 53, 69, 0.2);
+  border-color: #dc3545;
+}
+
+.bottom-btn.record-btn:hover:not(:disabled) {
+  background: rgba(220, 53, 69, 0.4);
+  box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+}
+
+.bottom-btn.record-btn .record-icon {
+  color: #dc3545;
+  font-size: 1.5rem;
+}
+
+.bottom-btn.play-btn {
+  background: rgba(40, 167, 69, 0.2);
+  border-color: #28a745;
+  width: 55px;
+  height: 55px;
+  font-size: 1.4rem;
+}
+
+.bottom-btn.play-btn:hover:not(:disabled) {
+  background: rgba(40, 167, 69, 0.4);
+  box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+}
+
+.bottom-device-controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.bottom-device-controls .device-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bottom-device-controls label {
+  font-size: 1.2rem;
+  color: #ccc;
+}
+
+.bottom-device-controls .device-select {
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.bottom-device-controls .device-select:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.bottom-device-controls .device-select:focus {
+  outline: none;
+  border-color: #4a9eff;
+}
+
+/* Track Selection Highlight - Theme Aware */
+.track-container.track-selected {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-left: 3px solid #F39C12;
+  /* Default (JamVault) */
+}
+
+.natural .track-container.track-selected {
+  border-left-color: #27AE60;
+}
+
+.galactic .track-container.track-selected {
+  border-left-color: #2980B9;
+}
+
+.retro .track-container.track-selected {
+  border-left-color: #D81B60;
+}
+
+.vintage .track-container.track-selected {
+  border-left-color: #B7950B;
+}
+
+.redblack .track-container.track-selected {
+  border-left-color: #C0392B;
+}
+
+/* Bottom Mixer Content Styling */
+.bottom-mixer-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bottom-mixer-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #F39C12;
+  /* Default */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.natural .bottom-mixer-title {
+  color: #27AE60;
+}
+
+.galactic .bottom-mixer-title {
+  color: #2980B9;
+}
+
+.retro .bottom-mixer-title {
+  color: #D81B60;
+}
+
+.vintage .bottom-mixer-title {
+  color: #B7950B;
+}
+
+.redblack .bottom-mixer-title {
+  color: #C0392B;
+}
+
+.close-mixer-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.close-mixer-btn:hover {
+  background: rgba(255, 0, 0, 0.3);
+  border-color: #ff4444;
+}
+
+.bottom-mixer-controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.bottom-control-group {
+  display: flex;
+  gap: 6px;
+}
+
+.bottom-control-group .btn {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.bottom-control-group .btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.bottom-control-group .btn.active {
+  background: rgba(243, 156, 18, 0.3);
+  border-color: #F39C12;
+}
+
+.bottom-mixer-sliders {
+  display: flex;
+  gap: 15px;
+  flex: 1;
+}
+
+.mixer-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.mixer-slider-row label {
+  font-size: 0.85rem;
+  min-width: 30px;
+  color: #ccc;
+}
+
+.mixer-slider-row input[type="range"] {
+  flex: 1;
+}
+
+.mixer-slider-row span {
+  min-width: 40px;
+  font-size: 0.85rem;
+  color: white;
+}

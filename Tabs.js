@@ -1,15 +1,21 @@
-let api;
-let currentTab = null;
+/**
+ * JamVault - Tabs.js
+ * Native Engine = AlphaTab Vector Rendering + Native Audio
+ * 100% Songsterr-quality synchronization and musical notation.
+ */
 
+// Global State
+let alphaApi = null;
+let currentScore = null;
+let currentTrack = null;
+let isPlaying = false;
+
+// UI Elements
 const searchInput = document.getElementById('searchInput');
 const clearSearchBtn = document.getElementById('clearSearch');
 const songsListBody = document.getElementById('songsListBody');
-const discoveryContainer = document.getElementById('discoveryContainer');
-const discoveryTitle = document.getElementById('discoveryTitle');
-const discoverySubtitle = document.getElementById('discoverySubtitle');
 const loadingDiv = document.getElementById('loading');
 const playerSection = document.getElementById('playerSection');
-const alphaTabDiv = document.getElementById('alphaTab');
 const playPauseBtn = document.getElementById('at-play-pause');
 const stopBtn = document.getElementById('at-stop');
 const closeBtn = document.getElementById('at-close');
@@ -18,598 +24,357 @@ const speedLabel = document.getElementById('at-speed-label');
 const trackSidebar = document.getElementById('at-track-sidebar');
 const controlsBar = document.getElementById('atControlsBar');
 const progressBar = document.getElementById('at-progress-bar');
-const metronomeBtn = document.getElementById('at-metronome');
-const countInBtn = document.getElementById('at-count-in');
 
-// Variables para el suavizado del cursor (Seguidor Suavizado / Smoothed Follower)
-let proPlayhead = null;
-let layoutCache = []; // { tick, x, y, h, lineId }
-let currentVisualX = 0;
-let currentVisualY = 0;
-let currentVisualH = 0;
-let isPlaying = false;
-let isMetronomeActive = false;
-let isCountInActive = false;
-let animationFrameId = null;
-
-// MOTOR DE ANIMACIÓN: Smoothed Follower
-function updateSmoothCursor() {
-  if (!isPlaying || !api || !api.player || layoutCache.length === 0 || !proPlayhead) {
-    animationFrameId = null;
-    return;
-  }
-
-  const tick = api.player.tickPosition;
-  const target = getBoundsForTick(tick);
-
-  if (target) {
-    const lerp = 0.25; // Factor de suavizado (estilo Songsterr)
-
-    // Si el salto es demasiado grande, saltamos instantáneamente para evitar "vuelos"
-    if (Math.abs(currentVisualX - target.x) > 200 || Math.abs(currentVisualY - target.y) > 80) {
-      currentVisualX = target.x;
-      currentVisualY = target.y;
-      currentVisualH = target.h;
-    } else {
-      currentVisualX += (target.x - currentVisualX) * lerp;
-      currentVisualY += (target.y - currentVisualY) * lerp;
-      currentVisualH += (target.h - currentVisualH) * lerp;
-    }
-
-    proPlayhead.style.display = 'block';
-    proPlayhead.style.transform = `translate3d(${currentVisualX}px, ${currentVisualY}px, 0)`;
-    proPlayhead.style.height = `${currentVisualH}px`;
-  }
-
-  animationFrameId = requestAnimationFrame(updateSmoothCursor);
-}
-
-// BÚSQUEDA BINARIA + INTERPOLACIÓN PARA POSICIÓN EXACTA
-function getBoundsForTick(tick) {
-  if (!layoutCache || layoutCache.length === 0) return null;
-
-  let low = 0, high = layoutCache.length - 1;
-  while (low <= high) {
-    let mid = (low + high) >> 1;
-    if (layoutCache[mid].tick < tick) low = mid + 1;
-    else high = mid - 1;
-  }
-
-  const i = Math.max(0, low - 1);
-  const a = layoutCache[i];
-  const b = layoutCache[i + 1];
-
-  if (a) {
-    if (b && b.lineId === a.lineId && b.tick > a.tick) {
-      const factor = (tick - a.tick) / (b.tick - a.tick);
-      return {
-        x: a.x + (b.x - a.x) * factor,
-        y: a.y + (b.y - a.y) * factor,
-        h: a.h + (b.h - a.h) * factor
-      };
-    }
-    return { x: a.x, y: a.y, h: a.h };
-  }
-  return null;
-}
-
-
-// Loading overlay
-const loadingOverlay = document.createElement('div');
-loadingOverlay.id = 'at-loading-overlay';
-loadingOverlay.style.cssText = `
-  color:#fff; padding:3rem; font-size:1.2rem; text-align:center; 
-  position:absolute; width:100%; top:0; left:0; z-index:10; 
-  background:rgba(0,0,0,0.85); display:none; border-radius:12px;
-`;
-alphaTabDiv.style.position = 'relative';
-alphaTabDiv.appendChild(loadingOverlay);
-
-function showLoading(msg) {
-  loadingOverlay.innerText = '🤘 ' + msg;
-  loadingOverlay.style.display = 'block';
-}
-
-function hideLoading() {
-  loadingOverlay.style.display = 'none';
-}
-
-// Theme Colors Mapping
-const themeColors = {
-  'JamVault': '#F39C12',
-  'natural': '#27AE60',
-  'galactic': '#2980B9',
-  'retro': '#D81B60',
-  'vintage': '#B7950B',
-  'redblack': '#C0392B'
-};
-
-function getActiveThemeColor() {
-  const body = document.body;
-  for (const theme in themeColors) {
-    if (body.classList.contains(theme)) return themeColors[theme];
-  }
-  return '#FF8906';
-}
-
-// Initialize AlphaTab
-function initAlphaTab() {
-  if (typeof alphaTab === 'undefined') {
-    console.warn('AlphaTab not loaded yet, retrying in 500ms...');
-    setTimeout(initAlphaTab, 500);
-    return;
-  }
-
-  // 1. Forzar visibilidad inicial para que AlphaTab detecte el ancho (Evita Error Width=0)
-  const accentColor = getActiveThemeColor();
-  updateAlphaTabColors(accentColor);
-
-  api = new alphaTab.AlphaTabApi(alphaTabDiv, {
-    display: {
-      staves: ['tab'],
-      resources: {
-        mainColor: accentColor,
-        backgroundColor: '#000000',
-        fontColor: '#ffffff'
-      }
-    },
-    player: {
-      enablePlayer: true,
-      enableUserInteraction: true,
-      enableCursor: false, // Desactivar nativo
-      soundFont: 'https://cdn.jsdelivr.net/npm/@coderline/alphatab@latest/dist/soundfont/sonivox.sf2'
-    }
-  });
-
-  proPlayhead = document.getElementById('proPlayhead');
-
-  // Observe theme changes
-  const themeObserver = new MutationObserver(() => {
-    const newColor = getActiveThemeColor();
-    updateAlphaTabColors(newColor);
-    if (api) {
-      api.settings.display.resources.mainColor = newColor;
-      api.updateSettings();
-      api.render();
-    }
-  });
-  themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-
-  // Evento para Seek en barra de progreso
-  const progressContainer = document.getElementById('at-progress-container');
-  if (progressContainer) {
-    progressContainer.addEventListener('click', (e) => {
-      if (!api || !api.score) return;
-      const rect = progressContainer.getBoundingClientRect();
-      const pct = (e.clientX - rect.left) / rect.width;
-      const totalTicks = api.score.durationTicks || api.score.masterBars.reduce((a, b) => a + b.ticks, 0);
-      api.player.tickPosition = totalTicks * pct;
-    });
-  }
-
-  // Handle score loaded
-  api.scoreLoaded.on((score) => {
-    hideLoading();
-    renderTrackSidebar(score);
-    controlsBar.classList.add('visible');
-  });
-
-  // Generar layoutCache (CRAWLER)
-  api.renderFinished.on(() => {
-    layoutCache = [];
-    const lookup = api.renderer.boundsLookup;
-    if (lookup && api.score) {
-      api.score.masterBars.forEach(mb => {
-        mb.beats.forEach(beat => {
-          const bb = lookup.findBeat(beat.playbackRange.start);
-          if (bb && bb.visualBounds) {
-            layoutCache.push({
-              tick: beat.playbackRange.start,
-              x: bb.visualBounds.left,
-              y: bb.visualBounds.top,
-              h: bb.visualBounds.height,
-              lineId: beat.voice.staff.system.index
-            });
-          }
-        });
-      });
-      layoutCache.sort((a, b) => a.tick - b.tick);
-    }
-    // Race condition: si ya estaba en play, iniciamos RAF
-    if (isPlaying && layoutCache.length > 0 && !animationFrameId) {
-      animationFrameId = requestAnimationFrame(updateSmoothCursor);
-    }
-  });
-
-  function renderTrackSidebar(score) {
-    trackSidebar.innerHTML = '<div class="sidebar-title">Instrumentos</div>';
-
-    score.tracks.forEach((track) => {
-      const item = document.createElement('div');
-      item.className = 'track-item' + (track.index === api.renderTracks[0]?.index ? ' active' : '');
-
-      const icon = getInstrumentIcon(track.name);
-      item.innerHTML = `<i>${icon}</i> <span>${track.name}</span>`;
-
-      item.onclick = () => {
-        document.querySelectorAll('.track-item').forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
-        api.renderTracks([track]);
-      };
-
-      trackSidebar.appendChild(item);
-    });
-  }
-
-  function getInstrumentIcon(name) {
-    name = name.toLowerCase();
-    if (name.includes('guitar')) return '🎸';
-    if (name.includes('bass')) return '🎸';
-    if (name.includes('drum')) return '🥁';
-    if (name.includes('piano') || name.includes('key') || name.includes('synth')) return '🎹';
-    if (name.includes('sax')) return '🎷';
-    if (name.includes('vocal')) return '🎤';
-    if (name.includes('string') || name.includes('violin')) return '🎻';
-    if (name.includes('cello')) return '🎻';
-    if (name.includes('horn') || name.includes('trumpet') || name.includes('brass')) return '🎺';
-    return '🎸'; // default to guitar as it's the most common in tabs
-  }
-
-  // 4. Cursor nativo desactivado
-  api.settings.player.enableCursor = false;
-  api.updateSettings();
-
-  // 5. Gestión de Eventos del Reproductor
-  api.playerReady.on(() => {
-    console.log('AlphaTab Player Ready');
-
-    api.player.stateChanged.on((args) => {
-      isPlaying = args.state === 1;
-      playPauseBtn.innerText = isPlaying ? '⏸' : '▶';
-
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
-      if (isPlaying && layoutCache.length > 0) {
-        animationFrameId = requestAnimationFrame(updateSmoothCursor);
-      } else {
-        // Instant sync on pause
-        const target = getBoundsForTick(api.player.tickPosition);
-        if (target && proPlayhead) {
-          proPlayhead.style.transform = `translate3d(${target.x}px, ${target.y}px, 0)`;
-          proPlayhead.style.height = `${target.h}px`;
-        }
-      }
-    });
-
-    api.player.positionChanged.on((args) => {
-      // 1. Progress Bar
-      const totalTicks = api.score.durationTicks || api.score.masterBars.reduce((a, b) => a + b.ticks, 0);
-      if (totalTicks > 0) {
-        progressBar.style.width = ((args.tickPosition / totalTicks) * 100) + '%';
-      }
-
-      // 2. Auto-Scroll & Instant Sync (Seek)
-      const target = getBoundsForTick(args.tickPosition);
-      if (target) {
-        const contentArea = document.getElementById('at-player-content');
-        if (contentArea) {
-          const targetY = target.y - (contentArea.clientHeight / 3);
-          if (isPlaying) {
-            contentArea.scrollTop = targetY; // Snap during play
-          } else {
-            contentArea.scrollTo({ top: targetY, behavior: 'smooth' }); // Smooth on seek
-            // Instant sync playhead on seek
-            if (proPlayhead) {
-              proPlayhead.style.transform = `translate3d(${target.x}px, ${target.y}px, 0)`;
-              proPlayhead.style.height = `${target.h}px`;
-            }
-          }
-        }
-      }
-    });
-
-    hideLoading();
-  });
-}
-
-metronomeBtn.addEventListener('click', () => {
-  isMetronomeActive = !isMetronomeActive;
-  metronomeBtn.classList.toggle('active', isMetronomeActive);
-  if (api && api.player) {
-    api.player.metronomeVolume = isMetronomeActive ? 1 : 0;
-  }
-});
-
-countInBtn.addEventListener('click', () => {
-  isCountInActive = !isCountInActive;
-  countInBtn.classList.toggle('active', isCountInActive);
-  if (api && api.player) {
-    api.player.countInSteps = isCountInActive ? 4 : 0;
-  }
-});
-
-playPauseBtn.addEventListener('click', () => {
-  if (api) api.playPause();
-});
-
-stopBtn.addEventListener('click', () => {
-  if (api) api.stop();
-});
-
-document.getElementById('at-volume').addEventListener('input', (e) => {
-  if (api && api.player) {
-    api.player.masterVolume = parseInt(e.target.value) / 100;
-  }
-});
-
-document.getElementById('at-speed').addEventListener('input', (e) => {
-  if (api && api.player) {
-    const speed = parseInt(e.target.value) / 100;
-    api.player.playbackSpeed = speed;
-    document.getElementById('at-speed-label').innerText = `${Math.round(speed * 100)}%`;
-  }
-});
-
-closeBtn.addEventListener('click', () => {
-  if (api) {
-    api.stop();
-  }
-  playerSection.style.display = 'none';
-  controlsBar.classList.remove('visible');
-  discoveryContainer.style.display = 'block';
-
-  // Restore animations
-  setTimeout(() => {
-    discoveryContainer.style.opacity = '1';
-    discoveryContainer.style.transform = 'translateY(0)';
-  }, 50);
-
-  // Re-habilitar búsqueda
-  searchInput.disabled = false;
-  searchInput.closest('.search-area').style.opacity = '1';
-
-  window.scrollTo({ top: discoveryContainer.offsetTop - 100, behavior: 'smooth' });
-});
-
-// --- Unified Discovery Logic ---
-
+// --- 1. SEARCH & DISCOVERY ---
 let allSongs = [];
-let currentFilters = {
-  instrument: 'all',
-  tuning: 'all',
-  difficulty: 'all',
-  query: ''
-};
-
 async function initDiscovery() {
+  if (!loadingDiv) return;
   loadingDiv.style.display = 'block';
   try {
-    // Fetch a base set of popular songs (e.g., Metallica, Led Zeppelin, AC/DC)
     const popularQueries = ['Metallica', 'Led Zeppelin', 'AC/DC', 'Nirvana', 'Guns N Roses'];
     const results = await Promise.all(popularQueries.map(q => fetchSongs(q)));
     allSongs = results.flat().sort((a, b) => (b.views || 0) - (a.views || 0));
-
     loadingDiv.style.display = 'none';
-    applyFilters();
+    renderSongsList(allSongs);
   } catch (error) {
     console.error('Error initializing discovery:', error);
-    loadingDiv.style.display = 'none';
+    if (loadingDiv) loadingDiv.style.display = 'none';
   }
 }
 
 async function fetchSongs(query) {
   const targetUrl = `https://www.songsterr.com/api/search?pattern=${encodeURIComponent(query)}&size=15`;
   const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-  const response = await fetch(proxyUrl);
-  if (!response.ok) return [];
-  const data = await response.json();
-  return data.records || data; // Handle both search and other possible array responses
-}
-
-function applyFilters() {
-  let filtered = allSongs.filter(song => {
-    // Text Search
-    const matchesQuery = !currentFilters.query ||
-      song.title.toLowerCase().includes(currentFilters.query.toLowerCase()) ||
-      song.artist.toLowerCase().includes(currentFilters.query.toLowerCase());
-
-    // Instrument Filter (Mock logic based on tracks names/instrumentIds)
-    const matchesInstrument = currentFilters.instrument === 'all' ||
-      song.tracks.some(t => t.instrument.toLowerCase().includes(currentFilters.instrument));
-
-    // Tuning Filter (Mock logic based on usual tunings for these songs)
-    // In a real app, we'd parse the 'tuning' array in the tracks
-    const matchesTuning = currentFilters.tuning === 'all' || checkTuning(song, currentFilters.tuning);
-
-    // Difficulty Filter
-    const matchesDifficulty = currentFilters.difficulty === 'all' ||
-      song.tracks.some(t => t.difficulty == currentFilters.difficulty);
-
-    return matchesQuery && matchesInstrument && matchesTuning && matchesDifficulty;
-  });
-
-  renderSongsList(filtered);
-}
-
-function checkTuning(song, tuningType) {
-  // Basic heuristic for common tunings
-  const tracks = song.tracks || [];
-  if (tuningType === 'standard') return tracks.some(t => t.tuning?.join(',') === '64,59,55,50,45,40');
-  if (tuningType === 'dropd') return tracks.some(t => t.tuning?.join(',') === '64,59,55,50,45,38');
-  if (tuningType === 'halfstep') return tracks.some(t => t.tuning?.join(',') === '63,58,54,49,44,39');
-  return false;
+  try {
+    const response = await fetch(proxyUrl);
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.records || data;
+  } catch (e) { return []; }
 }
 
 function renderSongsList(songs) {
   if (!songsListBody) return;
   songsListBody.innerHTML = '';
-
-  if (songs.length === 0) {
-    songsListBody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:3rem; opacity:0.5;">No se encontraron canciones con estos filtros. 🎸</td></tr>';
-    return;
-  }
-
   songs.forEach((song, index) => {
     const tr = document.createElement('tr');
-    const totalViews = song.tracks?.reduce((acc, t) => acc + (t.views || 0), 0) || 0;
-    const displayViews = totalViews > 1000 ? (totalViews / 1000).toFixed(1) + 'k' : totalViews;
+    const views = song.tracks?.reduce((acc, t) => acc + (t.views || 0), 0) || 0;
+    const displayViews = views > 1000 ? (views / 1000).toFixed(1) + 'k' : views;
 
-    // Calculate difficulty (1-5)
-    // We take the average or the max difficulty found in the tracks
-    const difficulties = song.tracks?.map(t => t.difficulty).filter(d => d > 0) || [];
-    const avgDifficulty = difficulties.length > 0
-      ? Math.round(difficulties.reduce((a, b) => a + b, 0) / difficulties.length)
-      : 1;
-
-    let difficultyHTML = '<div class="difficulty-dots">';
-    for (let i = 1; i <= 5; i++) {
-      difficultyHTML += `<div class="dot ${i <= avgDifficulty ? 'active' : ''}"></div>`;
-    }
-    difficultyHTML += '</div>';
+    const diffs = song.tracks?.map(t => t.difficulty).filter(d => d > 0) || [];
+    const avg = diffs.length > 0 ? Math.round(diffs.reduce((a, b) => a + b, 0) / diffs.length) : 1;
+    let diffHTML = '<div class="difficulty-dots">';
+    for (let i = 1; i <= 5; i++) diffHTML += `<div class="dot ${i <= avg ? 'active' : ''}"></div>`;
+    diffHTML += '</div>';
 
     tr.innerHTML = `
-          <td>
-            <div class="song-rank-info">
-                <span class="rank-number">${(index + 1).toString().padStart(2, '0')}</span>
-                <div class="song-details">
-                    <span class="song-title-cell">${song.title}</span>
-                    <span class="song-artist-cell">${song.artist}</span>
-                    ${difficultyHTML}
+            <td>
+                <div class="song-rank-info">
+                    <span class="rank-number">${(index + 1).toString().padStart(2, '0')}</span>
+                    <div class="song-details">
+                        <span class="song-title-cell">${song.title}</span>
+                        <span class="song-artist-cell">${song.artist}</span>
+                        ${diffHTML}
+                    </div>
                 </div>
-            </div>
-          </td>
-          <td>
-            <span class="popularity-badge">🔥 ${displayViews || 'New'}</span>
-          </td>
+            </td>
+            <td style="text-align:right"><span class="popularity-badge">🔥 ${displayViews}</span></td>
         `;
-
-    tr.addEventListener('click', () => {
-      discoveryContainer.style.opacity = '0';
-      discoveryContainer.style.transform = 'translateY(20px)';
-      setTimeout(() => {
-        discoveryContainer.style.display = 'none';
-        loadSong(song.songId || song.id);
-      }, 300);
-    });
-
+    tr.onclick = () => loadSong(song.songId || song.id);
     songsListBody.appendChild(tr);
   });
-
-  // Update titles based on state
-  if (currentFilters.query) {
-    discoveryTitle.innerText = `Resultados para "${currentFilters.query}"`;
-    discoverySubtitle.innerText = `${songs.length} canciones encontradas`;
-  } else {
-    discoveryTitle.innerText = `Descubre el Top Global 🔥`;
-    discoverySubtitle.innerText = `Ranking Global Semanal`;
-  }
 }
 
-// Event Listeners for Filters
+// Search Logic
 let searchTimeout;
-searchInput.addEventListener('input', (e) => {
-  const query = e.target.value.trim();
-  currentFilters.query = query;
+if (searchInput) {
+  searchInput.oninput = (e) => {
+    const q = e.target.value.trim();
+    if (clearSearchBtn) clearSearchBtn.style.display = q ? 'flex' : 'none';
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(async () => {
+      if (!q) { initDiscovery(); return; }
+      loadingDiv.style.display = 'block';
+      const results = await fetchSongs(q);
+      renderSongsList(results);
+      loadingDiv.style.display = 'none';
+    }, 500);
+  };
+}
+if (clearSearchBtn) clearSearchBtn.onclick = () => {
+  searchInput.value = ''; clearSearchBtn.style.display = 'none'; initDiscovery();
+};
 
-  // Toggle clear button visibility
-  clearSearchBtn.style.display = query ? 'flex' : 'none';
+// --- 2. THE ALPHATAB ENGINE (NATIVE-FIRST) ---
 
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(async () => {
-    if (!query) {
-      initDiscovery();
-      return;
+function initAlphaTab() {
+  if (alphaApi) alphaApi.destroy();
+
+  const settings = {
+    core: { engine: 'svg' },
+    display: {
+      layout: 'horizontal',
+      hideStandardNotation: true,
+      staveSpacing: 10, // Added spacing for better visibility
+      padding: [40, 40, 40, 40] // Increased padding
+    },
+    player: {
+      enablePlayer: true,
+      enableUserInteraction: true,
+      soundFont: 'https://cdn.jsdelivr.net/npm/@coderline/alphatab@latest/dist/soundfont/sonivox.sf2',
+      scrollElement: '#at-player-content'
+    },
+    ui: {
+      cursor: true
+    }
+  };
+
+  alphaApi = new alphaTab.AlphaTabApi(document.getElementById('alphaTab'), settings);
+
+  // DEBUG: Monitor Cursor DOM
+  alphaApi.playerPositionChanged.on(args => {
+    const cursor = document.querySelector('.at-cursor, .at-cursor-bar');
+    if (!cursor) {
+      console.warn('JamVault Debug: Cursor element NOT found in DOM during playback.');
+    } else if (window.getComputedStyle(cursor).display === 'none') {
+      console.warn('JamVault Debug: Cursor found but display is NONE.');
+    }
+  });
+
+  // Score Loaded: Find the track that starts earliest
+  alphaApi.scoreLoaded.on(score => {
+    currentScore = score;
+    const validTracks = (score.tracks || []).filter(t => !t.name.match(/vocal|voice|voz|lyric|capo/i));
+
+    const getStartTick = (tr) => {
+      for (let s of (tr.staves || [])) {
+        for (let b of (s.bars || [])) {
+          for (let v of (b.voices || [])) {
+            for (let beat of (v.beats || [])) {
+              if (beat.notes && beat.notes.length > 0) return beat.playbackStart ?? beat.start ?? 0;
+            }
+          }
+        }
+      }
+      return 9999999;
+    };
+
+    validTracks.sort((a, b) => getStartTick(a) - getStartTick(b));
+    currentTrack = validTracks[0] || score.tracks[0];
+
+    alphaApi.renderTracks([currentTrack]);
+    renderTrackSidebar(score);
+
+    if (loadingDiv) loadingDiv.style.display = 'none';
+    if (controlsBar) controlsBar.classList.add('visible');
+
+    // Force Top Start
+    const container = document.getElementById('at-player-content');
+    if (container) container.scrollTop = 0;
+  });
+
+
+  // Continuous smooth laser animation (Reverted to Safe Lerp)
+  let animationFrameId = null;
+  let targetX = 0, targetY = 0, targetHeight = 100;
+  let currentX = 0, currentY = 0, currentHeight = 100;
+
+  function startLaserAnimation() {
+    if (animationFrameId) return;
+
+    // Initialize starting values from DOM
+    const alphaCursor = document.querySelector('.at-cursor-bar');
+    if (alphaCursor) {
+      const cursorRect = alphaCursor.getBoundingClientRect();
+      const container = document.getElementById('at-player-content');
+      if (container) {
+        const containerRect = container.getBoundingClientRect();
+        currentX = cursorRect.left - containerRect.left + container.scrollLeft;
+        currentY = cursorRect.top - containerRect.top + container.scrollTop;
+        currentHeight = cursorRect.height;
+
+        targetX = currentX;
+        targetY = currentY;
+        targetHeight = currentHeight;
+      }
     }
 
-    loadingDiv.style.display = 'block';
-    const searchResults = await fetchSongs(query);
-    allSongs = searchResults;
-    loadingDiv.style.display = 'none';
-    applyFilters();
-  }, 500);
-});
+    function animate() {
+      const laser = document.getElementById('customLaser');
+      const alphaCursor = document.querySelector('.at-cursor-bar');
+      const container = document.getElementById('at-player-content');
 
-clearSearchBtn.addEventListener('click', () => {
-  searchInput.value = '';
-  currentFilters.query = '';
-  clearSearchBtn.style.display = 'none';
-  initDiscovery();
-});
+      if (!laser || !isPlaying || !container) {
+        animationFrameId = null;
+        return;
+      }
 
-document.getElementById('filterInstrument').addEventListener('change', (e) => {
-  currentFilters.instrument = e.target.value;
-  applyFilters();
-});
+      // Update target from AlphaTab cursor
+      if (alphaCursor) {
+        const cursorRect = alphaCursor.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
 
-document.getElementById('filterTuning').addEventListener('change', (e) => {
-  currentFilters.tuning = e.target.value;
-  applyFilters();
-});
+        targetX = cursorRect.left - containerRect.left + container.scrollLeft;
+        targetY = cursorRect.top - containerRect.top + container.scrollTop;
+        targetHeight = cursorRect.height;
+      }
 
-document.getElementById('filterDifficulty').addEventListener('change', (e) => {
-  currentFilters.difficulty = e.target.value;
-  applyFilters();
-});
+      // Smooth interpolation (lerp)
+      const smoothness = 0.2;
 
+      if (Math.abs(targetY - currentY) > 50) {
+        currentX = targetX;
+        currentY = targetY;
+        currentHeight = targetHeight;
+      } else {
+        currentX += (targetX - currentX) * smoothness;
+        currentY += (targetY - currentY) * smoothness;
+        currentHeight += (targetHeight - currentHeight) * smoothness;
+      }
+
+      laser.style.left = currentX + 'px';
+      laser.style.top = currentY + 'px';
+      laser.style.height = currentHeight + 'px';
+
+      animationFrameId = requestAnimationFrame(animate);
+    }
+
+    animate();
+  }
+
+  function stopLaserAnimation() {
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
+    }
+  }
+
+  alphaApi.playerStateChanged.on(args => {
+    isPlaying = (args.state === 1);
+    if (playPauseBtn) playPauseBtn.innerText = isPlaying ? '⏸' : '▶';
+
+    // Control custom laser visibility and animation
+    const laser = document.getElementById('customLaser');
+    if (laser) {
+      laser.style.display = isPlaying ? 'block' : 'none';
+    }
+
+    if (isPlaying) {
+      startLaserAnimation();
+    } else {
+      stopLaserAnimation();
+    }
+  });
+
+
+  alphaApi.playerPositionChanged.on(args => {
+    if (currentScore && progressBar) {
+      const duration = currentScore.masterBars.reduce((a, b) => a + (b.tickDuration || 0), 0) || 100000;
+      progressBar.style.width = ((args.currentTick / duration) * 100) + '%';
+    }
+  });
+
+  alphaApi.playerFinished.on(() => {
+    stopLaserAnimation();
+    const laser = document.getElementById('customLaser');
+    if (laser) laser.style.display = 'none';
+  });
+
+  // Handle Resize
+  window.addEventListener('resize', () => {
+    if (alphaApi) alphaApi.updateSettings();
+  });
+}
+
+// --- 3. LOADING LOGIC ---
 async function loadSong(songId) {
-  // Limpiar estado (Songsterr Reset)
-  if (animationFrameId) cancelAnimationFrame(animationFrameId);
-  isPlaying = false;
-  layoutCache = [];
-  currentVisualX = 0; currentVisualY = 0; currentVisualH = 0;
-  if (proPlayhead) proPlayhead.style.display = 'none';
-  if (progressBar) progressBar.style.width = '0%';
-
-  playerSection.style.display = 'flex'; // Usar flex para el layout
-  discoveryContainer.style.display = 'none';
-
-  // Bloquear búsqueda
-  searchInput.disabled = true;
-  searchInput.closest('.search-area').style.opacity = '0.5';
-
-  showLoading('Preparando Tablatura...');
+  if (loadingDiv) {
+    loadingDiv.style.display = 'block';
+    loadingDiv.innerText = "🤘 Cargando Tablatura...";
+  }
+  if (playerSection) playerSection.style.display = 'flex';
+  if (searchInput) searchInput.disabled = true;
 
   try {
-    while (!api) await new Promise(r => setTimeout(r, 100));
+    const url = `https://www.songsterr.com/a/wa/song?id=${songId}`;
+    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+    const html = await res.text();
+    const stateTag = new DOMParser().parseFromString(html, 'text/html').getElementById('state');
+    if (!stateTag) throw new Error("No state found");
 
-    const songPageUrl = `https://www.songsterr.com/a/wa/song?id=${songId}`;
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(songPageUrl)}`;
-    const response = await fetch(proxyUrl);
-    if (!response.ok) throw new Error('No se pudo conectar con Songsterr.');
-    const html = await response.text();
+    const state = JSON.parse(stateTag.textContent);
+    const tabUrl = `https://corsproxy.io/?${encodeURIComponent(state.meta.current.source)}`;
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const stateScript = doc.getElementById('state');
-    if (!stateScript) throw new Error('No se pudo encontrar la información.');
+    initAlphaTab();
+    alphaApi.load(tabUrl);
 
-    const state = JSON.parse(stateScript.textContent);
-    const tabUrl = state.meta.current.source;
-    if (!tabUrl) throw new Error('No se encontró el archivo fuente.');
-
-    const finalTabUrl = `https://corsproxy.io/?${encodeURIComponent(tabUrl)}`;
-
-    await new Promise(r => requestAnimationFrame(r));
-    showLoading('Cargando partitura...');
-    api.load(finalTabUrl);
-
-    // No hace falta scroll manual si el player es fixed overlay
   } catch (e) {
-    console.error('Failure in loadSong:', e);
-    hideLoading();
-    alphaTabDiv.innerHTML = `
-      <div style="color:#ff4444; padding:3rem; text-align:center;">
-        <h3>Error: ${e.message}</h3>
-        <button class="btn" onclick="location.reload()">Reiniciar</button>
-      </div>`;
+    console.error("Load Failed", e);
+    if (loadingDiv) loadingDiv.style.display = 'none';
+    alert("Error al cargar la partitura.");
   }
 }
 
-window.loadSong = loadSong;
-document.addEventListener('DOMContentLoaded', () => {
-  initAlphaTab();
-  initDiscovery();
-});
-
-function updateAlphaTabColors(color) {
-  document.body.style.setProperty('--at-accent-color', color);
+function renderTrackSidebar(score) {
+  if (!trackSidebar) return;
+  trackSidebar.innerHTML = '<div class="sidebar-title">Instrumentos</div>';
+  (score.tracks || []).filter(t => !t.name.match(/vocal|voice|voz|lyric|capo/i)).forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'track-item' + (t === currentTrack ? ' active' : '');
+    let icon = t.name.toLowerCase().includes('drum') ? '🥁' : '🎸';
+    div.innerHTML = `<i>${icon}</i> <span>${t.name}</span>`;
+    div.onclick = () => {
+      currentTrack = t;
+      alphaApi.renderTracks([t]);
+      document.querySelectorAll('.track-item').forEach(i => i.classList.remove('active'));
+      div.classList.add('active');
+    };
+    trackSidebar.appendChild(div);
+  });
 }
+
+function getActiveThemeColor() {
+  return themeColors[document.body.className.split(' ')[0]] || '#FF8906';
+}
+const themeColors = {
+  'JamVault': '#F39C12', 'natural': '#27AE60', 'galactic': '#2980B9',
+  'retro': '#D81B60', 'vintage': '#B7950B', 'redblack': '#C0392B'
+};
+
+// Global Listeners
+if (playPauseBtn) playPauseBtn.onclick = () => alphaApi?.playPause();
+if (stopBtn) stopBtn.onclick = () => alphaApi?.stop();
+if (closeBtn) closeBtn.onclick = () => {
+  alphaApi?.stop();
+  playerSection.style.display = 'none';
+  searchInput.disabled = false;
+};
+if (speedSlider) speedSlider.oninput = (e) => {
+  if (alphaApi) alphaApi.playbackSpeed = e.target.value / 100;
+  if (speedLabel) speedLabel.innerText = e.target.value + '%';
+};
+if (document.getElementById('at-volume')) document.getElementById('at-volume').oninput = (e) => {
+  if (alphaApi) alphaApi.masterVolume = e.target.value / 100;
+};
+
+window.onload = () => {
+  initDiscovery();
+  applyThemeColors();
+};
+window.loadSong = loadSong;
+
+// Theme Synchronization logic
+function applyThemeColors() {
+  const currentTheme = document.body.className.split(' ')[0] || 'JamVault';
+  const color = themeColors[currentTheme] || '#F39C12';
+  document.documentElement.style.setProperty('--at-accent-color', color);
+
+  // Convert hex to rgb for opacity-based effects in CSS
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
+  const rgb = result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '243, 156, 18';
+  document.documentElement.style.setProperty('--at-accent-rgb', rgb);
+
+  if (alphaApi) alphaApi.updateSettings();
+}
+
+window.addEventListener('themeChanged', applyThemeColors);

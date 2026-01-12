@@ -938,6 +938,11 @@ class Jamstudio {
             // Clamp playhead to the left edge of the visible timeline
             playhead.style.display = 'block';
             playhead.style.left = `${Math.max(pos, minPos)}px`;
+
+            // Fix: Set height to match full scrollable content
+            if (tracksWrapper) {
+                playhead.style.height = `${tracksWrapper.scrollHeight}px`;
+            }
         }
 
         // Update progress bar
@@ -1023,6 +1028,11 @@ class Jamstudio {
     // ========== TRACK MANAGEMENT ==========
 
     addEmptyTrack() {
+        if (this.tracks.length >= 19) {
+            alert('Has alcanzado el límite máximo de 19 pistas.');
+            return;
+        }
+
         const trackId = this.nextTrackId++;
         const track = {
             id: trackId,
@@ -1087,39 +1097,27 @@ class Jamstudio {
             </div>
             <div class="track-content">
               <div class="track-header">
-                <span class="track-name">${track.name}</span>
-                <div class="track-header-actions">
-                    <button class="btn mixer-toggle-btn" onclick="daw.toggleMixer(${track.id})" title="Controles de Pista">⚙️</button>
-                    <button class="track-delete" onclick="daw.deleteTrack(${track.id})" title="Eliminar Pista">✕</button>
-                </div>
-              </div>
+            <span class="track-name">${track.name}</span>
+            <div class="track-header-actions">
+                <button class="track-delete" onclick="event.stopPropagation(); daw.deleteTrack(${track.id})" title="Eliminar Pista">✕</button>
+            </div>
+          </div>
               
-              <!-- Floating Track Menu (Consolidated Controls) -->
-              <div class="track-mixer" id="mixer-${track.id}" style="display: none;">
-                <div class="menu-title">Opciones de Pista</div>
-                <div class="track-controls">
-                    <button class="btn arm-btn" onclick="daw.toggleTrackArm(${track.id})" title="Armar para grabar">⏺️ Grabar</button>
-                    <button class="btn monitor-btn" onclick="daw.toggleTrackMonitoring(${track.id})" title="Monitoreo">🎧 Monitor</button>
-                </div>
-                <div class="track-controls">
-                    <button class="btn mute-btn" onclick="daw.toggleMute(${track.id})">Mute</button>
-                    <button class="btn solo-btn" onclick="daw.toggleSolo(${track.id})">Solo</button>
-                </div>
-                <button class="btn import-btn" style="width: 100%; margin-bottom: 1rem;" onclick="daw.importAudioToTrack(${track.id})">📂 Importar Audio</button>
-                
-                <div class="mixer-row">
-                    <label>Vol</label>
-                    <input type="range" min="0" max="100" value="${track.volume}" 
-                           oninput="daw.setTrackVolume(${track.id}, this.value)">
-                    <span>${track.volume}%</span>
-                </div>
-                <div class="mixer-row">
-                    <label>Pan</label>
-                    <input type="range" min="-100" max="100" value="${track.pan}" 
-                           oninput="daw.setTrackPan(${track.id}, this.value)">
-                    <span>${track.pan}</span>
-                </div>
-              </div>
+          <!-- Simplified Inline Mixer (Volume & Pan Only) -->
+          <div class="track-mixer" id="mixer-${track.id}" style="display: none;">
+            <div class="mixer-row">
+                <label>Vol</label>
+                <input type="range" min="0" max="100" value="${track.volume}" 
+                       oninput="daw.setTrackVolume(${track.id}, this.value)">
+                <span>${track.volume}%</span>
+            </div>
+            <div class="mixer-row">
+                <label>Pan</label>
+                <input type="range" min="-100" max="100" value="${track.pan}" 
+                       oninput="daw.setTrackPan(${track.id}, this.value)">
+                <span>${track.pan}</span>
+            </div>
+          </div>
             </div>
           </div>
 
@@ -1131,6 +1129,19 @@ class Jamstudio {
 
         document.getElementById('unifiedTracksContainer')?.appendChild(trackContainer);
 
+        // Make entire track controls module clickeable for selection
+        const controlsModule = trackContainer.querySelector('.track-controls-module');
+        if (controlsModule) {
+            controlsModule.style.cursor = 'pointer';
+            controlsModule.addEventListener('click', (e) => {
+                // Don't trigger if clicking on delete button or track name
+                if (!e.target.classList.contains('track-delete') &&
+                    !e.target.classList.contains('track-name')) {
+                    this.toggleMixer(track.id);
+                }
+            });
+        }
+
         // Setup clip interaction
         this.setupClipInteraction(track);
 
@@ -1138,7 +1149,10 @@ class Jamstudio {
         const nameEl = trackContainer.querySelector('.track-name');
         if (nameEl) {
             nameEl.style.cursor = 'pointer';
-            nameEl.addEventListener('click', () => this.renameTrack(track.id, nameEl));
+            nameEl.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent triggering track selection
+                this.renameTrack(track.id, nameEl);
+            });
         }
     }
 
@@ -1173,20 +1187,76 @@ class Jamstudio {
     }
 
     toggleMixer(trackId) {
-        const mixerDiv = document.getElementById(`mixer-${trackId}`);
+        const track = this.tracks.find(t => t.id === trackId);
+        if (!track) return;
+
         const trackContainer = document.querySelector(`.track-container[data-track-id="${trackId}"]`);
-        if (!mixerDiv || !trackContainer) return;
+        const bottomPanel = document.getElementById('bottomMixerPanel');
 
-        if (mixerDiv.style.display === 'none') {
-            // Close other open mixers and remove their active class
-            document.querySelectorAll('.track-mixer').forEach(m => m.style.display = 'none');
-            document.querySelectorAll('.track-container').forEach(c => c.classList.remove('active-menu'));
+        if (!trackContainer || !bottomPanel) return;
 
-            mixerDiv.style.display = 'block';
-            trackContainer.classList.add('active-menu');
+        // Check if clicking on already selected track
+        const isCurrentlySelected = bottomPanel.dataset.activeTrack == trackId;
+
+        // Remove selection from all tracks
+        document.querySelectorAll('.track-container').forEach(tc => {
+            tc.classList.remove('track-selected');
+        });
+
+        if (isCurrentlySelected) {
+            // Deselect: hide bottom panel
+            bottomPanel.innerHTML = `
+                <div class="mixer-panel-placeholder">
+                    <span>⚙️ Selecciona una pista para ver sus controles</span>
+                </div>
+            `;
+            bottomPanel.dataset.activeTrack = '';
         } else {
-            mixerDiv.style.display = 'none';
-            trackContainer.classList.remove('active-menu');
+            // Select new track: add visual highlight and show full controls in bottom
+            trackContainer.classList.add('track-selected');
+
+            // Build full controls HTML for bottom panel
+            bottomPanel.innerHTML = `
+                <div class="bottom-mixer-content">
+                    <div class="bottom-mixer-title">
+                        <strong>${track.name}</strong>
+                        <button class="close-mixer-btn" onclick="daw.toggleMixer(${trackId})">✕</button>
+                    </div>
+                    <div class="bottom-mixer-controls">
+                        <div class="bottom-control-group">
+                            <button class="btn arm-btn ${track.armed ? 'active' : ''}" 
+                                    onclick="daw.toggleTrackArm(${trackId})" 
+                                    title="Armar para grabar">⏺️</button>
+                            <button class="btn monitor-btn ${track.monitoring ? 'active' : ''}" 
+                                    onclick="daw.toggleTrackMonitoring(${trackId})" 
+                                    title="Monitoreo">🎧</button>
+                            <button class="btn mute-btn ${track.muted ? 'active' : ''}" 
+                                    onclick="daw.toggleMute(${trackId})">M</button>
+                            <button class="btn solo-btn ${track.solo ? 'active' : ''}" 
+                                    onclick="daw.toggleSolo(${trackId})">S</button>
+                        </div>
+                        <div class="bottom-control-group">
+                            <button class="btn import-btn" 
+                                    onclick="daw.importAudioToTrack(${trackId})">📂 Importar</button>
+                        </div>
+                        <div class="bottom-mixer-sliders">
+                            <div class="mixer-slider-row">
+                                <label>Vol</label>
+                                <input type="range" min="0" max="100" value="${track.volume}" 
+                                       oninput="daw.setTrackVolume(${trackId}, this.value)">
+                                <span id="vol-display-${trackId}">${track.volume}%</span>
+                            </div>
+                            <div class="mixer-slider-row">
+                                <label>Pan</label>
+                                <input type="range" min="-100" max="100" value="${track.pan}" 
+                                       oninput="daw.setTrackPan(${trackId}, this.value)">
+                                <span id="pan-display-${trackId}">${track.pan}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            bottomPanel.dataset.activeTrack = trackId;
         }
     }
 
@@ -1196,8 +1266,11 @@ class Jamstudio {
 
         track.muted = !track.muted;
 
-        const btn = document.querySelector(`.track-container[data-track-id="${trackId}"] .mute-btn`);
-        btn?.classList.toggle('active');
+        // Update button in Bottom Mixer Panel if active
+        const bottomBtn = document.querySelector('#bottomMixerPanel .bottom-mixer-controls .mute-btn');
+        if (bottomBtn && document.getElementById('bottomMixerPanel').dataset.activeTrack == trackId) {
+            bottomBtn.classList.toggle('active', track.muted);
+        }
 
         // Update signal chain volume
         if (track.signalChain) {
@@ -1211,8 +1284,11 @@ class Jamstudio {
 
         track.solo = !track.solo;
 
-        const btn = document.querySelector(`.track-container[data-track-id="${trackId}"] .solo-btn`);
-        btn?.classList.toggle('active');
+        // Update button in Bottom Mixer Panel if active
+        const bottomBtn = document.querySelector('#bottomMixerPanel .bottom-mixer-controls .solo-btn');
+        if (bottomBtn && document.getElementById('bottomMixerPanel').dataset.activeTrack == trackId) {
+            bottomBtn.classList.toggle('active', track.solo);
+        }
 
         // If playing, restart playback
         if (this.isPlaying) {
@@ -1235,10 +1311,18 @@ class Jamstudio {
             track.gainNode.gain.value = track.volume / 100;
         }
 
-        // Update UI display
-        const volumeDisplay = document.querySelector(`#mixer-${trackId} .mixer-row:nth-child(1) span`);
-        if (volumeDisplay) {
-            volumeDisplay.textContent = `${Math.round(track.volume)}%`;
+        // Update Inline Mixer UI
+        const inlineInput = document.querySelector(`#mixer-${trackId} input[type="range"][oninput*="setTrackVolume"]`);
+        const inlineDisplay = document.querySelector(`#mixer-${trackId} .mixer-row:nth-child(1) span`);
+        if (inlineInput) inlineInput.value = track.volume;
+        if (inlineDisplay) inlineDisplay.textContent = `${Math.round(track.volume)}%`;
+
+        // Update Bottom Mixer UI if active
+        if (document.getElementById('bottomMixerPanel').dataset.activeTrack == trackId) {
+            const bottomInput = document.querySelector('#bottomMixerPanel .mixer-slider-row:nth-child(1) input');
+            const bottomDisplay = document.getElementById(`vol-display-${trackId}`);
+            if (bottomInput) bottomInput.value = track.volume;
+            if (bottomDisplay) bottomDisplay.textContent = `${Math.round(track.volume)}%`;
         }
     }
 
@@ -1248,16 +1332,25 @@ class Jamstudio {
 
         track.pan = parseFloat(value);
 
-        // Update the pan node (it's always initialized now)
+        // Update the pan node
         if (track.panNode) {
             track.panNode.pan.value = track.pan / 100;
         }
 
-        // Update UI display
-        const panDisplay = document.querySelector(`#mixer-${trackId} .mixer-row:nth-child(2) span`);
-        if (panDisplay) {
-            const panText = track.pan === 0 ? 'C' : track.pan > 0 ? `R${Math.round(track.pan)}` : `L${Math.round(Math.abs(track.pan))}`;
-            panDisplay.textContent = panText;
+        const panText = track.pan === 0 ? 'C' : track.pan > 0 ? `R${Math.round(track.pan)}` : `L${Math.round(Math.abs(track.pan))}`;
+
+        // Update Inline Mixer UI
+        const inlineInput = document.querySelector(`#mixer-${trackId} input[type="range"][oninput*="setTrackPan"]`);
+        const inlineDisplay = document.querySelector(`#mixer-${trackId} .mixer-row:nth-child(2) span`);
+        if (inlineInput) inlineInput.value = track.pan;
+        if (inlineDisplay) inlineDisplay.textContent = panText;
+
+        // Update Bottom Mixer UI if active
+        if (document.getElementById('bottomMixerPanel').dataset.activeTrack == trackId) {
+            const bottomInput = document.querySelector('#bottomMixerPanel .mixer-slider-row:nth-child(2) input');
+            const bottomDisplay = document.getElementById(`pan-display-${trackId}`);
+            if (bottomInput) bottomInput.value = track.pan;
+            if (bottomDisplay) bottomDisplay.textContent = panText;
         }
     }
 
@@ -1267,11 +1360,10 @@ class Jamstudio {
 
         track.armed = !track.armed;
 
-        const btn = document.querySelector(`.track-container[data-track-id="${trackId}"] .arm-btn`);
-        if (track.armed) {
-            btn?.classList.add('active');
-        } else {
-            btn?.classList.remove('active');
+        // Update button in Bottom Mixer Panel if active
+        const bottomBtn = document.querySelector('#bottomMixerPanel .bottom-mixer-controls .arm-btn');
+        if (bottomBtn && document.getElementById('bottomMixerPanel').dataset.activeTrack == trackId) {
+            bottomBtn.classList.toggle('active', track.armed);
         }
 
         console.log(`Track ${trackId} ${track.armed ? 'armed' : 'disarmed'} for recording`);
@@ -1283,11 +1375,14 @@ class Jamstudio {
 
         track.monitoring = !track.monitoring;
 
-        const btn = document.querySelector(`.track-container[data-track-id="${trackId}"] .monitor-btn`);
+        // Update button in Bottom Mixer Panel if active
+        const bottomBtn = document.querySelector('#bottomMixerPanel .bottom-mixer-controls .monitor-btn');
+        if (bottomBtn && document.getElementById('bottomMixerPanel').dataset.activeTrack == trackId) {
+            if (track.monitoring) bottomBtn.classList.add('active');
+            else bottomBtn.classList.remove('active');
+        }
 
         if (track.monitoring) {
-            btn?.classList.add('active');
-
             try {
                 // Get microphone stream
                 let stream = this.recordingStream;
@@ -1324,17 +1419,14 @@ class Jamstudio {
                 console.error('Error enabling monitoring:', error);
                 alert('Error al activar el monitoreo. Verifica los permisos del micrófono.');
                 track.monitoring = false;
-                btn?.classList.remove('active');
+                if (bottomBtn) bottomBtn.classList.remove('active');
             }
         } else {
-            btn?.classList.remove('active');
-
             // Disconnect monitoring
             if (track.monitorNode) {
                 track.monitorNode.disconnect();
                 track.monitorNode = null;
             }
-
             console.log(`Monitoring disabled for track ${trackId}`);
         }
     }
@@ -1408,7 +1500,7 @@ class Jamstudio {
                 this.drawWaveform(track);
                 this.initializeTimeline();
 
-                console.log(`Audio imported to track ${trackId}:`, file.name);
+                console.log(`Audio imported to track ${trackId}: `, file.name);
 
             } catch (error) {
                 console.error('Error loading audio file:', error);
@@ -1752,7 +1844,7 @@ class Jamstudio {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `JamVault-Export-${Date.now()}.wav`;
+            a.download = `JamVault - Export - ${Date.now()}.wav`;
             a.click();
             URL.revokeObjectURL(url);
 
@@ -1828,7 +1920,7 @@ class Jamstudio {
     // ========== CLIP INTERACTION ==========
 
     setupClipInteraction(track) {
-        const canvas = document.getElementById(`waveform-${track.id}`);
+        const canvas = document.getElementById(`waveform - ${track.id} `);
         if (!canvas) return;
 
         // Context menu (Right click)
@@ -2038,7 +2130,7 @@ class Jamstudio {
             <div style="color: rgba(255,255,255,0.5); margin-bottom: 0.8rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Opciones de Clip</div>
             <button class="btn" style="width: 100%; text-align: left; margin-bottom: 4px;" onclick="daw.deleteClip(${track.id}, '${clip.id}')">🗑️ Eliminar</button>
             <button class="btn" style="width: 100%; text-align: left;" onclick="daw.splitClipAtPlayhead(${track.id}, '${clip.id}')">✂️ Dividir en Playhead</button>
-        `;
+`;
 
         document.body.appendChild(menu);
 

@@ -52,7 +52,8 @@
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
       position: relative;
       box-sizing: border-box;
-      overflow: hidden;
+      overflow: visible !important;
+      /* IMPORTANTE: Para que el cursor no se corte */
     }
 
     /* Resaltar el borde con el color del tema activamente */
@@ -80,22 +81,24 @@
       border-color: rgba(199, 75, 80, 0.6) !important;
     }
 
-    /* 1. BASE: TODO con el color del tema (Cuerdas, Notas, Números) */
+    /* 1. BASE: Cuerdas y líneas con el color del tema */
     #alphaTab svg * {
       stroke: var(--at-accent-color) !important;
       fill: var(--at-accent-color) !important;
     }
 
-    /* 2. EXCEPCIÓN: Metadatos en BLANCO (Título, Artista, Anotaciones) */
-    /* Usamos selectores más específicos para no tocar los números de traste */
-    #alphaTab svg text:not(.at-fret-number) {
+    /* 2. EXCEPCIÓN: Metadatos, TEXTO y SÍMBOLOS en BLANCO */
+    #alphaTab svg text,
+    #alphaTab svg circle,
+    #alphaTab svg ellipse,
+    #alphaTab svg path.at-note {
       fill: #ffffff !important;
       stroke: none !important;
     }
 
-    /* 3. Reafirmar que los números de trastes son del tema */
+    /* 3. Asegurar que los números de trastes son puramente blancos */
     #alphaTab svg .at-fret-number {
-      fill: var(--at-accent-color) !important;
+      fill: #ffffff !important;
       stroke: none !important;
     }
 
@@ -121,15 +124,18 @@
     }
 
     /* CURSOR NATIVO ULTRA-FLUIDO (ENGINE 60FPS) */
-    .at-cursor-bar,
-    .at-cursor-beat {
-      background: var(--at-accent-color) !important;
-      width: 1.5px !important;
-      box-shadow: 0 0 10px var(--at-accent-color);
-      opacity: 1 !important;
+    .at-cursor {
       display: block !important;
-      pointer-events: none;
-      transition: none !important;
+      visibility: visible !important;
+    }
+
+    .at-cursor-bar {
+      display: block !important;
+    }
+
+    .at-cursor-beat {
+      display: none !important;
+      /* Ocultar el resalte de nota "gordo" */
     }
 
     /* ESTILO BOTÓN CERRAR VIBRANTE */
@@ -530,24 +536,65 @@
       filter: drop-shadow(0 0 5px var(--at-accent-color));
     }
 
-    .player-content {
+    /* --- ALPHATAB INTEGRATED ENGINE (SONGSTERR STYLE) --- */
+    #at-player-content {
       flex: 1;
-      position: relative;
-      background: #000;
       overflow-y: auto;
-      padding: 40px 60px;
+      background: #000;
+      padding: 0;
+      /* Remove padding to let AlphaTab fill the space */
     }
 
-    #proPlayhead {
+    /* --- HIDE ALL ALPHATAB CURSORS (but keep them measurable) --- */
+    .at-cursor-bar,
+    .at-cursor-beat,
+    .at-cursor {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    /* --- CUSTOM LASER CURSOR --- */
+    #customLaser {
       position: absolute;
+      top: 0;
+      left: 0;
       width: 3px;
+      height: 100%;
       background: var(--at-accent-color);
-      box-shadow: 0 0 15px var(--at-accent-color), 0 0 5px #fff;
-      z-index: 100;
+      box-shadow: 0 0 15px var(--at-accent-color), 0 0 25px var(--at-accent-color);
+      z-index: 999999;
       pointer-events: none;
-      will-change: transform;
-      display: none;
       border-radius: 2px;
+    }
+
+    .alphaTab-wrapper {
+      width: 100%;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    #alphaTab {
+      width: 100%;
+    }
+
+    /* Override AlphaTab Default Visuals to match JamVault Neon */
+    :root {
+      --at-background-color: #000 !important;
+      --at-main-color: #ffffff !important;
+      --at-accent-color: #f39c12;
+      /* Default fall-back */
+      --at-cursor-color: var(--at-accent-color) !important;
+      --at-selection-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* Clean AlphaTab UI */
+    .at-alpha-tab {
+      background: #000 !important;
+      border: none !important;
+    }
+
+    #alphaTab {
+      width: 100%;
     }
 
     /* Barra de Control Inferior - ESTILO PILL */
@@ -681,7 +728,8 @@
 
     <div class="search-area">
       <div class="search-box-wrapper">
-        <input type="text" id="searchInput" placeholder="Busca más de un millón de tablaturas...">
+        <input type="text" id="searchInput" placeholder="Busca más de un millón de tablaturas..."
+          style="color: #ffffff; background-color: rgba(255, 255, 255, 0.1);">
         <button id="clearSearch" title="Limpiar búsqueda">✕</button>
       </div>
 
@@ -754,9 +802,11 @@
         </aside>
 
         <!-- Área de Partitura -->
-        <main class="player-content" id="at-player-content">
-          <div id="proPlayhead"></div>
-          <div id="alphaTab"></div>
+        <main class="player-content" id="at-player-content" style="position: relative;">
+          <div id="customLaser" style="display:none;"></div>
+          <div class="alphaTab-wrapper">
+            <div id="alphaTab"></div>
+          </div>
         </main>
       </div>
 
@@ -809,8 +859,11 @@
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/vexflow/build/cjs/vexflow.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@coderline/alphatab@latest/dist/alphaTab.js"></script>
-  <script src="Tabs.js?v=final_fix_v3"></script>
+  <!-- alphaTab is still used as a light GP parser -->
+  <script src="Tabs.js?v=vexflow_tone_v1"></script>
   <script src="LocalStorage.js"></script>
 </body>
 

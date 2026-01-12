@@ -292,14 +292,6 @@
     <!-- ========== DAW CONTROLS ========== -->
     <div class="daw-transport">
         <div class="main-controls-column">
-            <div class="transport-controls">
-                <button id="recordBtn" class="btn record-btn" title="Grabar (R)">
-                    <span class="record-icon">●</span> Grabar
-                </button>
-                <button id="playBtn" class="btn play-btn" title="Reproducir (Espacio)">▶ Play</button>
-                <button id="pauseBtn" class="btn pause-btn" title="Pausar (Espacio)" disabled>⏸ Pausa</button>
-                <button id="stopBtn" class="btn stop-btn" title="Detener">⏹ Stop</button>
-            </div>
             <div class="track-actions-group">
                 <button id="clearAllBtn" class="btn clear-btn-top">Limpiar Todo</button>
                 <button id="exportBtn" class="btn export-btn-top">💾 Exportar</button>
@@ -335,21 +327,7 @@
             <span id="masterVolumeValue">80%</span>
         </div>
 
-        <!-- Audio Device Selector -->
-        <div class="audio-device-selector">
-            <div class="device-row">
-                <label title="Dispositivo de entrada (micrófono/interfaz)">🎤 In:</label>
-                <select id="audioInputDevice" class="device-select">
-                    <option value="default">Default</option>
-                </select>
-            </div>
-            <div class="device-row">
-                <label title="Dispositivo de salida (altavoces/auriculares)">🔊 Out:</label>
-                <select id="audioOutputDevice" class="device-select">
-                    <option value="default">Default</option>
-                </select>
-            </div>
-        </div>
+
     </div>
 
     <!-- ========== MAIN DAW INTERFACE ========== -->
@@ -379,6 +357,42 @@
         <!-- Global Indicators -->
         <div id="recordingIndicator" class="recording-indicator hidden">● REC</div>
     </main>
+
+    <!-- ========== BOTTOM TRANSPORT BAR ========== -->
+    <div class="jamstudio-bottom-bar">
+        <!-- Left: Mixer Panel Container -->
+        <div class="mixer-panel-container" id="bottomMixerPanel">
+            <div class="mixer-panel-placeholder">
+                <span>⚙️ Selecciona una pista para ver sus controles</span>
+            </div>
+        </div>
+
+        <!-- Center: Transport Controls -->
+        <div class="bottom-transport-controls">
+            <button id="recordBtn" class="bottom-btn record-btn" title="Grabar (R)">
+                <span class="record-icon">●</span>
+            </button>
+            <button id="playBtn" class="bottom-btn play-btn" title="Reproducir (Espacio)">▶</button>
+            <button id="pauseBtn" class="bottom-btn pause-btn" title="Pausar (Espacio)" disabled>⏸</button>
+            <button id="stopBtn" class="bottom-btn stop-btn" title="Detener">⏹</button>
+        </div>
+
+        <!-- Right: Device Selectors -->
+        <div class="bottom-device-controls">
+            <div class="device-row">
+                <label title="Dispositivo de entrada">🎤</label>
+                <select id="audioInputDevice" class="device-select">
+                    <option value="default">Default</option>
+                </select>
+            </div>
+            <div class="device-row">
+                <label title="Dispositivo de salida">🔊</label>
+                <select id="audioOutputDevice" class="device-select">
+                    <option value="default">Default</option>
+                </select>
+            </div>
+        </div>
+    </div>
 
     <!-- ========== SITE FOOTER ========== -->
     <footer class="site-footer">
