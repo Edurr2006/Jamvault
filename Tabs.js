@@ -351,7 +351,7 @@ async function loadSong(songId) {
   } catch (e) {
     console.error("❌ Load Failed", e);
     if (loadingDiv) loadingDiv.style.display = 'none';
-    alert("Error al cargar la partitura.");
+    showToast("Error al cargar la partitura", "error");
   }
 }
 
@@ -663,7 +663,7 @@ if (ytLinkBtn) {
       ytSyncControls.style.display = 'flex';
       ytSyncController.toggleSource();
     } catch (e) {
-      alert("Error al cargar URL");
+      showToast("Error al cargar URL", "error");
     }
   };
 }

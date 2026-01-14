@@ -4,7 +4,7 @@ function mostrarEscala() {
   var root = document.getElementById("rootNote").value;
   var tipo = document.getElementById("scaleType").value;
   if (!root || !tipo) {
-    alert("Selecciona una nota raíz y un tipo de escala");
+    showToast("Selecciona una nota raíz y un tipo de escala", "info");
     return;
   }
 
@@ -28,13 +28,13 @@ function mostrarEscala() {
 
   // Verificar si el tipo de escala existe
   if (!patrones[tipo]) {
-    alert("Tipo de escala no válido");
+    showToast("Tipo de escala no válido", "error");
     return;
   }
 
   var rootIndex = notas.indexOf(root);
   if (rootIndex === -1) {
-    alert("Nota raíz no válida");
+    showToast("Nota raíz no válida", "error");
     return;
   }
 

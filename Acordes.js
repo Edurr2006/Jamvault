@@ -831,7 +831,7 @@ function mostrarAcorde(root, tipo, index = 0) {
 
   const positions = getPositions(root, tipo);
   if (positions.length === 0) {
-    alert('Acorde no disponible');
+    showToast('Acorde no disponible', 'warning');
     return;
   }
 
@@ -1067,7 +1067,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (root && type) {
         mostrarAcorde(root, type, 0);
       } else {
-        alert('Por favor selecciona una nota y un tipo de acorde.');
+        showToast('Por favor selecciona una nota y un tipo de acorde.', 'info');
       }
     });
   }

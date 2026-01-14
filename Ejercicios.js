@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const level = document.getElementById('createExLevel').value;
         const bpm = parseInt(document.getElementById('createExBpm').value);
 
-        if (!name) return alert("Por favor, introduce un nombre.");
+        if (!name) return showToast("Por favor, introduce un nombre", "warning");
 
         state.createNew(name, cat, level, bpm);
         creationModal.style.display = 'none';
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 3. EDITOR ACTIONS ---
 
     playBtn.onclick = () => {
-        if (!state.currentExercise || state.currentExercise.steps.length === 0) return alert("Añade algunos pasos primero.");
+        if (!state.currentExercise || state.currentExercise.steps.length === 0) return showToast("Añade algunos pasos primero", "info");
         player.setExercise(state.currentExercise);
         player.play();
     };
@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     saveBtn.onclick = () => {
         state.save();
-        alert("¡Ejercicio guardado correctamente!");
+        showToast("¡Ejercicio guardado correctamente!", "success");
     };
 
     // SCALE LOGIC
@@ -557,13 +557,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Rename Button
             card.querySelector('.rename-btn').onclick = (e) => {
                 e.stopPropagation();
-                const newName = prompt(`Nuevo nombre para "${ex.name}":`, ex.name);
-                if (newName && newName.trim() !== "") {
+                showPrompt(`Nuevo nombre para "${ex.name}":`, ex.name, (newName) => {
                     state.load(ex.id);
-                    state.updateName(newName.trim());
+                    state.updateName(newName);
                     state.save();
                     renderMainList();
-                }
+                    showToast("¡Renombrado con éxito!", "success");
+                });
             };
 
             // Practice Button
@@ -575,10 +575,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Delete click handles removal
             card.querySelector('.delete-ex-btn').onclick = (e) => {
                 e.stopPropagation();
-                if (confirm(`¿Borrar "${ex.name}"?`)) {
+                showConfirm(`¿Estás seguro de que quieres borrar "${ex.name}"?`, () => {
                     state.delete(ex.id);
                     renderMainList();
-                }
+                    showToast("Ejercicio eliminado", "info");
+                });
             };
 
             listContainer.appendChild(card);

@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const exId = urlParams.get('id');
 
     if (!exId || !state.load(Number(exId))) {
-        alert('Ejercicio no encontrado');
+        showToast('Ejercicio no encontrado', 'error');
         window.location.href = 'Ejercicios.html';
         return;
     }

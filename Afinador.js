@@ -38,7 +38,7 @@ async function startTuner() {
         updatePitch();
     } catch (err) {
         console.error("Error al acceder al micrófono:", err);
-        alert("No se pudo acceder al micrófono. Por favor, verifica los permisos.");
+        showToast("No se pudo acceder al micrófono. Por favor, verifica los permisos.", "error");
     }
 }
 

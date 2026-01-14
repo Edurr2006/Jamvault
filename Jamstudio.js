@@ -78,7 +78,7 @@ class Jamstudio {
 
         } catch (error) {
             console.error('Error initializing JamStudio Pro:', error);
-            alert('Error al inicializar el sistema de audio. Por favor, recarga la página.');
+            showToast('Error al inicializar el sistema de audio. Por favor, recarga la página.', 'error');
         }
     }
 
@@ -628,7 +628,7 @@ class Jamstudio {
         const armedTracks = this.tracks.filter(t => t.armed);
 
         if (armedTracks.length === 0) {
-            alert('No hay pistas armadas para grabar.');
+            showToast('No hay pistas armadas para grabar.', 'warning');
             return;
         }
 
@@ -714,7 +714,7 @@ class Jamstudio {
 
         } catch (error) {
             console.error('Error:', error);
-            alert('No se pudo acceder al micrófono.');
+            showToast('No se pudo acceder al micrófono.', 'error');
         }
     }
 
@@ -1060,7 +1060,7 @@ class Jamstudio {
 
     addEmptyTrack() {
         if (this.tracks.length >= 19) {
-            alert('Has alcanzado el límite máximo de 19 pistas.');
+            showToast('Has alcanzado el límite máximo de 19 pistas', 'warning');
             return;
         }
 
@@ -1453,7 +1453,7 @@ class Jamstudio {
 
             } catch (error) {
                 console.error('Error enabling monitoring:', error);
-                alert('Error al activar el monitoreo. Verifica los permisos del micrófono.');
+                showToast('Error al activar el monitoreo. Verifica los permisos del micrófono.', 'error');
                 track.monitoring = false;
                 if (bottomBtn) bottomBtn.classList.remove('active');
             }
@@ -1768,7 +1768,7 @@ class Jamstudio {
 
             } catch (error) {
                 console.error('Error loading audio file:', error);
-                alert('Error al cargar el archivo de audio.');
+                showToast('Error al cargar el archivo de audio', 'error');
             }
         };
 
@@ -1811,28 +1811,29 @@ class Jamstudio {
     }
 
     clearAllTracks() {
-        if (!confirm('¿Estás seguro de que quieres eliminar todas las pistas?')) return;
+        showConfirm('¿Estás seguro de que quieres eliminar todas las pistas?', () => {
+            this.stop();
 
-        this.stop();
+            // Cleanup all tracks
+            this.tracks.forEach(track => {
+                if (track.source) {
+                    track.source.stop();
+                }
+                if (track.signalChain) {
+                    track.signalChain.destroy();
+                }
+            });
 
-        // Cleanup all tracks
-        this.tracks.forEach(track => {
-            if (track.source) {
-                track.source.stop();
-            }
-            if (track.signalChain) {
-                track.signalChain.destroy();
-            }
+            this.tracks = [];
+            this.nextTrackId = 1;
+
+            // Clear UI
+            const unifiedTracksContainer = document.getElementById('unifiedTracksContainer');
+            if (unifiedTracksContainer) unifiedTracksContainer.innerHTML = '';
+
+            console.log('All tracks cleared');
+            showToast("Proyecto vaciado", "info");
         });
-
-        this.tracks = [];
-        this.nextTrackId = 1;
-
-        // Clear UI
-        const unifiedTracksContainer = document.getElementById('unifiedTracksContainer');
-        if (unifiedTracksContainer) unifiedTracksContainer.innerHTML = '';
-
-        console.log('All tracks cleared');
     }
 
     drawWaveform(track) {
@@ -2060,65 +2061,120 @@ class Jamstudio {
 
     async exportMix() {
         if (this.tracks.length === 0) {
-            alert('No hay pistas para exportar.');
+            showToast('No hay pistas para exportar', 'warning');
             return;
         }
 
-        try {
-            // Create offline context for rendering
-            const maxDuration = Math.max(...this.tracks.map(t => t.audioBuffer?.duration || 0));
-            const offlineContext = this.audioEngine.createOfflineContext(maxDuration, 2);
+        // 1. Show Export Modal
+        showExportModal(async (fileName, format) => {
+            try {
+                showToast('Renderizando mezcla...', 'info');
 
-            // Create master gain
-            const masterGain = offlineContext.createGain();
-            masterGain.gain.value = this.audioEngine.getMasterVolume();
-            masterGain.connect(offlineContext.destination);
-
-            // Add all non-muted tracks
-            const soloTracks = this.tracks.filter(t => t.solo);
-            const tracksToExport = soloTracks.length > 0 ? soloTracks : this.tracks.filter(t => !t.muted);
-
-            tracksToExport.forEach(track => {
-                if (track.audioBuffer) {
-                    const source = offlineContext.createBufferSource();
-                    source.buffer = track.audioBuffer;
-
-                    const gainNode = offlineContext.createGain();
-                    gainNode.gain.value = track.volume / 100;
-
-                    const panNode = offlineContext.createStereoPanner();
-                    panNode.pan.value = track.pan / 100;
-
-                    source.connect(gainNode);
-                    gainNode.connect(panNode);
-                    panNode.connect(masterGain);
-
-                    source.start(0);
+                // 2. Calculate Total Duration accurately
+                const totalDuration = this.timelineManager.getTotalDuration();
+                if (totalDuration <= 0) {
+                    showToast('El proyecto está vacío', 'warning');
+                    return;
                 }
-            });
 
-            // Render
-            const renderedBuffer = await offlineContext.startRendering();
+                // 3. Create Offline Context
+                const offlineContext = new OfflineAudioContext(2, Math.ceil(totalDuration * 44100), 44100);
 
-            // Convert to WAV
-            const wav = this.audioBufferToWav(renderedBuffer);
-            const blob = new Blob([wav], { type: 'audio/wav' });
+                // 4. Create Master Gain for rendering
+                const masterGain = offlineContext.createGain();
+                masterGain.gain.value = this.audioEngine.getMasterVolume();
+                masterGain.connect(offlineContext.destination);
 
-            // Download
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `JamVault - Export - ${Date.now()}.wav`;
-            a.click();
-            URL.revokeObjectURL(url);
+                // 5. Determine which tracks to export (respect Solo/Mute)
+                const soloTracks = this.tracks.filter(t => t.solo);
+                const tracksToExport = soloTracks.length > 0 ? soloTracks : this.tracks.filter(t => !t.muted);
 
-            console.log('Mix exported successfully');
-            alert('Mix exportado correctamente!');
+                // 6. Schedule all clips
+                tracksToExport.forEach(track => {
+                    const clips = this.timelineManager.getClips(track.id);
+                    clips.forEach(clip => {
+                        if (clip.audioBuffer) {
+                            const source = offlineContext.createBufferSource();
+                            source.buffer = clip.audioBuffer;
 
-        } catch (error) {
-            console.error('Error exporting mix:', error);
-            alert('Error al exportar el mix.');
-        }
+                            const trackGain = offlineContext.createGain();
+                            trackGain.gain.value = track.volume / 100;
+
+                            const trackPan = offlineContext.createStereoPanner();
+                            trackPan.pan.value = track.pan / 100;
+
+                            // Signal Chain for rendering
+                            source.connect(trackGain);
+                            trackGain.connect(trackPan);
+                            trackPan.connect(masterGain);
+
+                            // Schedule at clip's startTime
+                            // note: source.start(when, offset, duration)
+                            source.start(clip.startTime, clip.bufferOffset || 0, clip.duration);
+                        }
+                    });
+                });
+
+                // 7. Render
+                const renderedBuffer = await offlineContext.startRendering();
+
+                // 8. Encode and Download
+                if (format === 'wav') {
+                    const wav = this.audioBufferToWav(renderedBuffer);
+                    this.downloadBlob(new Blob([wav], { type: 'audio/wav' }), `${fileName}.wav`);
+                } else {
+                    // OGG/WebM using MediaRecorder on a dummy real-time context (since offline doesn't encode)
+                    // Or more modern: use a script. For now, since we have offline buffer, we'll provide WAV 
+                    // and a simulated compressed version if OGG is selected, or better, 
+                    // stick to WAV for now but let's try a quick MediaRecorder trick if possible.
+                    // Actually, converting AudioBuffer to OGG in browser without a library is tricky.
+                    // I will provide WAV as the standard and OGG via MediaRecorder on a temporary playback.
+                    this.exportCompressed(renderedBuffer, fileName, format);
+                }
+
+                showToast(`¡Mezcla "${fileName}" exportada!`, 'success');
+
+            } catch (error) {
+                console.error('Error exporting mix:', error);
+                showToast('Error al exportar el mix', 'error');
+            }
+        });
+    }
+
+    downloadBlob(blob, fileName) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+    }
+
+    async exportCompressed(audioBuffer, fileName, format) {
+        // High-speed playback through a MediaStreamDestination to record as OGG/WebM
+        const streamDest = this.audioEngine.context.createMediaStreamDestination();
+        const source = this.audioEngine.context.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(streamDest);
+
+        const mimeType = format === 'ogg' ? 'audio/ogg; codecs=opus' : 'audio/webm; codecs=opus';
+        const recorder = new MediaRecorder(streamDest.stream, { mimeType });
+        const chunks = [];
+
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: mimeType });
+            this.downloadBlob(blob, `${fileName}.${format}`);
+        };
+
+        recorder.start();
+        source.start(0);
+
+        // We have to wait for the whole thing because MediaRecorder is real-time
+        // Inform user
+        showToast(`Comprimiendo... Esto tardará lo mismo que dura el audio (${Math.ceil(audioBuffer.duration)}s)`, 'info', 5000);
+
+        source.onended = () => recorder.stop();
     }
 
     // ========== CLIP INTERACTION ==========
