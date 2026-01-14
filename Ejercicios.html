@@ -5,183 +5,153 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ejercicios | JamVault</title>
-    <link rel="stylesheet" href="IndexStyles.css">`r`n    <style>
+    <link rel="stylesheet" href="IndexStyles.css">
+    <style>
         /* Estilos específicos para Ejercicios */
+
+
         .exercises-container {
-            max-width: 900px;
+            width: 95%;
+            /* Explicit width instead of max-width */
+            max-width: 1800px;
+            /* Cap it only on ultra-wide screens */
             margin: 2rem auto;
             padding: 0 1rem;
+            box-sizing: border-box;
         }
 
         .exercises-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .exercises-header h2 {
-            font-size: 2.5rem;
+            text-align: left;
             margin-bottom: 2rem;
+            width: 100%;
         }
 
         .controls-bar {
             display: flex;
             justify-content: space-between;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            width: 100%;
+            /* Ensure controls span full width */
+        }
+
+        #addExerciseBtn {
+            background-color: #FF8906;
+            color: #000;
+            font-weight: bold;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
         }
 
         .search-bar {
             flex-grow: 1;
-            padding: 0.8rem;
-            border-radius: 8px;
-            border: none;
-            background: rgba(255, 255, 255, 0.1);
-            color: inherit;
-            font-size: 1rem;
+            width: 100%;
+            text-align: left;
+            padding: 18px 25px;
+            font-size: 1.1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: #fff;
+            transition: all 0.3s ease;
+            font-weight: normal;
         }
 
-        .natural .search-bar,
-        .vintage .search-bar,
-        .retro .search-bar {
-            background: rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(0, 0, 0, 0.2);
+        .search-bar:focus {
+            border-color: #FF8906;
+            box-shadow: 0 0 20px rgba(255, 137, 6, 0.2);
+            outline: none;
+        }
+
+        .search-bar::placeholder {
+            color: rgba(0, 0, 0, 0.7);
         }
 
         .exercise-card {
-            background: rgba(255, 255, 255, 0.05);
+            background-color: #212129;
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 2rem;
             margin-bottom: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .natural .exercise-card,
-        .vintage .exercise-card,
-        .retro .exercise-card {
-            background: rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            /* Ensure card spans full width */
+            box-sizing: border-box;
         }
 
         .exercise-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            background-color: #25252d;
         }
 
-        .JamVault .exercise-card {
-            border-left: 4px solid #FF8906;
-        }
-
-        .natural .exercise-card {
-            border-left: 4px solid #40916C;
-        }
-
-        .galactic .exercise-card {
-            border-left: 4px solid #3282B8;
-        }
-
-        .retro .exercise-card {
-            border-left: 4px solid #FF6F61;
-        }
-
-        .vintage .exercise-card {
-            border-left: 4px solid #FFB300;
-        }
-
+        .JamVault .exercise-card,
+        .natural .exercise-card,
+        .galactic .exercise-card,
+        .retro .exercise-card,
+        .vintage .exercise-card,
         .redblack .exercise-card {
-            border-left: 4px solid #C74B50;
+            border-left: none;
+            /* Removing the colored border-left to match image clean look */
         }
 
         .exercise-header {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
+            flex-direction: column;
+            /* Stack title and tags */
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0;
         }
 
         .exercise-title {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
+            color: #cfcfcf;
+            /* Lighter grey text */
         }
 
         .tags {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.8rem;
         }
 
         .tag {
-            padding: 0.2rem 0.6rem;
-            border-radius: 12px;
-            font-size: 0.8rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 6px;
+            /* Slightly squarer than pill */
+            font-size: 0.85rem;
             font-weight: bold;
-        }
-
-        .JamVault .tag {
-            background: #FF8906;
             color: #000;
         }
 
-        .natural .tag {
-            background: #8FB996;
-            color: #000;
+        /* Specific Tag Colors based on content text matches */
+        /* Note: This relies on manual classes or inline styles usually, but since we are generating them in JS, we might
+    need to tweak JS.
+    However, we can try to style broadly or hope standard tag classes work.
+    The image shows:
+    Orange for Category
+    Green/Pink for Level
+    */
+
+        /* Overriding theme specific tags for this page to match the mockup's consistency */
+        .tag {
+            background-color: #ccc;
         }
 
-        .galactic .tag {
-            background: #00B4D8;
-            color: #000;
-        }
-
-        .retro .tag {
-            background: #FFD460;
-            color: #000;
-        }
-
-        .vintage .tag {
-            background: #A6C48A;
-            color: #000;
-        }
-
-        .redblack .tag {
-            background: #C74B50;
-            color: #FFF;
-        }
-
-        .exercise-content {
-            margin-bottom: 1rem;
-            opacity: 0.9;
-        }
+        /* Default */
 
         .exercise-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+            /* Image doesn't show footer/bpm controls visible immediately on card? Or maybe they are there. Let's
+    hide minimal footer items if not needed or keep them subtle. */
         }
 
-        .natural .exercise-footer,
-        .vintage .exercise-footer,
-        .retro .exercise-footer {
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .bpm-control {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .bpm-input {
-            width: 60px;
-            padding: 0.3rem;
-            border-radius: 4px;
-            border: none;
-            text-align: center;
-        }
-
-        /* Modal para añadir ejercicio */
+        /* Re-enabling modal styles */
         .modal {
             display: none;
             position: fixed;
@@ -204,21 +174,6 @@
             position: relative;
         }
 
-        .JamVault .modal-content {
-            background: #0f0e17;
-            border: 1px solid #FF8906;
-        }
-
-        .natural .modal-content {
-            background: #1a1f1b;
-            border: 1px solid #40916C;
-        }
-
-        .galactic .modal-content {
-            background: #0C1B33;
-            border: 1px solid #3282B8;
-        }
-
         .form-group {
             margin-bottom: 1rem;
         }
@@ -229,14 +184,14 @@
         }
 
         .form-group input,
-        .form-group select,
-        .form-group textarea {
+        .form-group select {
             width: 100%;
             padding: 0.8rem;
             border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             background: rgba(255, 255, 255, 0.05);
-            color: inherit;
+            color: white;
+            cursor: pointer;
         }
 
         .close-modal {
@@ -244,7 +199,75 @@
             top: 1rem;
             right: 1rem;
             cursor: pointer;
-            font-size: 1.5rem;
+            font-size: 2rem;
+            /* Increased size */
+            color: #ccc;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: #fff;
+        }
+
+        /* Theme-specific overrides for inputs and selects */
+        .JamVault .form-group input,
+        .JamVault .form-group select {
+            border-color: #FF8906;
+        }
+
+        .JamVault .form-group select option {
+            background-color: #0f0e17;
+            color: #fff;
+        }
+
+        .natural .form-group input,
+        .natural .form-group select {
+            border-color: #40916C;
+        }
+
+        .natural .form-group select option {
+            background-color: #1a1f1b;
+            color: #DDE6D5;
+        }
+
+        .galactic .form-group input,
+        .galactic .form-group select {
+            border-color: #3282B8;
+        }
+
+        .galactic .form-group select option {
+            background-color: #0C1B33;
+            color: #fff;
+        }
+
+        .retro .form-group input,
+        .retro .form-group select {
+            border-color: #FF6F61;
+        }
+
+        .retro .form-group select option {
+            background-color: #1a1a1a;
+            color: #FFD460;
+        }
+
+        .vintage .form-group input,
+        .vintage .form-group select {
+            border-color: #FFB300;
+        }
+
+        .vintage .form-group select option {
+            background-color: #1F1A16;
+            color: #fff;
+        }
+
+        .redblack .form-group input,
+        .redblack .form-group select {
+            border-color: #C74B50;
+        }
+
+        .redblack .form-group select option {
+            background-color: #121212;
+            color: #fff;
         }
     </style>
 </head>

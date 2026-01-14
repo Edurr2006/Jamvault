@@ -45,27 +45,25 @@ document.addEventListener('DOMContentLoaded', () => {
         filtered.forEach(ex => {
             const card = document.createElement('div');
             card.className = 'exercise-card';
+            card.style.position = 'relative';
+
+            const levelColor = ex.level === 'Principiante' ? '#8FB996' :
+                (ex.level === 'Intermedio' ? '#FFD460' : '#C74B50');
+
             card.innerHTML = `
                 <div class="exercise-header">
                     <span class="exercise-title">${ex.name}</span>
-                    <button class="btn" onclick="deleteExercise(${ex.id})" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; background: transparent; border: 1px solid currentColor;">✕</button>
+                    <button class="btn" onclick="deleteExercise(${ex.id})" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; background: transparent; border: none; color: #666; position: absolute; top: 1rem; right: 1rem; cursor: pointer;">✕</button>
                 </div>
                 <div class="tags">
-                    <span class="tag">${ex.category}</span>
-                    <span class="tag" style="background: #555; color: white;">${ex.level}</span>
-                </div>
-                <div class="exercise-footer">
-                    <div class="bpm-control">
-                        <span>BPM:</span>
-                        <input type="number" class="bpm-input" value="${ex.bpm}" 
-                               onchange="updateBpm(${ex.id}, this.value)">
-                    </div>
-                    <button class="btn" onclick="playMetronome(${ex.bpm})">▶ Practicar</button>
+                    <span class="tag" style="background-color: #FF8906;">${ex.category}</span>
+                    <span class="tag" style="background-color: ${levelColor};">${ex.level}</span>
                 </div>
             `;
             exercisesList.appendChild(card);
         });
     }
+
 
     // Event Listeners
     addBtn.onclick = () => modal.style.display = 'flex';
