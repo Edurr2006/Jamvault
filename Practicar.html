@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Práctica | JamVault</title>
+    <link rel="stylesheet" href="IndexStyles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="data:,">
+    <style>
+        body {
+            background-color: #0c0c0e;
+            color: #fff;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        html {
+            overflow: hidden;
+        }
+
+        /* THEME VARIABLES */
+        body.JamVault {
+            --accent-theme: #FF8906;
+            --accent-glow: rgba(255, 137, 6, 0.4);
+        }
+
+        body.natural {
+            --accent-theme: #10D96A;
+            --accent-glow: rgba(16, 217, 106, 0.4);
+        }
+
+        body.galactic {
+            --accent-theme: #1E90FF;
+            --accent-glow: rgba(30, 144, 255, 0.4);
+        }
+
+        body.retro {
+            --accent-theme: #D81B60;
+            --accent-glow: rgba(216, 27, 96, 0.4);
+        }
+
+        body.vintage {
+            --accent-theme: #F1C40F;
+            --accent-glow: rgba(241, 196, 15, 0.4);
+        }
+
+        body.redblack {
+            --accent-theme: #E74C3C;
+            --accent-glow: rgba(231, 76, 60, 0.4);
+        }
+
+        .practice-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 2% 0;
+            /* Minimal top padding */
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* TIMELINE DISPLAY */
+        .timeline-container {
+            width: 95%;
+            max-width: 1200px;
+            min-height: 70px;
+            /* even smaller */
+            margin: 0.2rem auto;
+            display: flex;
+            justify-content: flex-start;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 5px;
+            scrollbar-width: none;
+        }
+
+        .timeline-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .timeline-step {
+            min-width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+        }
+
+        .timeline-step.active {
+            background: rgba(255, 137, 6, 0.1);
+            border-color: var(--accent-theme);
+            opacity: 1;
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(255, 137, 6, 0.2);
+        }
+
+        .step-note {
+            font-weight: 800;
+            font-size: 0.95rem;
+            /* Smaller text */
+        }
+
+        .step-info {
+            font-size: 0.55rem;
+            opacity: 0.5;
+            text-transform: uppercase;
+        }
+
+        .exercise-info {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 0.1rem;
+        }
+
+        .exercise-info h1 {
+            font-size: 2.5rem;
+            /* Increased size */
+            margin-bottom: 0.5rem;
+            color: var(--accent-theme);
+        }
+
+        .exercise-info p {
+            opacity: 0.6;
+            font-size: 0.75rem;
+            margin: 0;
+        }
+
+        /* FRETBOARD STYLES */
+        #fretboardContainer {
+            width: 95%;
+            max-width: 1500px;
+            /* Increased */
+            filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.5));
+        }
+
+        .main-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 1600px;
+            min-height: 280px;
+            gap: 20px;
+            padding: 0 1%;
+            margin: 5px auto 80px;
+            /* Reduced bottom margin */
+            flex: 1;
+        }
+
+        /* ADAPTIVE LAYOUTS */
+        body.scale-mode #practicarChordDiagram {
+            display: none !important;
+        }
+
+        body.scale-mode .main-content {
+            flex-direction: column;
+            justify-content: center;
+            margin-top: 0;
+        }
+
+        body.scale-mode #fretboardContainer {
+            width: 98% !important;
+            max-width: 1400px !important;
+            flex: 0 1 auto !important;
+        }
+
+        body.chord-mode #practicarChordDiagram {
+            flex: 0 1 350px;
+            /* Don't grow too much */
+            min-width: 280px;
+            max-width: 400px;
+            display: flex;
+            justify-content: center;
+        }
+
+        body.chord-mode #fretboardContainer {
+            flex: 2;
+            min-width: 500px;
+        }
+
+        /* BOTTOM PLAYER BAR (PILL STYLE) */
+        .player-bar {
+            position: fixed;
+            bottom: 1rem;
+            /* Slightly higher */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            max-width: 850px;
+            background: rgba(20, 20, 23, 0.85);
+            backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 10px 30px;
+            /* More compact */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .play-btn {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: var(--accent-theme);
+            border: none;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.3rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+            filter: brightness(1.1);
+        }
+
+        .stop-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .stop-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .tool-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            padding-left: 20px;
+        }
+
+        .tool-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ccc;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .tool-btn i {
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        .tool-btn.active {
+            background: rgba(255, 137, 6, 0.1);
+            border-color: var(--accent-theme);
+            color: var(--accent-theme);
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .slider-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            height: 4px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent-theme);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* COUNTDOWN OVERLAY */
+        #countdownOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        #countdownText {
+            font-size: 15rem;
+            font-weight: 800;
+            color: var(--accent-theme);
+            text-shadow: 0 0 50px var(--accent-glow);
+            animation: pulse 1s ease infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        .progress-indicator {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px 2px 0 0;
+            overflow: hidden;
+        }
+
+        #progressBar {
+            width: 0%;
+            height: 100%;
+            background: var(--accent-theme);
+            box-shadow: 0 0 15px var(--accent-glow);
+            transition: width 0.1s linear;
+        }
+    </style>
+</head>
+
+<body class="JamVault">
+    <header>
+        <a href="index.html">
+            <div class="logo-title">
+                <img src="imagenes/logo.png" alt="Logo" class="Logo">
+            </div>
+        </a>
+
+        <div class="nav-links">
+            <a href="Acordes.html" class="btn">Acordes</a>
+            <a href="Escalas.html" class="btn">Escalas</a>
+            <a href="Tabs.html" class="btn">Tabs</a>
+            <a href="Afinador.html" class="btn">Afinador</a>
+            <a href="Jamstudio.html" class="btn">JamStudio</a>
+            <a href="Songbook.html" class="btn">Canciones</a>
+            <a href="Ejercicios.html" class="btn active">Ejercicios</a>
+        </div>
+
+        <button id="toggleTheme" class="btn">Cambiar Tema</button>
+    </header>
+
+    <div class="practice-container">
+        <div class="exercise-info">
+            <h1 id="exName">Cargando ejercicio...</h1>
+            <p id="exMeta"><span id="exType">...</span> | <span id="exLevel">...</span></p>
+        </div>
+
+        <div id="timeline" class="timeline-container">
+            <!-- Steps will be injected here -->
+        </div>
+
+        <div class="main-content">
+            <!-- LEFT: CHORD DIAGRAM -->
+            <div id="practicarChordDiagram"
+                style="transition: all 0.3s ease; filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));">
+                <!-- SVG injected by JS -->
+            </div>
+
+            <!-- RIGHT: FRETBOARD -->
+            <div id="fretboardContainer"
+                style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <svg id="fretboard" viewBox="-30 -30 1310 305" xmlns="http://www.w3.org/2000/svg"
+                    preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                        <radialGradient id="note-grad">
+                            <stop offset="0%" stop-color="#fff" />
+                            <stop offset="100%" stop-color="var(--accent-theme)" />
+                        </radialGradient>
+                        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="5" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                        <filter id="chordGlow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="3" result="glow" />
+                            <feMerge>
+                                <feMergeNode in="glow" />
+                                <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                        </filter>
+                    </defs>
+
+                    <!-- Neck Background -->
+                    <rect x="0" y="0" width="1250" height="240" fill="#111" rx="4" />
+
+                    <!-- Inlays -->
+                    <g fill="#222">
+                        <circle cx="275.5" cy="120" r="10" /> <!-- 3 -->
+                        <circle cx="446.5" cy="120" r="10" /> <!-- 5 -->
+                        <circle cx="601.5" cy="120" r="10" /> <!-- 7 -->
+                        <circle cx="741.5" cy="120" r="10" /> <!-- 9 -->
+                        <circle cx="928" cy="70" r="10" /> <!-- 12 top -->
+                        <circle cx="928" cy="170" r="10" /> <!-- 12 bottom -->
+                        <circle cx="1084" cy="120" r="10" /> <!-- 15 -->
+                        <circle cx="1177.5" cy="120" r="10" /> <!-- 17 -->
+                    </g>
+
+                    <!-- Strings -->
+                    <g stroke="#fff" stroke-opacity="0.3">
+                        <line x1="24" y1="20" x2="1209" y2="20" stroke-width="1.0" />
+                        <line x1="24" y1="60" x2="1209" y2="60" stroke-width="1.2" />
+                        <line x1="24" y1="100" x2="1209" y2="100" stroke-width="1.4" />
+                        <line x1="24" y1="140" x2="1209" y2="140" stroke-width="1.6" />
+                        <line x1="24" y1="180" x2="1209" y2="180" stroke-width="1.8" />
+                        <line x1="24" y1="220" x2="1209" y2="220" stroke-width="2.0" />
+                    </g>
+
+                    <!-- Nut -->
+                    <line x1="23.99" y1="20" x2="23.99" y2="220" stroke="white" stroke-width="5" opacity="0.9" />
+
+                    <!-- Frets -->
+                    <g stroke="#fff" stroke-width="2" opacity="0.4">
+                        <line x1="138" y1="20" x2="138" y2="220" />
+                        <line x1="231" y1="20" x2="231" y2="220" />
+                        <line x1="320" y1="20" x2="320" y2="220" />
+                        <line x1="407" y1="20" x2="407" y2="220" />
+                        <line x1="486" y1="20" x2="486" y2="220" />
+                        <line x1="565" y1="20" x2="565" y2="220" />
+                        <line x1="638" y1="20" x2="638" y2="220" />
+                        <line x1="708" y1="20" x2="708" y2="220" />
+                        <line x1="775" y1="20" x2="775" y2="220" />
+                        <line x1="838" y1="20" x2="838" y2="220" />
+                        <line x1="899" y1="20" x2="899" y2="220" />
+                        <line x1="957" y1="20" x2="957" y2="220" />
+                        <line x1="1010" y1="20" x2="1010" y2="220" />
+                        <line x1="1060" y1="20" x2="1060" y2="220" />
+                        <line x1="1108" y1="20" x2="1108" y2="220" />
+                        <line x1="1155" y1="20" x2="1155" y2="220" />
+                        <line x1="1200" y1="20" x2="1200" y2="220" />
+                    </g>
+
+                    <g id="notesLayer"></g>
+                </svg>
+            </div>
+        </div>
+
+        <!-- PLAYER BAR -->
+        <div class="player-bar">
+            <div class="progress-indicator">
+                <div id="progressBar"></div>
+            </div>
+
+            <div class="player-controls">
+                <button id="playPauseBtn" class="play-btn">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button id="stopBtn" class="stop-btn" title="Reiniciar">
+                    <i class="fas fa-redo-alt"></i>
+                </button>
+            </div>
+
+            <div class="tool-group">
+                <button id="metronomeToggle" class="tool-btn active">
+                    <i class="fas fa-metronome"></i>
+                    <span>Metrónomo</span>
+                </button>
+                <button id="synthToggle" class="tool-btn active">
+                    <i class="fas fa-guitar"></i>
+                    <span>Sonido MIDI</span>
+                </button>
+                <button id="countdownToggle" class="tool-btn active"
+                    style="border-left: 1px solid rgba(255,255,255,0.1); margin-left: 10px; padding-left: 15px;">
+                    <i class="fas fa-clock"></i>
+                    <span>Cuenta atrás</span>
+                </button>
+            </div>
+
+            <div class="slider-group">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="slider-label">Velocidad</span>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <input type="number" id="speedBpmInput" min="1" max="360" value="120"
+                            style="width: 55px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--accent-theme); font-size: 0.9rem; font-weight: 800; text-align: center; border-radius: 6px; padding: 2px 0;">
+                        <span style="font-size: 0.7rem; color: #666; font-weight: 700;">BPM</span>
+                    </div>
+                </div>
+                <input type="range" id="speedSlider" min="1" max="360" value="120">
+            </div>
+
+            <div class="slider-group">
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="slider-label">Volumen</span>
+                    <span id="volVal" style="font-size: 0.8rem; font-weight: 700;">80%</span>
+                </div>
+                <input type="range" id="volSlider" min="0" max="100" value="80">
+            </div>
+
+        </div>
+
+        <div id="countdownOverlay">
+            <div id="countdownText">3</div>
+        </div>
+
+        <!-- SCRIPTS -->
+        <script src="LocalStorage.js"></script>
+        <script type="module" src="Practicar.js"></script>
+</body>
+
+</html>

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ejercicios | JamVault</title>
     <link rel="stylesheet" href="IndexStyles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         /* Estilos específicos para Ejercicios */
 
@@ -37,118 +38,248 @@
         }
 
         #addExerciseBtn {
-            background-color: #FF8906;
+            background-color: var(--accent-theme);
             color: #000;
-            font-weight: bold;
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
+            font-weight: 600;
+            padding: 0.7rem 1.8rem;
+            border-radius: 12px;
             border: none;
             cursor: pointer;
             white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        #addExerciseBtn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 15px var(--accent-glow);
         }
 
         .search-bar {
             flex-grow: 1;
             width: 100%;
             text-align: left;
-            padding: 18px 25px;
-            font-size: 1.1rem;
-            background: rgba(0, 0, 0, 0.3);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
+            padding: 16px 25px;
+            font-size: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
             color: #fff;
             transition: all 0.3s ease;
             font-weight: normal;
         }
 
+        /* THEME VARIABLES FOR DYNAMIC ACCENTS */
+        body.JamVault {
+            --accent-theme: #FF8906;
+            --accent-glow: rgba(255, 137, 6, 0.25);
+            --accent-dim: rgba(255, 137, 6, 0.1);
+        }
+
+        body.natural {
+            --accent-theme: #10D96A;
+            --accent-glow: rgba(16, 217, 106, 0.3);
+            --accent-dim: rgba(16, 217, 106, 0.1);
+        }
+
+        body.galactic {
+            --accent-theme: #1E90FF;
+            --accent-glow: rgba(30, 144, 255, 0.3);
+            --accent-dim: rgba(30, 144, 255, 0.1);
+        }
+
+        body.retro {
+            --accent-theme: #D81B60;
+            --accent-glow: rgba(216, 27, 96, 0.3);
+            --accent-dim: rgba(216, 27, 96, 0.1);
+        }
+
+        body.vintage {
+            --accent-theme: #F1C40F;
+            --accent-glow: rgba(241, 196, 15, 0.3);
+            --accent-dim: rgba(241, 196, 15, 0.1);
+        }
+
+        body.redblack {
+            --accent-theme: #E74C3C;
+            --accent-glow: rgba(231, 76, 60, 0.3);
+            --accent-dim: rgba(231, 76, 60, 0.1);
+        }
+
+        /* Default fallback */
+        :root {
+            --accent-theme: #FF8906;
+            --accent-glow: rgba(255, 137, 6, 0.25);
+            --accent-dim: rgba(255, 137, 6, 0.1);
+        }
+
         .search-bar:focus {
-            border-color: #FF8906;
-            box-shadow: 0 0 20px rgba(255, 137, 6, 0.2);
+            border-color: var(--accent-theme);
+            box-shadow: 0 0 20px var(--accent-glow);
             outline: none;
         }
 
         .search-bar::placeholder {
-            color: rgba(0, 0, 0, 0.7);
+            color: rgba(255, 255, 255, 0.35);
         }
 
         .exercise-card {
-            background-color: #212129;
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #1a1b23;
+            border-radius: 15px;
+            padding: 25px 30px;
+            margin-bottom: 1.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            display: flex;
+            flex-direction: column;
             width: 100%;
-            /* Ensure card spans full width */
             box-sizing: border-box;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
 
         .exercise-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-            background-color: #25252d;
+            background-color: #22232c;
+            transform: scale(1.005);
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
-        .JamVault .exercise-card,
-        .natural .exercise-card,
-        .galactic .exercise-card,
-        .retro .exercise-card,
-        .vintage .exercise-card,
-        .redblack .exercise-card {
-            border-left: none;
-            /* Removing the colored border-left to match image clean look */
+        .exercise-card.active {
+            background-color: #252630;
+            border-color: var(--accent-theme);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
         .exercise-header {
             display: flex;
             flex-direction: column;
-            /* Stack title and tags */
-            align-items: flex-start;
-            gap: 1rem;
-            margin-bottom: 0;
+            gap: 10px;
         }
 
         .exercise-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #cfcfcf;
-            /* Lighter grey text */
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: #ffffff;
+            letter-spacing: 0.3px;
         }
 
         .tags {
             display: flex;
-            gap: 0.8rem;
+            gap: 12px;
         }
 
         .tag {
-            padding: 0.3rem 0.8rem;
-            border-radius: 6px;
-            /* Slightly squarer than pill */
-            font-size: 0.85rem;
-            font-weight: bold;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: capitalize;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        /* Category Badges (Matching JS classes) */
+        .tag-category-scale,
+        .tag-category-chord {
+            background: var(--accent-theme);
             color: #000;
         }
 
-        /* Specific Tag Colors based on content text matches */
-        /* Note: This relies on manual classes or inline styles usually, but since we are generating them in JS, we might
-    need to tweak JS.
-    However, we can try to style broadly or hope standard tag classes work.
-    The image shows:
-    Orange for Category
-    Green/Pink for Level
-    */
-
-        /* Overriding theme specific tags for this page to match the mockup's consistency */
-        .tag {
-            background-color: #ccc;
+        /* Level Badges */
+        .tag-level-principiante {
+            background: rgba(39, 174, 96, 0.2);
+            color: #2ecc71;
+            border: 1px solid rgba(39, 174, 96, 0.3);
         }
 
-        /* Default */
+        .tag-level-intermedio {
+            background: rgba(241, 196, 15, 0.2);
+            color: #f1c40f;
+            border: 1px solid rgba(241, 196, 15, 0.3);
+        }
 
-        .exercise-footer {
+        .tag-level-avanzado {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+        /* Actions Expansion */
+        .exercise-actions {
             display: none;
-            /* Image doesn't show footer/bpm controls visible immediately on card? Or maybe they are there. Let's
-    hide minimal footer items if not needed or keep them subtle. */
+            width: 100%;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            gap: 15px;
+            animation: fadeInDown 0.3s ease forwards;
+        }
+
+        .exercise-card.active .exercise-actions {
+            display: flex;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .practice-btn {
+            background: var(--accent-theme);
+            color: #000;
+        }
+
+        .edit-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .delete-ex-btn {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.2);
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex: 1;
+        }
+
+        .delete-ex-btn:hover {
+            background: #e74c3c;
+            color: #fff;
+            transform: translateY(-2px);
         }
 
         /* Re-enabling modal styles */
@@ -238,6 +369,28 @@
         .galactic .form-group select option {
             background-color: #0C1B33;
             color: #fff;
+        }
+
+        /* Scale Selector Category Polish */
+        #scaleType optgroup {
+            background-color: #111;
+            color: var(--accent-theme);
+            font-weight: 800;
+            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.7rem;
+            padding: 10px 5px;
+        }
+
+        #scaleType option {
+            background-color: #1a1a1a;
+            color: #eee;
+            font-style: normal;
+            text-transform: none;
+            letter-spacing: normal;
+            font-size: 0.85rem;
+            padding: 8px;
         }
 
         .retro .form-group input,
@@ -336,14 +489,240 @@
                 </div>
                 <div class="form-group">
                     <label>BPM Inicial</label>
-                    <input type="number" id="exBpm" value="60" min="40" max="300">
+                    <input type="number" id="exBpm" value="60" min="1" max="360">
                 </div>
                 <button type="submit" class="btn" style="width: 100%">Guardar Ejercicio</button>
             </form>
         </div>
     </div>
 
-    <!-- ========== SITE FOOTER ========== -->
+    <!-- EXERCISE CREATION INITIAL MODAL (NEW WORKFLOW) -->
+    <div id="creationModal" class="modal" style="display: none; z-index: 2000; background: rgba(0,0,0,0.8);">
+        <div class="modal-content"
+            style="max-width: 500px; padding: 2.5rem; border: 1px solid var(--accent-theme); background: #1a1a1a; border-radius: 12px; box-shadow: 0 0 30px var(--accent-dim);">
+            <h2
+                style="margin-top: 0; margin-bottom: 2rem; color: var(--accent-theme); text-align: center; letter-spacing: 1px;">
+                NUEVO EJERCICIO</h2>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label
+                    style="display: block; margin-bottom: 0.5rem; color: #888; font-size: 0.8rem; text-transform: uppercase;">Nombre
+                    del Ejercicio</label>
+                <input type="text" id="createExName" placeholder="E.g. Mi Lick de Blues"
+                    style="width: 100%; padding: 12px; background: #222; border: 1px solid #333; color: white; border-radius: 6px;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label
+                        style="display: block; margin-bottom: 0.5rem; color: #888; font-size: 0.8rem; text-transform: uppercase;">Categoría</label>
+                    <select id="createExCategory"
+                        style="width: 100%; padding: 12px; background: #222; border: 1px solid #333; color: white; border-radius: 6px;">
+                        <option value="scale">Escalas</option>
+                        <option value="chord">Acordes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label
+                        style="display: block; margin-bottom: 0.5rem; color: #888; font-size: 0.8rem; text-transform: uppercase;">Dificultad</label>
+                    <select id="createExLevel"
+                        style="width: 100%; padding: 12px; background: #222; border: 1px solid #333; color: white; border-radius: 6px;">
+                        <option value="Principiante">Principiante</option>
+                        <option value="Intermedio" selected>Intermedio</option>
+                        <option value="Avanzado">Avanzado</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 2.5rem;">
+                <label
+                    style="display: block; margin-bottom: 0.5rem; color: #888; font-size: 0.8rem; text-transform: uppercase;">BPM
+                    Sugerido</label>
+                <input type="number" id="createExBpm" value="120" min="1" max="360"
+                    style="width: 100%; padding: 12px; background: #222; border: 1px solid #333; color: white; border-radius: 6px;">
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <button id="confirmCreationBtn" class="btn"
+                    style="background: var(--accent-theme); color: white; flex: 1;">CREAR</button>
+                <button id="cancelCreationBtn" class="btn"
+                    style="flex: 1; background: transparent; border: 1px solid #444; color: #888;">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXERCISE EDITOR OVERLAY -->
+    <div id="exerciseEditor" class="modal" style="display: none; z-index: 1500; background: rgba(0,0,0,0.95);">
+        <div class="editor-content"
+            style="background: #111; width: 95%; height: 90vh; border: 1px solid #333; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5);">
+
+            <!-- 1. TOOLBAR -->
+            <div class="editor-toolbar"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: #1a1a1a; border-bottom: 1px solid #222;">
+
+                <div style="display: flex; align-items: center; gap: 2rem;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button id="editorPlayBtn" class="btn"
+                            style="background: #27AE60; padding: 10px 20px; border-radius: 6px; font-weight: bold;">
+                            <i class="fas fa-play"></i> PLAY
+                        </button>
+                        <button id="editorStopBtn" class="btn"
+                            style="background: #C0392B; padding: 10px 20px; border-radius: 6px; font-weight: bold;">
+                            <i class="fas fa-stop"></i> STOP
+                        </button>
+                    </div>
+                    <div
+                        style="display: flex; align-items: center; gap: 1rem; border-left: 1px solid #333; padding-left: 2rem;">
+                        <div style="display: flex; align-items: center; gap: 10px; color: #888; font-size: 0.9rem;">
+                            <label>BPM</label>
+                            <input type="number" id="editorBpm" value="120" min="1" max="360"
+                                style="padding: 8px; width: 70px; border-radius: 4px; border: 1px solid #333; background: #000; color: #fff;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; color: #888; font-size: 0.9rem;">
+                            <input type="checkbox" id="editorMetronome" checked>
+                            <label>METRONOME</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="flex-grow: 1; text-align: center;">
+                    <input type="text" id="editorExName"
+                        style="margin: 0; background: transparent; border: 1px solid transparent; color: var(--accent-theme); font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase; text-align: center; width: 60%; font-weight: bold; cursor: pointer; border-radius: 4px; padding: 5px;"
+                        value="EDITING: NEW EXERCISE" title="Haz clic para editar el nombre">
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button id="editorSaveBtn" class="btn"
+                        style="background: #2980B9; padding: 10px 20px; border-radius: 6px; font-weight: bold;">
+                        <i class="fas fa-save"></i> GUARDAR
+                    </button>
+                    <button id="closeEditorBtn" class="btn"
+                        style="background: transparent; border: none; font-size: 2rem; color: #444; cursor: pointer;">&times;</button>
+                </div>
+            </div>
+
+            <!-- 2. MAIN WORKSPACE -->
+            <div class="editor-workspace" style="display: flex; flex: 1; overflow: hidden;">
+
+                <!-- A. CANVAS AREA -->
+                <div class="canvas-panel"
+                    style="flex: 3; background: #000; position: relative; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid #222;">
+
+                    <!-- Scale Mode Selectors (Floating) -->
+                    <div id="scaleSelectors"
+                        style="padding: 15px; background: rgba(26,26,26,0.9); display: none; gap: 10px; border-bottom: 1px solid #333;">
+                        <select id="scaleRoot"
+                            style="padding: 8px 12px; background: #111; color: white; border: 1px solid #444; border-radius: 4px;">
+                            <option value="C">C</option>
+                            <option value="C#">C#</option>
+                            <option value="D">D</option>
+                            <option value="D#">D#</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                            <option value="F#">F#</option>
+                            <option value="G">G</option>
+                            <option value="G#">G#</option>
+                            <option value="A">A</option>
+                            <option value="A#">A#</option>
+                            <option value="B">B</option>
+                        </select>
+                        <select id="scaleType"
+                            style="padding: 8px 12px; background: #111; color: white; border: 1px solid #444; border-radius: 4px;">
+                            <optgroup label="Básicas">
+                                <option value="major">Escala Mayor</option>
+                                <option value="natural_minor">Menor Natural</option>
+                                <option value="pentatonic_minor">Pentatónica Menor</option>
+                                <option value="blues">Blues Scale</option>
+                            </optgroup>
+                            <optgroup label="Modos Griegos">
+                                <option value="dorian">Dórico</option>
+                                <option value="phrygian">Frigio</option>
+                                <option value="lydian">Lidio</option>
+                                <option value="mixolydian">Mixolidio</option>
+                                <option value="locrian">Locrio</option>
+                            </optgroup>
+                            <optgroup label="Otras">
+                                <option value="harmonic_minor">Menor Armónica</option>
+                                <option value="melodic_minor">Menor Melódica</option>
+                            </optgroup>
+                        </select>
+                        <button id="loadScaleBtn" class="btn"
+                            style="padding: 8px 20px; font-size: 0.8rem; background: #444;">CARGAR NOTAS</button>
+                    </div>
+
+                    <div id="scaleCanvasContainer" style="flex: 1; width: 100%; display: none;"></div>
+                    <div id="chordCanvasContainer"
+                        style="flex: 1; width: 100%; display: none; align-items: center; justify-content: center; background: #050505;">
+                    </div>
+                </div>
+
+                <!-- B. STEP EDITOR PANEL -->
+                <div class="sequence-panel"
+                    style="flex: 1; min-width: 380px; background: #161616; display: flex; flex-direction: column;">
+
+                    <div style="padding: 15px 20px; border-bottom: 1px solid #222; background: #1a1a1a;">
+                        <h4
+                            style="margin: 0; color: #888; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
+                            Pasos del Ejercicio</h4>
+                    </div>
+
+                    <!-- STEP LIST -->
+                    <div id="sequenceList" style="flex: 1; overflow-y: auto; padding: 10px;">
+                        <!-- Injected by JS -->
+                    </div>
+
+                    <!-- CHORD CONTROLS -->
+                    <div id="chordSelectorControls"
+                        style="display: none; padding: 20px; background: #121212; border-top: 1px solid #222;">
+                        <h5 style="margin: 0 0 15px 0; color: #555; font-size: 0.7rem; text-transform: uppercase;">
+                            Añadir Acorde</h5>
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                            <div style="display: flex; gap: 10px;">
+                                <select id="editorChordRoot"
+                                    style="flex: 1; padding: 10px; background: #222; border: 1px solid #333; color: white; border-radius: 4px;">
+                                    <option value="C">C</option>
+                                    <option value="C#">C#</option>
+                                    <option value="D">D</option>
+                                    <option value="D#">D#</option>
+                                    <option value="E">E</option>
+                                    <option value="F">F</option>
+                                    <option value="F#">F#</option>
+                                    <option value="G">G</option>
+                                    <option value="G#">G#</option>
+                                    <option value="A">A</option>
+                                    <option value="A#">A#</option>
+                                    <option value="B">B</option>
+                                </select>
+                                <select id="editorChordType"
+                                    style="flex: 1; padding: 10px; background: #222; border: 1px solid #333; color: white; border-radius: 4px;">
+                                    <option value="Mayor">Mayor</option>
+                                    <option value="Menor">Menor</option>
+                                    <option value="7">7</option>
+                                    <option value="maj7">maj7</option>
+                                    <option value="m7">m7</option>
+                                    <option value="sus2">sus2</option>
+                                    <option value="sus4">sus4</option>
+                                    <option value="dim">dim</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <label style="color: #666; font-size: 0.7rem; text-transform: uppercase;">VERSIÓN /
+                                    POSICIÓN:</label>
+                                <select id="editorChordPosition"
+                                    style="flex: 1; padding: 10px; background: #222; border: 1px solid #333; color: white; border-radius: 4px;">
+                                    <option value="0">Versión 1</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="addChordToTimelineBtn" class="btn"
+                            style="width: 100%; padding: 12px; background: var(--accent-theme); color: white;">+ AÑADIR
+                            AL PASO</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
     <footer class="site-footer">
         <div class="footer-socials">
             <a href="#" class="social-circle">f</a>
@@ -363,7 +742,7 @@
     </footer>
 
     <script src="LocalStorage.js"></script>
-    <script src="Ejercicios.js"></script>
+    <script type="module" src="Ejercicios.js"></script>
 </body>
 
 </html>

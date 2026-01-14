@@ -1,198 +1,587 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const exercisesList = document.getElementById('exercisesList');
-    const modal = document.getElementById('exerciseModal');
-    const addBtn = document.getElementById('addExerciseBtn');
-    const closeBtn = document.querySelector('.close-modal');
-    const form = document.getElementById('exerciseForm');
-    const searchInput = document.getElementById('searchInput');
+/**
+ * Ejercicios.js
+ * Comprehensive Controller for the Customizable Exercise System.
+ * Refactored for Drag & Drop and Instant Note Addition.
+ */
 
-    // Datos iniciales de ejemplo si no hay nada guardado
-    const defaultExercises = [
-        {
-            id: 1,
-            name: "Escala Mayor Descendiente",
-            category: "Escalas",
-            level: "Principiante",
-            bpm: 80
-        },
-        {
-            id: 2,
-            name: "Progresión De Acordes Funky",
-            category: "Acordes",
-            level: "Avanzado",
-            bpm: 110
-        },
-        {
-            id: 3,
-            name: "Sweep Picking Para Principiantes",
-            category: "Escalas",
-            level: "Intermedio",
-            bpm: 90
-        }
-    ];
+import { ExerciseState } from './ExerciseState.js';
+import { ExerciseRenderer } from './ExerciseRenderer.js';
+import { ExercisePlayer } from './ExercisePlayer.js';
+import { acordesDB } from './ChordData.js';
 
-    // Cargar ejercicios
-    let exercises = JSON.parse(localStorage.getItem('jamvault_exercises')) || defaultExercises;
+// --- MUSIC THEORY (Decoupled) ---
+const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const SCALES = {
+    major: [0, 2, 4, 5, 7, 9, 11],
+    natural_minor: [0, 2, 3, 5, 7, 8, 10],
+    pentatonic_minor: [0, 3, 5, 7, 10],
+    blues: [0, 3, 5, 6, 7, 10],
+    // GREEK MODES
+    dorian: [0, 2, 3, 5, 7, 9, 10],
+    phrygian: [0, 1, 3, 5, 7, 8, 10],
+    lydian: [0, 2, 4, 6, 7, 9, 11],
+    mixolydian: [0, 2, 4, 5, 7, 9, 10],
+    locrian: [0, 1, 3, 5, 6, 8, 10],
+    // OTHER SCALES
+    harmonic_minor: [0, 2, 3, 5, 7, 8, 11],
+    melodic_minor: [0, 2, 3, 5, 7, 9, 11]
+};
 
-    function renderExercises(filterText = '') {
-        exercisesList.innerHTML = '';
+document.addEventListener('DOMContentLoaded', async () => {
+    const state = new ExerciseState();
+    const renderer = new ExerciseRenderer('scaleCanvasContainer', 'chordCanvasContainer');
+    const player = new ExercisePlayer();
 
-        const filtered = exercises.filter(ex =>
-            ex.name.toLowerCase().includes(filterText.toLowerCase()) ||
-            ex.category.toLowerCase().includes(filterText.toLowerCase())
-        );
+    await player.init();
 
-        filtered.forEach(ex => {
-            const card = document.createElement('div');
-            card.className = 'exercise-card';
-            card.style.position = 'relative';
+    // --- DOM ELEMENTS: CREATION WORKFLOW ---
+    const addExerciseBtn = document.getElementById('addExerciseBtn');
+    const creationModal = document.getElementById('creationModal');
+    const confirmCreationBtn = document.getElementById('confirmCreationBtn');
+    const cancelCreationBtn = document.getElementById('cancelCreationBtn');
 
-            const levelColor = ex.level === 'Principiante' ? '#8FB996' :
-                (ex.level === 'Intermedio' ? '#FFD460' : '#C74B50');
+    // --- DOM ELEMENTS: EDITOR ---
+    const editorModal = document.getElementById('exerciseEditor');
+    const closeEditorBtn = document.getElementById('closeEditorBtn');
+    const playBtn = document.getElementById('editorPlayBtn');
+    const stopBtn = document.getElementById('editorStopBtn');
+    const saveBtn = document.getElementById('editorSaveBtn');
+    const bpmInput = document.getElementById('editorBpm');
+    const metronomeCheck = document.getElementById('editorMetronome');
+    const sequenceList = document.getElementById('sequenceList');
+    const scaleSelectors = document.getElementById('scaleSelectors');
+    const scaleRootSel = document.getElementById('scaleRoot');
+    const scaleTypeSel = document.getElementById('scaleType');
+    const loadScaleBtn = document.getElementById('loadScaleBtn');
+    const chordSelectors = document.getElementById('chordSelectorControls');
+    const chordRootSel = document.getElementById('editorChordRoot');
+    const chordTypeSel = document.getElementById('editorChordType');
+    const chordPosSel = document.getElementById('editorChordPosition');
+    const addChordBtn = document.getElementById('addChordToTimelineBtn');
+    const scaleCanvasContainer = document.getElementById('scaleCanvasContainer');
+    const chordCanvasContainer = document.getElementById('chordCanvasContainer');
 
-            card.innerHTML = `
-                <div class="exercise-header">
-                    <span class="exercise-title">${ex.name}</span>
-                    <button class="btn" onclick="deleteExercise(${ex.id})" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; background: transparent; border: none; color: #666; position: absolute; top: 1rem; right: 1rem; cursor: pointer;">✕</button>
-                </div>
-                <div class="tags">
-                    <span class="tag" style="background-color: #FF8906;">${ex.category}</span>
-                    <span class="tag" style="background-color: ${levelColor};">${ex.level}</span>
-                </div>
-            `;
-            exercisesList.appendChild(card);
-        });
-    }
+    // --- STATE ---
+    let currentScaleContextNotes = [];
+    let draggedItemIndex = null;
 
+    renderMainList();
 
-    // Event Listeners
-    addBtn.onclick = () => modal.style.display = 'flex';
-    closeBtn.onclick = () => modal.style.display = 'none';
-    window.onclick = (e) => {
-        if (e.target == modal) modal.style.display = 'none';
-    }
-
-    searchInput.addEventListener('input', (e) => {
-        renderExercises(e.target.value);
-    });
-
-    form.onsubmit = (e) => {
-        e.preventDefault();
-
-        const newExercise = {
-            id: Date.now(),
-            name: document.getElementById('exName').value,
-            category: document.getElementById('exCategory').value,
-            level: document.getElementById('exLevel').value,
-            bpm: parseInt(document.getElementById('exBpm').value)
-        };
-
-        exercises.push(newExercise);
-        saveExercises();
-        renderExercises();
-        modal.style.display = 'none';
-        form.reset();
-    };
-
-    // Funciones globales
-    window.deleteExercise = (id) => {
-        if (confirm('¿Estás seguro de querer borrar este ejercicio?')) {
-            exercises = exercises.filter(ex => ex.id !== id);
-            saveExercises();
-            renderExercises();
-        }
-    };
-
-    window.updateBpm = (id, newBpm) => {
-        const ex = exercises.find(e => e.id === id);
-        if (ex) {
-            ex.bpm = parseInt(newBpm);
-            saveExercises();
-        }
-    };
-
-    // Metrónomo Web Audio API
-    let audioContext = null;
-    let isPlaying = false;
-    let currentNote = 0;
-    let nextNoteTime = 0.0;
-    let timerID = null;
-    let lookahead = 25.0;
-    let scheduleAheadTime = 0.1;
-    let currentBpm = 60;
-
-    function nextNote() {
-        const secondsPerBeat = 60.0 / currentBpm;
-        nextNoteTime += secondsPerBeat;
-        currentNote++;
-        if (currentNote === 4) {
-            currentNote = 0;
-        }
-    }
-
-    function scheduleNote(beatNumber, time) {
-        const osc = audioContext.createOscillator();
-        const envelope = audioContext.createGain();
-
-        osc.frequency.value = (beatNumber % 4 === 0) ? 1000 : 800;
-        envelope.gain.value = 1;
-        envelope.gain.exponentialRampToValueAtTime(1, time + 0.001);
-        envelope.gain.exponentialRampToValueAtTime(0.001, time + 0.02);
-
-        osc.connect(envelope);
-        envelope.connect(audioContext.destination);
-
-        osc.start(time);
-        osc.stop(time + 0.03);
-    }
-
-    function scheduler() {
-        while (nextNoteTime < audioContext.currentTime + scheduleAheadTime) {
-            scheduleNote(currentNote, nextNoteTime);
-            nextNote();
-        }
-        timerID = window.setTimeout(scheduler, lookahead);
-    }
-
-    window.playMetronome = (bpm) => {
-        if (isPlaying) {
-            window.clearTimeout(timerID);
-            isPlaying = false;
-            // Restaurar texto del botón
-            const activeBtn = document.querySelector('.btn-practicing');
-            if (activeBtn) {
-                activeBtn.textContent = '▶ Practicar';
-                activeBtn.classList.remove('btn-practicing');
-                activeBtn.style.background = '';
+    // --- PLAYER CALLBACKS (Visual Sync) ---
+    player.setCallbacks(
+        (index) => {
+            const step = state.currentExercise.steps[index];
+            if (step) {
+                if (step.kind === 'note') {
+                    renderer.highlightStep(step, index);
+                } else {
+                    // Re-render progression with specific highlight
+                    renderer.renderChordProgression(state.currentExercise.steps, index);
+                }
             }
+            // Highlight in list
+            document.querySelectorAll('.step-item').forEach(el => el.classList.remove('active-playing'));
+            const activeEl = document.querySelector(`.step-item[data-index="${index}"]`);
+            if (activeEl) {
+                activeEl.classList.add('active-playing');
+                activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        },
+        () => {
+            document.querySelectorAll('.step-item').forEach(el => el.classList.remove('active-playing'));
+            // Reset progression highlights
+            if (state.currentExercise.type === 'progression') {
+                renderer.renderChordProgression(state.currentExercise.steps);
+            }
+        }
+    );
+
+    // --- 1. CREATION WORKFLOW EVENTS ---
+
+    addExerciseBtn.onclick = () => {
+        creationModal.style.display = 'flex';
+    };
+
+    cancelCreationBtn.onclick = () => {
+        creationModal.style.display = 'none';
+        resetCreationForm();
+    };
+
+    confirmCreationBtn.onclick = () => {
+        const name = document.getElementById('createExName').value;
+        const cat = document.getElementById('createExCategory').value;
+        const level = document.getElementById('createExLevel').value;
+        const bpm = parseInt(document.getElementById('createExBpm').value);
+
+        if (!name) return alert("Por favor, introduce un nombre.");
+
+        state.createNew(name, cat, level, bpm);
+        creationModal.style.display = 'none';
+        openEditor();
+    };
+
+    // --- 2. EDITOR NAVIGATION ---
+
+    function openEditor(isEdit = false) {
+        editorModal.style.display = 'flex';
+        const ex = state.currentExercise;
+        const editorExName = document.getElementById('editorExName');
+        editorExName.value = ex.name;
+
+        // Handle Rename in Editor
+        editorExName.oninput = () => {
+            state.updateName(editorExName.value);
+        };
+        // Visual feedback on focus
+        editorExName.onfocus = () => editorExName.style.borderColor = 'var(--accent-theme)';
+        editorExName.onblur = () => editorExName.style.borderColor = 'transparent';
+
+        bpmInput.value = ex.bpm;
+        metronomeCheck.checked = ex.metronomeEnabled;
+
+        // Visual mode setup
+        if (ex.type === 'scale') {
+            scaleSelectors.style.display = 'flex';
+            scaleCanvasContainer.style.display = 'block';
+            chordSelectors.style.display = 'none';
+            chordCanvasContainer.style.display = 'none';
+
+            if (ex.scaleRoot && ex.scaleType) {
+                scaleRootSel.value = ex.scaleRoot;
+                scaleTypeSel.value = ex.scaleType;
+                loadScaleNotes();
+            } else {
+                // Clear state for new exercise
+                scaleRootSel.value = "";
+                scaleTypeSel.value = "";
+                currentScaleContextNotes = [];
+                renderer.renderScaleNotes([], [], onNoteSelect, onNoteRightClick);
+            }
+        } else {
+            scaleSelectors.style.display = 'none';
+            scaleCanvasContainer.style.display = 'none';
+            chordSelectors.style.display = 'block';
+            chordCanvasContainer.style.display = 'flex';
+
+            // For chords, we also want to start clean
+            chordRootSel.value = "C";
+            chordTypeSel.value = "Mayor";
+            updateChordPositionSelector();
+        }
+        refreshAllUI();
+    }
+
+    closeEditorBtn.onclick = () => {
+        player.stop();
+        editorModal.style.display = 'none';
+        renderMainList();
+    };
+
+    // --- 3. EDITOR ACTIONS ---
+
+    playBtn.onclick = () => {
+        if (!state.currentExercise || state.currentExercise.steps.length === 0) return alert("Añade algunos pasos primero.");
+        player.setExercise(state.currentExercise);
+        player.play();
+    };
+
+    stopBtn.onclick = () => player.stop();
+
+    bpmInput.oninput = (e) => {
+        const val = parseInt(e.target.value);
+        if (isNaN(val)) return;
+        state.setBpm(val);
+        player.bpm = val;
+    };
+
+    metronomeCheck.onchange = (e) => {
+        state.setMetronome(e.target.checked);
+        player.isMetronomeOn = e.target.checked;
+    };
+
+    saveBtn.onclick = () => {
+        state.save();
+        alert("¡Ejercicio guardado correctamente!");
+    };
+
+    // SCALE LOGIC
+    loadScaleBtn.onclick = loadScaleNotes;
+
+    const onNoteSelect = (note) => {
+        state.addNoteStep(note);
+        refreshAllUI();
+    };
+
+    const onNoteRightClick = (note, e) => {
+        const indices = state.currentExercise.steps
+            .map((s, i) => (s.kind === 'note' && s.data.string === note.string && s.data.fret === note.fret ? i : null))
+            .filter(i => i !== null);
+
+        if (indices.length === 0) return;
+        showDeletionMenu(indices, e.clientX, e.clientY);
+    };
+
+    function loadScaleNotes() {
+        const root = scaleRootSel.value;
+        const type = scaleTypeSel.value;
+        if (!root || !type) return;
+
+        state.setScaleContext(root, type);
+        currentScaleContextNotes = generateScaleTheory(root, type);
+
+        renderer.renderScaleNotes(currentScaleContextNotes, state.currentExercise.steps, onNoteSelect, onNoteRightClick);
+    }
+
+    function showDeletionMenu(indices, x, y) {
+        // Remove existing menu if any
+        const existing = document.getElementById('noteContextMenu');
+        if (existing) existing.remove();
+
+        const menu = document.createElement('div');
+        menu.id = 'noteContextMenu';
+        menu.style.position = 'fixed';
+        menu.style.left = `${x}px`;
+        menu.style.top = `${y}px`;
+        menu.style.background = '#1a1a1a';
+        menu.style.border = '1px solid var(--accent-theme)';
+        menu.style.borderRadius = '8px';
+        menu.style.padding = '10px';
+        menu.style.zIndex = '3000';
+        menu.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+        menu.style.minWidth = '120px';
+
+        const title = document.createElement('div');
+        title.innerText = 'Eliminar paso:';
+        title.style.color = '#888';
+        title.style.fontSize = '0.7rem';
+        title.style.marginBottom = '8px';
+        title.style.textTransform = 'uppercase';
+        menu.appendChild(title);
+
+        indices.forEach(idx => {
+            const item = document.createElement('button');
+            item.className = 'btn';
+            item.style.display = 'block';
+            item.style.width = '100%';
+            item.style.textAlign = 'left';
+            item.style.background = 'transparent';
+            item.style.color = '#fff';
+            item.style.fontSize = '0.8rem';
+            item.style.padding = '5px 10px';
+            item.style.marginBottom = '2px';
+
+            item.innerText = `Paso ${idx + 1}`;
+            item.onmouseover = () => item.style.background = 'rgba(255,137,6,0.1)';
+            item.onmouseout = () => item.style.background = 'transparent';
+
+            item.onclick = () => {
+                state.removeStep(idx);
+                refreshAllUI();
+                menu.remove();
+            };
+            menu.appendChild(item);
+        });
+
+        document.body.appendChild(menu);
+
+        // Close menu on click outside
+        const closeMenu = (e) => {
+            if (!menu.contains(e.target)) {
+                menu.remove();
+                document.removeEventListener('mousedown', closeMenu);
+            }
+        };
+        setTimeout(() => document.addEventListener('mousedown', closeMenu), 10);
+    }
+
+    // CHORD LOGIC
+    chordRootSel.onchange = updateChordPositionSelector;
+    chordTypeSel.onchange = updateChordPositionSelector;
+    chordPosSel.onchange = previewSelectedChord;
+
+    function updateChordPositionSelector() {
+        const root = chordRootSel.value;
+        const type = chordTypeSel.value;
+        const positions = acordesDB[root]?.[type] || [];
+
+        chordPosSel.innerHTML = positions.map((_, i) =>
+            `<option value="${i}">Variación ${i + 1}</option>`
+        ).join('');
+
+        previewSelectedChord();
+    }
+
+    function previewSelectedChord() {
+        const root = chordRootSel.value;
+        const type = chordTypeSel.value;
+        const position = parseInt(chordPosSel.value) || 0;
+        renderer.renderChordDiagram({ root, type, position });
+    }
+
+    addChordBtn.onclick = () => {
+        const root = chordRootSel.value;
+        const type = chordTypeSel.value;
+        const position = parseInt(chordPosSel.value) || 0;
+        if (!root || !type) return;
+
+        state.addChordStep({ root, type, position }, 4);
+        refreshAllUI();
+    };
+
+    function refreshAllUI() {
+        updateSequenceUI();
+        if (state.currentExercise.type === 'scale') {
+            loadScaleNotes();
+        } else {
+            renderer.renderChordProgression(state.currentExercise.steps);
+        }
+    }
+
+    // --- 4. STEP UI LOGIC (WITH DRAG & DROP) ---
+
+    function updateSequenceUI() {
+        sequenceList.innerHTML = '';
+        if (state.currentExercise.steps.length === 0) {
+            sequenceList.innerHTML = '<div style="color: #444; text-align: center; margin-top: 2rem; font-style: italic;">Sin pasos aún.</div>';
             return;
         }
 
-        if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
+        state.currentExercise.steps.forEach((step, index) => {
+            const div = document.createElement('div');
+            div.className = 'step-item';
+            div.dataset.index = index;
+            div.draggable = true; // IMPORTANT for DnD
 
-        isPlaying = true;
-        currentBpm = bpm;
-        currentNote = 0;
-        nextNoteTime = audioContext.currentTime + 0.05;
+            div.style.background = '#222';
+            div.style.border = '1px solid #333';
+            div.style.borderRadius = '8px';
+            div.style.padding = '12px 15px';
+            div.style.marginBottom = '10px';
+            div.style.display = 'flex';
+            div.style.justifyContent = 'space-between';
+            div.style.alignItems = 'center';
+            div.style.transition = 'all 0.2s ease';
+            div.style.cursor = 'grab';
 
-        // Actualizar UI del botón presionado
-        const btns = document.querySelectorAll('.exercise-footer .btn');
-        // Encontramos el botón que llamó a la función (esto es un hack rápido, idealmente pasaríamos el evento o ID)
-        // Pero como playMetronome se llama con onclick inline, buscaremos el que tenga el BPM correspondiente o simplemente cambiamos el estado global
-        // Para simplificar, vamos a asumir que el usuario quiere parar si ya está sonando, o iniciar si no.
+            const title = step.kind === 'note' ? `${step.data.note}` : `${step.data.root} ${step.data.type}`;
+            const sub = step.kind === 'note' ? `str:${step.data.string} fr:${step.data.fret}` : `Acorde`;
 
-        // Vamos a buscar el botón que corresponde a este BPM en el DOM para cambiarle el estilo
-        // Nota: Esto es una mejora visual simple.
+            div.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+                    <i class="fas fa-ellipsis-v" style="color: #444; font-size: 0.8rem;"></i>
+                    <div>
+                        <span style="color: #FF8906; font-weight: bold; font-size: 0.9rem;">${index + 1}. ${title}</span>
+                        <div style="color: #555; font-size: 0.7rem;">${sub}</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="color: #444; font-size: 0.6rem; text-align: center;">DUR</span>
+                        <input type="number" step="0.5" value="${step.duration}" class="step-duration" data-index="${index}"
+                               style="width: 45px; background: #000; border: 1px solid #333; color: #fff; padding: 2px 4px; border-radius: 4px; font-size: 0.8rem;">
+                    </div>
+                        <button class="del-btn" data-index="${index}" 
+                                style="background: rgba(192, 57, 43, 0.1); border: 1px solid rgba(192, 57, 43, 0.2); color: #E74C3C; 
+                                       width: 36px; height: 36px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;
+                                       display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: bold;"
+                                onmouseover="this.style.background='rgba(192, 57, 43, 0.2)'; this.style.borderColor='#C0392B';"
+                                onmouseout="this.style.background='rgba(192, 57, 43, 0.1)'; this.style.borderColor='rgba(192, 57, 43, 0.2)';"
+                                title="Borrar paso"
+                        >
+                            <i class="fas fa-times"></i>
+                        </button>
+                </div>
+            `;
 
-        scheduler();
-    };
+            // --- DRAG & DROP HANDLERS ---
+            div.ondragstart = (e) => {
+                draggedItemIndex = index;
+                div.style.opacity = '0.3';
+                div.style.background = '#111';
+                div.style.border = '1px dashed #FF8906';
+                e.dataTransfer.effectAllowed = 'move';
+            };
 
-    function saveExercises() {
-        localStorage.setItem('jamvault_exercises', JSON.stringify(exercises));
+            div.ondragover = (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                div.style.borderTop = '4px solid #FF8906';
+                div.style.transform = 'translateY(2px)';
+                div.style.background = 'rgba(255,137,6,0.05)';
+            };
+
+            div.ondragleave = () => {
+                div.style.borderTop = '1px solid #333';
+                div.style.transform = 'none';
+                div.style.background = '#222';
+            };
+
+            div.ondrop = (e) => {
+                e.preventDefault();
+                div.style.borderTop = '1px solid #333';
+                div.style.transform = 'none';
+                div.style.background = '#222';
+                if (draggedItemIndex !== null && draggedItemIndex !== index) {
+                    state.moveStep(draggedItemIndex, index);
+                    refreshAllUI();
+                }
+            };
+
+            div.ondragend = () => {
+                div.style.opacity = '1';
+                div.style.background = '#222';
+                div.style.border = '1px solid #333';
+                div.style.transform = 'none';
+                draggedItemIndex = null;
+            };
+
+            // Event Binding for controls
+            div.querySelector('.step-duration').onchange = (e) => {
+                state.updateStepDuration(index, e.target.value);
+            };
+
+            div.querySelector('.del-btn').onclick = () => {
+                state.removeStep(index);
+                refreshAllUI();
+            };
+
+            sequenceList.appendChild(div);
+        });
     }
 
-    // Render inicial
-    renderExercises();
+    function refreshAllUI() {
+        updateSequenceUI();
+        if (state.currentExercise.type === 'scale') {
+            loadScaleNotes();
+        } else {
+            renderer.renderChordProgression(state.currentExercise.steps);
+        }
+    }
+
+    // --- 5. HELPERS ---
+
+    function resetCreationForm() {
+        document.getElementById('createExName').value = '';
+        document.getElementById('createExBpm').value = '120';
+    }
+
+    function generateScaleTheory(root, type) {
+        const rootIdx = NOTES.indexOf(root);
+        const pattern = SCALES[type];
+        if (!pattern) return [];
+        const allowed = pattern.map(i => (rootIdx + i) % 12);
+        const res = [];
+
+        // Scientific pitch base for open strings: 
+        // 6:E2(40), 5:A2(45), 4:D3(50), 3:G3(55), 2:B3(59), 1:E4(64)
+        const stringBases = {
+            6: { idx: 4, oct: 2 },
+            5: { idx: 9, oct: 2 },
+            4: { idx: 2, oct: 3 },
+            3: { idx: 7, oct: 3 },
+            2: { idx: 11, oct: 3 },
+            1: { idx: 4, oct: 4 }
+        };
+
+        for (let s = 1; s <= 6; s++) {
+            const base = stringBases[s];
+            for (let f = 0; f <= 17; f++) {
+                const totalSemi = (base.oct + 1) * 12 + base.idx + f;
+                const noteOctave = Math.floor(totalSemi / 12) - 1;
+                const nIdx = totalSemi % 12;
+
+                if (allowed.includes(nIdx)) {
+                    res.push({ note: NOTES[nIdx], string: s, fret: f, octave: noteOctave });
+                }
+            }
+        }
+        return res;
+    }
+
+    function renderMainList() {
+        const listContainer = document.getElementById('exercisesList');
+        if (!listContainer) return;
+        const exercises = state.getAll();
+        listContainer.innerHTML = '';
+
+        if (exercises.length === 0) {
+            listContainer.innerHTML = '<p style="color:#666; text-align:center;">No hay ejercicios personalizados.</p>';
+            return;
+        }
+
+        exercises.forEach(ex => {
+            const card = document.createElement('div');
+            card.className = 'exercise-card';
+
+            // Generate clean class names for badges (Matches CSS now)
+            const typeClass = `tag-category-${ex.type.toLowerCase()}`;
+            const levelClass = `tag-level-${ex.level.toLowerCase().replace(/á/g, 'a').replace(/é/g, 'e').replace(/í/g, 'i').replace(/ó/g, 'o').replace(/ú/g, 'u')}`;
+
+            card.innerHTML = `
+                <div class="exercise-main-info" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div class="exercise-header">
+                        <span class="exercise-title">${ex.name}</span>
+                        <div class="tags">
+                            <span class="tag ${typeClass}">${ex.type === 'scale' ? 'Escalas' : 'Acordes'}</span>
+                            <span class="tag ${levelClass}">${ex.level}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="exercise-actions">
+                    <button class="action-btn practice-btn"><i class="fas fa-play-circle" style="margin-right: 8px;"></i>PRACTICAR</button>
+                    <button class="action-btn edit-btn"><i class="fas fa-edit" style="margin-right: 8px;"></i>EDITAR</button>
+                    <button class="action-btn rename-btn" style="background: rgba(255,255,255,0.05); color: #888; border: 1px solid rgba(255,255,255,0.1);"><i class="fas fa-font" style="margin-right: 8px;"></i>RENOMBRAR</button>
+                    <button class="delete-ex-btn" title="Eliminar"><i class="fas fa-trash-alt" style="margin-right: 8px;"></i>ELIMINAR</button>
+                </div>
+            `;
+
+            // Card click toggles expansion
+            card.onclick = (e) => {
+                // Ignore if clicking delete or action buttons
+                if (e.target.closest('.delete-ex-btn') || e.target.closest('.action-btn')) return;
+
+                const wasActive = card.classList.contains('active');
+                // Close others
+                document.querySelectorAll('.exercise-card').forEach(c => c.classList.remove('active'));
+                // Toggle this one
+                if (!wasActive) card.classList.add('active');
+            };
+
+            // Edit Button
+            card.querySelector('.edit-btn').onclick = (e) => {
+                e.stopPropagation();
+                state.load(ex.id);
+                openEditor(true);
+            };
+
+            // Rename Button
+            card.querySelector('.rename-btn').onclick = (e) => {
+                e.stopPropagation();
+                const newName = prompt(`Nuevo nombre para "${ex.name}":`, ex.name);
+                if (newName && newName.trim() !== "") {
+                    state.load(ex.id);
+                    state.updateName(newName.trim());
+                    state.save();
+                    renderMainList();
+                }
+            };
+
+            // Practice Button
+            card.querySelector('.practice-btn').onclick = (e) => {
+                e.stopPropagation();
+                window.location.href = `Practicar.html?id=${ex.id}`;
+            };
+
+            // Delete click handles removal
+            card.querySelector('.delete-ex-btn').onclick = (e) => {
+                e.stopPropagation();
+                if (confirm(`¿Borrar "${ex.name}"?`)) {
+                    state.delete(ex.id);
+                    renderMainList();
+                }
+            };
+
+            listContainer.appendChild(card);
+        });
+    }
 });
