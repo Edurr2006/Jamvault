@@ -1,0 +1,166 @@
+/* ========== FOOTER STYLES ========== */
+.site-footer {
+    margin-top: 4rem;
+    padding: 2rem 1rem;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-socials {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.social-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.social-circle:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+/* Footer social hovers temáticos */
+.JamVault .social-circle:hover {
+    background: #FF9F1C;
+    color: #000;
+    border-color: #FF9F1C;
+    box-shadow: 0 4px 12px rgba(255, 159, 28, 0.4);
+}
+
+.natural .social-circle:hover {
+    background: #10D96A;
+    color: #000;
+    border-color: #10D96A;
+    box-shadow: 0 4px 12px rgba(16, 217, 106, 0.4);
+}
+
+.galactic .social-circle:hover {
+    background: #1E90FF;
+    color: #000;
+    border-color: #1E90FF;
+    box-shadow: 0 4px 12px rgba(30, 144, 255, 0.4);
+}
+
+.retro .social-circle:hover {
+    background: #D81B60;
+    color: #fff;
+    border-color: #D81B60;
+    box-shadow: 0 4px 12px rgba(216, 27, 96, 0.4);
+}
+
+.vintage .social-circle:hover {
+    background: #F1C40F;
+    color: #000;
+    border-color: #F1C40F;
+    box-shadow: 0 4px 12px rgba(241, 196, 15, 0.4);
+}
+
+.redblack .social-circle:hover {
+    background: #E81F2B;
+    color: #fff;
+    border-color: #E81F2B;
+    box-shadow: 0 4px 12px rgba(232, 31, 43, 0.4);
+}
+
+.footer-nav {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.footer-nav a {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.footer-nav a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    transition: width 0.3s ease;
+}
+
+.footer-nav a:hover {
+    transform: translateY(-2px);
+}
+
+/* Footer nav hovers temáticos */
+.JamVault .footer-nav a:hover {
+    color: #FF9F1C;
+}
+
+.JamVault .footer-nav a::after {
+    background: #FF9F1C;
+}
+
+.natural .footer-nav a:hover {
+    color: #10D96A;
+}
+
+.natural .footer-nav a::after {
+    background: #10D96A;
+}
+
+.galactic .footer-nav a:hover {
+    color: #1E90FF;
+}
+
+.galactic .footer-nav a::after {
+    background: #1E90FF;
+}
+
+.retro .footer-nav a:hover {
+    color: #D81B60;
+}
+
+.retro .footer-nav a::after {
+    background: #D81B60;
+}
+
+.vintage .footer-nav a:hover {
+    color: #F1C40F;
+}
+
+.vintage .footer-nav a::after {
+    background: #F1C40F;
+}
+
+.redblack .footer-nav a:hover {
+    color: #E81F2B;
+}
+
+.redblack .footer-nav a::after {
+    background: #E81F2B;
+}
+
+.footer-nav a:hover::after {
+    width: 100%;
+}
+
+.footer-copyright {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 1rem;
+}
