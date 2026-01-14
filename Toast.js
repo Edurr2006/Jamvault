@@ -206,5 +206,71 @@ window.showExportModal = (onExport) => {
     requestAnimationFrame(() => overlay.classList.add('modal-active'));
 };
 
+/**
+ * Creates a premium modal for Theme Selection.
+ */
+window.showThemeModal = (currentTheme, onSelect) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    const themes = [
+        { id: 'JamVault', name: 'JamVault', alt: 'Original', color: '#FF8906', icon: 'fa-rocket' },
+        { id: 'galactic', name: 'Galáctica', alt: 'Espacial', color: '#1E90FF', icon: 'fa-user-astronaut' },
+        { id: 'natural', name: 'Natural', alt: 'Bosque', color: '#10D96A', icon: 'fa-leaf' },
+        { id: 'retro', name: 'Retro 80s', alt: 'Neon', color: '#D81B60', icon: 'fa-gamepad' },
+        { id: 'vintage', name: 'Vintage', alt: 'Clásico', color: '#F1C40F', icon: 'fa-record-vinyl' },
+        { id: 'redblack', name: 'Inferno', alt: 'Potente', color: '#E81F2B', icon: 'fa-fire' }
+    ];
+
+    let themeCards = themes.map(t => `
+        <div class="theme-card ${t.id === currentTheme ? 'active' : ''}" data-theme="${t.id}">
+            <div class="theme-preview" style="background: ${t.color}">
+                <i class="fas ${t.icon}"></i>
+            </div>
+            <div class="theme-info">
+                <span class="theme-name">${t.name}</span>
+                <span class="theme-alt">${t.alt}</span>
+            </div>
+            ${t.id === currentTheme ? '<div class="theme-status"><i class="fas fa-check"></i></div>' : ''}
+        </div>
+    `).join('');
+
+    overlay.innerHTML = `
+        <div class="modal-box theme-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Personalizar JamVault</h2>
+                <p class="modal-subtitle">Elige una estética que se adapte a tu estilo</p>
+            </div>
+            
+            <div class="theme-grid">
+                ${themeCards}
+            </div>
+            
+            <div class="modal-actions" style="margin-top: 1.5rem;">
+                <button class="modal-btn cancel" id="modalCancel">Cerrar</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const cleanup = () => {
+        overlay.classList.add('modal-exit');
+        setTimeout(() => overlay.remove(), 300);
+    };
+
+    overlay.querySelector('#modalCancel').onclick = cleanup;
+
+    overlay.querySelectorAll('.theme-card').forEach(card => {
+        card.onclick = () => {
+            const selected = card.dataset.theme;
+            onSelect(selected);
+            cleanup();
+        };
+    });
+
+    requestAnimationFrame(() => overlay.classList.add('modal-active'));
+};
+
 // Optional: Override native alert (use with caution, better to replace calls manually)
 // window.alert = (msg) => window.showToast(msg, 'info');
