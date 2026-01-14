@@ -15,7 +15,7 @@
   padding: 0.625rem 1rem;
   min-height: 3.75rem;
   min-width: 12.5rem;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 .logo-title img {
@@ -55,13 +55,12 @@
   from {
     opacity: 0;
     transform: translateY(10px);
-    filter: blur(5px);
+    /* Removed blur for performance */
   }
 
   to {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
   }
 }
 
@@ -98,7 +97,7 @@ header {
   position: sticky;
   top: 0;
   z-index: 1000;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 .btn {
@@ -108,8 +107,9 @@ header {
   font-weight: bold;
   border-radius: 8px;
   text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s !important;
   user-select: none;
+  will-change: transform;
 }
 
 .btn:hover {
@@ -281,12 +281,23 @@ header {
   border-radius: 1.375rem;
   box-shadow: 0px 0.625rem 1.56rem rgba(0, 0, 0, 0.35);
   transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+  will-change: transform;
 }
 
 .menu:hover {
   transform: scale(1.015) translateY(-0.125rem);
   box-shadow: 1.25rem 1.25rem 0rem rgba(0, 0, 0, 0.5);
 }
+
+/* Sombra más oscura para tema JamVault */
+.JamVault .menu {
+  box-shadow: 0px 0.625rem 1.56rem rgba(0, 0, 0, 0.6);
+}
+
+.JamVault .menu:hover {
+  box-shadow: 1.25rem 1.25rem 0rem rgba(0, 0, 0, 0.7);
+}
+
 
 /* hover por tema vibrante */
 .JamVault .menu:hover {
@@ -391,6 +402,204 @@ a {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
+/* JamVault Tuner */
+.JamVault .note-display {
+  border: 3px solid transparent;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) padding-box,
+    linear-gradient(135deg, #FF9F1C, #FFD700, #FF6B35, #FF9F1C) border-box;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  box-shadow:
+    0 0 15px rgba(255, 159, 28, 0.3),
+    0 0 30px rgba(255, 159, 28, 0.15),
+    inset 0 0 15px rgba(255, 159, 28, 0.08);
+  animation: neonPulse 3s ease-in-out infinite;
+}
+
+@keyframes neonPulse {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 15px rgba(255, 159, 28, 0.3),
+      0 0 30px rgba(255, 159, 28, 0.15),
+      inset 0 0 15px rgba(255, 159, 28, 0.08);
+  }
+
+  50% {
+    box-shadow:
+      0 0 20px rgba(255, 159, 28, 0.4),
+      0 0 40px rgba(255, 159, 28, 0.2),
+      inset 0 0 20px rgba(255, 159, 28, 0.12);
+  }
+}
+
+/* Galactic Tuner - Subtle Blue Neon */
+.galactic .note-display {
+  border: 3px solid transparent;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) padding-box,
+    linear-gradient(135deg, #1E90FF, #00BFFF, #4169E1, #1E90FF) border-box;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  box-shadow:
+    0 0 15px rgba(30, 144, 255, 0.3),
+    0 0 30px rgba(30, 144, 255, 0.15),
+    inset 0 0 15px rgba(30, 144, 255, 0.08);
+  animation: neonPulseBlue 3s ease-in-out infinite;
+}
+
+@keyframes neonPulseBlue {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 15px rgba(30, 144, 255, 0.3),
+      0 0 30px rgba(30, 144, 255, 0.15),
+      inset 0 0 15px rgba(30, 144, 255, 0.08);
+  }
+
+  50% {
+    box-shadow:
+      0 0 20px rgba(30, 144, 255, 0.4),
+      0 0 40px rgba(30, 144, 255, 0.2),
+      inset 0 0 20px rgba(30, 144, 255, 0.12);
+  }
+}
+
+/* Retro Tuner - Subtle Pink Neon */
+.retro .note-display {
+  border: 3px solid transparent;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) padding-box,
+    linear-gradient(135deg, #D81B60, #FF6090, #C2185B, #D81B60) border-box;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  box-shadow:
+    0 0 15px rgba(216, 27, 96, 0.3),
+    0 0 30px rgba(216, 27, 96, 0.15),
+    inset 0 0 15px rgba(216, 27, 96, 0.08);
+  animation: neonPulsePink 3s ease-in-out infinite;
+}
+
+@keyframes neonPulsePink {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 15px rgba(216, 27, 96, 0.3),
+      0 0 30px rgba(216, 27, 96, 0.15),
+      inset 0 0 15px rgba(216, 27, 96, 0.08);
+  }
+
+  50% {
+    box-shadow:
+      0 0 20px rgba(216, 27, 96, 0.4),
+      0 0 40px rgba(216, 27, 96, 0.2),
+      inset 0 0 20px rgba(216, 27, 96, 0.12);
+  }
+}
+
+/* RedBlack Tuner - Subtle Red Neon */
+.redblack .note-display {
+  border: 3px solid transparent;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) padding-box,
+    linear-gradient(135deg, #E81F2B, #FF4444, #C62828, #E81F2B) border-box;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  box-shadow:
+    0 0 15px rgba(232, 31, 43, 0.3),
+    0 0 30px rgba(232, 31, 43, 0.15),
+    inset 0 0 15px rgba(232, 31, 43, 0.08);
+  animation: neonPulseRed 3s ease-in-out infinite;
+}
+
+@keyframes neonPulseRed {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 15px rgba(232, 31, 43, 0.3),
+      0 0 30px rgba(232, 31, 43, 0.15),
+      inset 0 0 15px rgba(232, 31, 43, 0.08);
+  }
+
+  50% {
+    box-shadow:
+      0 0 20px rgba(232, 31, 43, 0.4),
+      0 0 40px rgba(232, 31, 43, 0.2),
+      inset 0 0 20px rgba(232, 31, 43, 0.12);
+  }
+}
+
+/* Natural Tuner - Emerald Neon */
+.natural .note-display {
+  border: 3px solid transparent;
+  background:
+    linear-gradient(rgba(46, 125, 50, 0.4), rgba(46, 125, 50, 0.4)) padding-box,
+    linear-gradient(135deg, #3CB371, #00FA9A, #2E8B57, #3CB371) border-box;
+  background-color: rgba(46, 125, 50, 0.4);
+  color: #E8F5E9;
+  box-shadow:
+    0 0 15px rgba(60, 179, 113, 0.35),
+    0 0 30px rgba(60, 179, 113, 0.18),
+    inset 0 0 15px rgba(60, 179, 113, 0.1);
+  animation: neonPulseGreen 3s ease-in-out infinite;
+}
+
+@keyframes neonPulseGreen {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 15px rgba(60, 179, 113, 0.35),
+      0 0 30px rgba(60, 179, 113, 0.18),
+      inset 0 0 15px rgba(60, 179, 113, 0.1);
+  }
+
+  50% {
+    box-shadow:
+      0 0 20px rgba(60, 179, 113, 0.45),
+      0 0 40px rgba(60, 179, 113, 0.23),
+      inset 0 0 20px rgba(60, 179, 113, 0.14);
+  }
+}
+
+/* Vintage Tuner - Amber Neon */
+.vintage .note-display {
+  border: 3px solid transparent;
+  background:
+    linear-gradient(rgba(139, 115, 85, 0.4), rgba(139, 115, 85, 0.4)) padding-box,
+    linear-gradient(135deg, #DAA520, #FFD700, #CD853F, #DAA520) border-box;
+  background-color: rgba(139, 115, 85, 0.4);
+  color: #FFF8DC;
+  box-shadow:
+    0 0 15px rgba(218, 165, 32, 0.35),
+    0 0 30px rgba(218, 165, 32, 0.18),
+    inset 0 0 15px rgba(218, 165, 32, 0.1);
+  animation: neonPulseGold 3s ease-in-out infinite;
+}
+
+@keyframes neonPulseGold {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 15px rgba(218, 165, 32, 0.35),
+      0 0 30px rgba(218, 165, 32, 0.18),
+      inset 0 0 15px rgba(218, 165, 32, 0.1);
+  }
+
+  50% {
+    box-shadow:
+      0 0 20px rgba(218, 165, 32, 0.45),
+      0 0 40px rgba(218, 165, 32, 0.23),
+      inset 0 0 20px rgba(218, 165, 32, 0.14);
+  }
+}
+
 .note-display h1 {
   font-size: 4rem;
   margin: 0;
@@ -433,7 +642,7 @@ a {
 .chord-canvas-wrapper {
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 20px;
   width: 100%;
   justify-content: center;
 }
@@ -450,7 +659,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.3s, transform 0.3s, border-color 0.3s;
 }
 
 .nav-arrow:hover {
@@ -471,7 +680,7 @@ a {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.15);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -552,6 +761,17 @@ a {
   font-weight: bold;
 }
 
+#chordCanvas {
+  width: fit-content !important;
+  flex-grow: 0;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+}
+
 .JamVault #chordCanvas {
   background: rgba(255, 255, 255, 0.05);
   border: 2px solid #F39C12;
@@ -578,71 +798,176 @@ a {
   border: 2px solid #C0392B;
 }
 
-/* Colores de notas en acordes por tema */
-/* JamVault */
-.JamVault #chordCanvas ellipse,
-.JamVault #chordCanvas rect {
-  fill: #F39C12;
+/* ========== PREMIUM CHORD NOTES DESIGN (MODERN NEON) ========== */
+
+/* CRITICAL FIX: Allow glow to extend outside the note box */
+#chordCanvas svg {
+  overflow: visible !important;
+  height: 350px;
+  width: auto;
 }
 
-.JamVault #chordCanvas .root-note ellipse,
-.JamVault #chordCanvas .root-note rect {
-  fill: #E67E22;
+/* Base note styles */
+.chord-circle ellipse,
+.chord-circle rect {
+  stroke: white;
+  stroke-width: 1.5;
+  transition: fill 0.3s, transform 0.3s;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.9;
+}
+
+.chord-circle:hover ellipse,
+.chord-circle:hover rect {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+/* ===== JamVault Theme (Neon Orange) ===== */
+.JamVault .chord-circle ellipse,
+.JamVault .chord-circle rect {
+  fill: #FF9F1C;
+  filter: drop-shadow(0 0 6px rgba(255, 159, 28, 0.6));
+}
+
+.JamVault .chord-circle .root-note ellipse,
+.JamVault .chord-circle.root-note rect {
+  fill: #FFD285;
+  filter: drop-shadow(0 0 8px #FF9F1C);
+}
+
+/* ===== Natural Theme (Neon Green) ===== */
+.natural .chord-circle ellipse,
+.natural .chord-circle rect {
+  fill: #10D96A;
+  filter: drop-shadow(0 0 6px rgba(16, 217, 106, 0.6));
+}
+
+.natural .chord-circle .root-note ellipse,
+.natural .chord-circle.root-note rect {
+  fill: #9AFFCF;
+  filter: drop-shadow(0 0 8px #10D96A);
+}
+
+/* ===== Galactic Theme (Neon Blue) ===== */
+.galactic .chord-circle ellipse,
+.galactic .chord-circle rect {
+  fill: #1E90FF;
+  filter: drop-shadow(0 0 6px rgba(30, 144, 255, 0.6));
+}
+
+.galactic .chord-circle .root-note ellipse,
+.galactic .chord-circle.root-note rect {
+  fill: #82C2FF;
+  filter: drop-shadow(0 0 8px #1E90FF);
+}
+
+/* ===== Retro Theme (Neon Pink) ===== */
+.retro .chord-circle ellipse,
+.retro .chord-circle rect {
+  fill: #D81B60;
+  filter: drop-shadow(0 0 6px rgba(216, 27, 96, 0.6));
+}
+
+.retro .chord-circle .root-note ellipse,
+.retro .chord-circle.root-note rect {
+  fill: #FF5A92;
+  filter: drop-shadow(0 0 8px #D81B60);
+}
+
+/* ===== Vintage Theme (Neon Gold) ===== */
+.vintage .chord-circle ellipse,
+.vintage .chord-circle rect {
+  fill: #F1C40F;
+  filter: drop-shadow(0 0 6px rgba(241, 196, 15, 0.6));
+}
+
+.vintage .chord-circle .root-note ellipse,
+.vintage .chord-circle.root-note rect {
+  fill: #FFF0B3;
+  filter: drop-shadow(0 0 8px #F1C40F);
+}
+
+/* ===== Red & Black Theme (Neon Red) ===== */
+.redblack .chord-circle ellipse,
+.redblack .chord-circle rect {
+  fill: #FF3D47;
+  filter: drop-shadow(0 0 6px rgba(255, 61, 71, 0.6));
+}
+
+.redblack .chord-circle .root-note ellipse,
+.redblack .chord-circle.root-note rect {
+  fill: #FF8A8F;
+  filter: drop-shadow(0 0 8px #FF3D47);
+}
+
+/* ========== FRET BADGE STYLES ========== */
+.fret-badge-bg {
+  fill: white;
+  transition: fill 0.3s ease;
+}
+
+.fret-badge-text {
+  fill: black;
+  /* Default text color */
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* Theme Awareness for Fret Badge */
+
+/* JamVault */
+.JamVault .fret-badge-bg {
+  fill: #FF9F1C;
+}
+
+.JamVault .fret-badge-text {
+  fill: black;
 }
 
 /* Natural */
-.natural #chordCanvas ellipse,
-.natural #chordCanvas rect {
-  fill: #27AE60;
+.natural .fret-badge-bg {
+  fill: #10D96A;
 }
 
-.natural #chordCanvas .root-note ellipse,
-.natural #chordCanvas .root-note rect {
-  fill: #1E8449;
+.natural .fret-badge-text {
+  fill: black;
 }
 
 /* Galactic */
-.galactic #chordCanvas ellipse,
-.galactic #chordCanvas rect {
-  fill: #2980B9;
+.galactic .fret-badge-bg {
+  fill: #1E90FF;
 }
 
-.galactic #chordCanvas .root-note ellipse,
-.galactic #chordCanvas .root-note rect {
-  fill: #1F618D;
+.galactic .fret-badge-text {
+  fill: black;
 }
 
-/* Retro */
-.retro #chordCanvas ellipse,
-.retro #chordCanvas rect {
+/* Retro (Pink needs white text for contrast) */
+.retro .fret-badge-bg {
   fill: #D81B60;
 }
 
-.retro #chordCanvas .root-note ellipse,
-.retro #chordCanvas .root-note rect {
-  fill: #AD1457;
+.retro .fret-badge-text {
+  fill: white;
 }
 
 /* Vintage */
-.vintage #chordCanvas ellipse,
-.vintage #chordCanvas rect {
-  fill: #B7950B;
+.vintage .fret-badge-bg {
+  fill: #F1C40F;
 }
 
-.vintage #chordCanvas .root-note ellipse,
-.vintage #chordCanvas .root-note rect {
-  fill: #9A7D0A;
+.vintage .fret-badge-text {
+  fill: black;
 }
 
-/* Red & Black */
-.redblack #chordCanvas ellipse,
-.redblack #chordCanvas rect {
-  fill: #C0392B;
+/* Red & Black (Dark red needs white text) */
+.redblack .fret-badge-bg {
+  fill: #FF3D47;
 }
 
-.redblack #chordCanvas .root-note ellipse,
-.redblack #chordCanvas .root-note rect {
-  fill: #922B21;
+.redblack .fret-badge-text {
+  fill: white;
 }
 
 .chord-label {
@@ -708,59 +1033,98 @@ a {
   border: 2px solid #C0392B;
 }
 
-/* Colores de notas en SVG por tema */
-/* JamVault */
-.JamVault #fretboard ellipse {
-  fill: #F39C12;
+/* ========== PREMIUM SCALE NOTES DESIGN (MODERN NEON) ========== */
+
+/* CRITICAL FIX: Allow glow to extend outside the note box */
+#fretboard g.note svg {
+  overflow: visible !important;
 }
 
-.JamVault #fretboard .root-note ellipse {
-  fill: #E67E22;
+/* Base note styles */
+#fretboard g.note ellipse {
+  transition: fill 0.3s, transform 0.3s;
 }
 
-/* Natural */
-.natural #fretboard ellipse {
-  fill: #27AE60;
+#fretboard g.note:hover ellipse {
+  transform: scale(1.1);
+  filter: brightness(1.2);
 }
 
-.natural #fretboard .root-note ellipse {
-  fill: #1E8449;
+/* Stroke lines - Clean white definition */
+#fretboard g.note path[stroke="black"] {
+  stroke: white;
+  /* Clean white stroke for all themes */
+  stroke-width: 1.5;
+  transition: stroke 0.3s ease;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.9;
 }
 
-/* Galactic */
-.galactic #fretboard ellipse {
-  fill: #2980B9;
+/* ===== JamVault Theme (Neon Orange) ===== */
+.JamVault #fretboard g.note ellipse {
+  fill: #FF9F1C;
+  filter: drop-shadow(0 0 6px rgba(255, 159, 28, 0.6));
 }
 
-.galactic #fretboard .root-note ellipse {
-  fill: #1F618D;
+.JamVault #fretboard g.root-note ellipse {
+  fill: #FFD285;
+  /* Brighter center for root */
+  filter: drop-shadow(0 0 8px #FF9F1C);
 }
 
-/* Retro */
-.retro #fretboard ellipse {
+/* ===== Natural Theme (Neon Green) ===== */
+.natural #fretboard g.note ellipse {
+  fill: #10D96A;
+  filter: drop-shadow(0 0 6px rgba(16, 217, 106, 0.6));
+}
+
+.natural #fretboard g.root-note ellipse {
+  fill: #9AFFCF;
+  filter: drop-shadow(0 0 8px #10D96A);
+}
+
+/* ===== Galactic Theme (Neon Blue) ===== */
+.galactic #fretboard g.note ellipse {
+  fill: #1E90FF;
+  filter: drop-shadow(0 0 6px rgba(30, 144, 255, 0.6));
+}
+
+.galactic #fretboard g.root-note ellipse {
+  fill: #82C2FF;
+  filter: drop-shadow(0 0 8px #1E90FF);
+}
+
+/* ===== Retro Theme (Neon Pink) ===== */
+.retro #fretboard g.note ellipse {
   fill: #D81B60;
+  filter: drop-shadow(0 0 6px rgba(216, 27, 96, 0.6));
 }
 
-.retro #fretboard .root-note ellipse {
-  fill: #AD1457;
+.retro #fretboard g.root-note ellipse {
+  fill: #FF5A92;
+  filter: drop-shadow(0 0 8px #D81B60);
 }
 
-/* Vintage */
-.vintage #fretboard ellipse {
-  fill: #B7950B;
+/* ===== Vintage Theme (Neon Gold) ===== */
+.vintage #fretboard g.note ellipse {
+  fill: #F1C40F;
+  filter: drop-shadow(0 0 6px rgba(241, 196, 15, 0.6));
 }
 
-.vintage #fretboard .root-note ellipse {
-  fill: #9A7D0A;
+.vintage #fretboard g.root-note ellipse {
+  fill: #FFF0B3;
+  filter: drop-shadow(0 0 8px #F1C40F);
 }
 
-/* Red & Black */
-.redblack #fretboard ellipse {
-  fill: #C0392B;
+/* ===== Red & Black Theme (Neon Red) ===== */
+.redblack #fretboard g.note ellipse {
+  fill: #FF3D47;
+  filter: drop-shadow(0 0 6px rgba(255, 61, 71, 0.6));
 }
 
-.redblack #fretboard .root-note ellipse {
-  fill: #922B21;
+.redblack #fretboard g.root-note ellipse {
+  fill: #FF8A8F;
+  filter: drop-shadow(0 0 8px #FF3D47);
 }
 
 /* ---------- SONGBOOK ---------- */

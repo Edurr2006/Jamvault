@@ -44,6 +44,7 @@ class Jamstudio {
         this.minZoom = 10;
         this.maxZoom = 200;
         this.isDraggingTimeline = false;
+        this.wasPlayingBeforeDrag = false;
 
         // Meter update
         this.meterInterval = null;
@@ -343,6 +344,14 @@ class Jamstudio {
                 // Seek only on Left Click
                 if (e.button !== 0) return;
 
+                // Stop audio if playing to prevent "chipmunk" effect during scrub
+                if (this.isPlaying && !this.isPaused) {
+                    this.pause();
+                    this.wasPlayingBeforeDrag = true;
+                } else {
+                    this.wasPlayingBeforeDrag = false;
+                }
+
                 // Deselect clips when clicking ruler
                 this.selectedClip = null;
                 this.tracks.forEach(t => this.drawWaveform(t));
@@ -369,9 +378,16 @@ class Jamstudio {
             this.isDraggingTimeline = false;
             this.isPanning = false;
             document.body.style.cursor = '';
+
             if (this.scrollAnimationId) {
                 cancelAnimationFrame(this.scrollAnimationId);
                 this.scrollAnimationId = null;
+            }
+
+            // Resume playback if we were playing before drag
+            if (this.wasPlayingBeforeDrag) {
+                this.play();
+                this.wasPlayingBeforeDrag = false;
             }
         };
 
@@ -980,12 +996,12 @@ class Jamstudio {
             const currentScroll = tracksWrapper.scrollLeft;
             const relativePosition = playheadPosition - currentScroll;
 
-            // NEW: Smooth continuous scroll logic.
-            // If playhead touches the right edge (100%), scroll is increased.
-            const threshold = viewportWidth * 0.95;
+            // NEW: Paged scroll logic used to prevent stutter
+            // Instead of pushing pixel-by-pixel, we jump forward (page flip) when reaching the edge
+            const threshold = viewportWidth * 0.9;
             if (relativePosition >= threshold) {
-                // Shift the scroll to follow the playhead exactly at the edge
-                tracksWrapper.scrollLeft += (relativePosition - threshold);
+                // Scroll forward by 90% of the viewport width to keep context
+                tracksWrapper.scrollLeft += (viewportWidth * 0.9);
             }
         }
 
@@ -2341,18 +2357,19 @@ class Jamstudio {
 }
 
 // Initialize on page load
-let daw;
-window.addEventListener('DOMContentLoaded', async () => {
-    daw = new Jamstudio();
-
-    // Make daw globally available for HTML onclick handlers
-    window.daw = daw;
+// Defer Initialization until Landing Page "New Project" is clicked
+window.initializeJamStudio = async () => {
+    if (window.dawInstance) return; // Prevent double init
+    console.log('🚀 Launching JamStudio Pro...');
+    window.dawInstance = new Jamstudio();
+    // Expose for legacy access
+    window.daw = window.dawInstance;
 
     // GLOBAL INTERACTION HANDLER: Resume audio + Global Deselection
     document.body.addEventListener('click', async (e) => {
         // Resume AudioContext
-        if (daw.audioEngine) {
-            await daw.audioEngine.resume();
+        if (window.daw && window.daw.audioEngine) {
+            await window.daw.audioEngine.resume();
         }
 
         // GLOBAL DESELECTION: If clicking outside the "pista" area (canvases/ruler), clear selection
@@ -2363,13 +2380,14 @@ window.addEventListener('DOMContentLoaded', async () => {
         const isButton = e.target.closest('button') || e.target.closest('.btn'); // Exclude buttons
 
         if (!isClipArea && !isRuler && !isTransport && !isContextMenu && !isButton) {
-            if (daw.selectedClips.length > 0) {
-                daw.selectedClips = [];
-                daw.tracks.forEach(t => daw.drawWaveform(t));
+            if (window.daw && window.daw.selectedClips.length > 0) {
+                window.daw.selectedClips = [];
+                window.daw.tracks.forEach(t => window.daw.drawWaveform(t));
                 console.log('Global deselection triggered (clicked outside pista/buttons)');
             }
         }
     });
-});
+
+};
 
 export { Jamstudio };

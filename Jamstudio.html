@@ -267,6 +267,58 @@
             max-width: 120px !important;
             height: 22px !important
         }
+
+        /* Landing Page Card Hover Effects */
+        .landing-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 250px;
+            text-align: center;
+        }
+
+        .landing-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Theme-specific hover glows */
+        .JamVault .landing-card:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 140, 0, 0.4);
+        }
+
+        .galactic .landing-card:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(30, 144, 255, 0.4);
+        }
+
+        .retro .landing-card:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(216, 27, 96, 0.4);
+        }
+
+        .redblack .landing-card:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(220, 20, 60, 0.4);
+        }
+
+        .natural .landing-card:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(60, 179, 113, 0.4);
+        }
+
+        .vintage .landing-card:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(218, 165, 32, 0.4);
+        }
+
+        .landing-card.disabled {
+            opacity: 0.7;
+        }
+
+        .landing-card.disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
     </style>
 </head>
 
@@ -289,110 +341,155 @@
         <button id="toggleTheme" class="btn">Cambiar Tema</button>
     </header>
 
-    <!-- ========== DAW CONTROLS ========== -->
-    <div class="daw-transport">
-        <div class="main-controls-column">
-            <div class="track-actions-group">
-                <button id="clearAllBtn" class="btn clear-btn-top">Limpiar Todo</button>
-                <button id="exportBtn" class="btn export-btn-top">💾 Exportar</button>
-            </div>
-        </div>
+    <!-- ========== LANDING PAGE (WELCOME SCREEN) ========== -->
+    <div id="landing-view"
+        style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; gap: 2rem;">
+        <h1 style="font-size: 3rem; color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.2);">Bienvenido a JamStudio
+        </h1>
+        <p style="font-size: 1.2rem; color: #aaa; max-width: 600px;">
+            Tu estudio de grabación digital en la nube. Crea, graba y produce tu música sin límites.
+        </p>
 
-        <div class="time-display">
-            <span id="currentTime">00:00.0</span>
-            <span class="time-separator">/</span>
-            <span id="totalTime">00:00.0</span>
-        </div>
-
-        <div class="progress-bar-container">
-            <div class="progress-bar" id="progressBar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-        </div>
-
-        <div class="tempo-controls">
-            <label for="metronomeToggle">
-                <input type="checkbox" id="metronomeToggle">
-                Metrónomo
-            </label>
-            <div class="bpm-input-group">
-                <input type="number" id="bpmInput" class="bpm-input" min="40" max="240" value="120">
-                <span class="bpm-label">BPM</span>
-            </div>
-        </div>
-
-        <div class="master-controls">
-            <label>Master Volume</label>
-            <input type="range" id="masterVolume" min="0" max="100" value="80" class="master-fader">
-            <span id="masterVolumeValue">80%</span>
-        </div>
-
-
-    </div>
-
-    <!-- ========== MAIN DAW INTERFACE ========== -->
-    <main class="daw-main">
-        <div class="tracks-wrapper" id="tracksWrapper">
-            <!-- Timeline Ruler (Horizontal Header) -->
-            <div class="timeline-ruler-container" id="rulerContainer">
-                <div class="track-controls-spacer">
-                    <span class="tracks-header">Pistas</span>
-                    <button id="addTrackBtn" class="btn add-track-btn-top">+ Nueva Pista</button>
-                </div>
-                <div class="timeline-ruler" id="timelineRuler">
-                    <!-- Time markers will be generated dynamically -->
-                </div>
+        <div style="display: flex; gap: 2rem; margin-top: 2rem;">
+            <!-- New Project Card -->
+            <div onclick="enterStudio()" class="landing-card">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">✨</div>
+                <h3 style="margin-bottom: 0.5rem; color: #fff;">Nuevo Proyecto</h3>
+                <p style="font-size: 0.9rem; color: #888;">Empieza desde cero un lienzo vacío.</p>
             </div>
 
-            <!-- Unified Tracks Container -->
-            <div id="unifiedTracksContainer" class="unified-tracks-container">
-                <!-- Tracks will be added dynamically: 
-                     Each track will be a div with [Controls | Timeline] -->
-            </div>
-
-            <!-- Global Playhead -->
-            <div id="playhead" class="playhead"></div>
-        </div>
-
-        <!-- Global Indicators -->
-        <div id="recordingIndicator" class="recording-indicator hidden">● REC</div>
-    </main>
-
-    <!-- ========== BOTTOM TRANSPORT BAR ========== -->
-    <div class="jamstudio-bottom-bar">
-        <!-- Left: Mixer Panel Container -->
-        <div class="mixer-panel-container" id="bottomMixerPanel">
-            <div class="mixer-panel-placeholder">
-                <span>⚙️ Selecciona una pista para ver sus controles</span>
-            </div>
-        </div>
-
-        <!-- Center: Transport Controls -->
-        <div class="bottom-transport-controls">
-            <button id="recordBtn" class="bottom-btn record-btn" title="Grabar (R)">
-                <span class="record-icon">●</span>
-            </button>
-            <button id="playBtn" class="bottom-btn play-btn" title="Reproducir (Espacio)">▶</button>
-            <button id="pauseBtn" class="bottom-btn pause-btn" title="Pausar (Espacio)" disabled>⏸</button>
-            <button id="stopBtn" class="bottom-btn stop-btn" title="Detener">⏹</button>
-        </div>
-
-        <!-- Right: Device Selectors -->
-        <div class="bottom-device-controls">
-            <div class="device-row">
-                <label title="Dispositivo de entrada">🎤</label>
-                <select id="audioInputDevice" class="device-select">
-                    <option value="default">Default</option>
-                </select>
-            </div>
-            <div class="device-row">
-                <label title="Dispositivo de salida">🔊</label>
-                <select id="audioOutputDevice" class="device-select">
-                    <option value="default">Default</option>
-                </select>
+            <!-- Open Project Card -->
+            <div class="landing-card disabled">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📂</div>
+                <h3 style="margin-bottom: 0.5rem; color: #fff;">Abrir Proyecto</h3>
+                <p style="font-size: 0.9rem; color: #888;">Cargar un proyecto .jamv existente.</p>
+                <span
+                    style="font-size: 0.8rem; background: #333; padding: 2px 6px; border-radius: 4px; margin-top: 10px; display: inline-block;">Próximamente</span>
             </div>
         </div>
     </div>
+
+    <!-- ========== DAW WORKSPACE (HIDDEN BY DEFAULT) ========== -->
+    <div id="workspace-view" style="display: none; height: calc(100vh - 80px - 50px); flex-direction: column;">
+
+        <!-- DAW CONTROLS -->
+        <div class="daw-transport">
+            <div class="main-controls-column">
+                <div class="track-actions-group">
+                    <button id="clearAllBtn" class="btn clear-btn-top">Limpiar Todo</button>
+                    <button id="exportBtn" class="btn export-btn-top">💾 Exportar</button>
+                    <button onclick="exitStudio()" class="btn" style="background:#555;">🔙 Salir</button>
+                </div>
+            </div>
+
+            <div class="time-display">
+                <span id="currentTime">00:00.0</span>
+                <span class="time-separator">/</span>
+                <span id="totalTime">00:00.0</span>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="tempo-controls">
+                <label for="metronomeToggle">
+                    <input type="checkbox" id="metronomeToggle">
+                    Metrónomo
+                </label>
+                <div class="bpm-input-group">
+                    <input type="number" id="bpmInput" class="bpm-input" min="40" max="240" value="120">
+                    <span class="bpm-label">BPM</span>
+                </div>
+            </div>
+
+            <div class="master-controls">
+                <label>Master Volume</label>
+                <input type="range" id="masterVolume" min="0" max="100" value="80" class="master-fader">
+                <span id="masterVolumeValue">80%</span>
+            </div>
+        </div>
+
+        <!-- MAIN DAW INTERFACE -->
+        <main class="daw-main" style="flex:1; overflow:hidden;">
+            <div class="tracks-wrapper" id="tracksWrapper">
+                <!-- Timeline Ruler -->
+                <div class="timeline-ruler-container" id="rulerContainer">
+                    <div class="track-controls-spacer">
+                        <span class="tracks-header">Pistas</span>
+                        <button id="addTrackBtn" class="btn add-track-btn-top">+ Nueva Pista</button>
+                    </div>
+                    <div class="timeline-ruler" id="timelineRuler"></div>
+                </div>
+
+                <!-- Unified Tracks Container -->
+                <div id="unifiedTracksContainer" class="unified-tracks-container"></div>
+
+                <!-- Global Playhead -->
+                <div id="playhead" class="playhead"></div>
+            </div>
+
+            <!-- Global Indicators -->
+            <div id="recordingIndicator" class="recording-indicator hidden">● REC</div>
+        </main>
+
+        <!-- BOTTOM TRANSPORT BAR -->
+        <div class="jamstudio-bottom-bar">
+            <!-- Left: Mixer Panel Container -->
+            <div class="mixer-panel-container" id="bottomMixerPanel">
+                <div class="mixer-panel-placeholder">
+                    <span>⚙️ Selecciona una pista para ver sus controles</span>
+                </div>
+            </div>
+
+            <!-- Center: Transport Controls -->
+            <div class="bottom-transport-controls">
+                <button id="recordBtn" class="bottom-btn record-btn" title="Grabar (R)">
+                    <span class="record-icon">●</span>
+                </button>
+                <button id="playBtn" class="bottom-btn play-btn" title="Reproducir (Espacio)">▶</button>
+                <button id="pauseBtn" class="bottom-btn pause-btn" title="Pausar (Espacio)" disabled>⏸</button>
+                <button id="stopBtn" class="bottom-btn stop-btn" title="Detener">⏹</button>
+            </div>
+
+            <!-- Right: Device Selectors -->
+            <div class="bottom-device-controls">
+                <div class="device-row">
+                    <label title="Dispositivo de entrada">🎤</label>
+                    <select id="audioInputDevice" class="device-select">
+                        <option value="default">Default</option>
+                    </select>
+                </div>
+                <div class="device-row">
+                    <label title="Dispositivo de salida">🔊</label>
+                    <select id="audioOutputDevice" class="device-select">
+                        <option value="default">Default</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW CONTROLLER SCRIPT -->
+    <script>
+        function enterStudio() {
+            document.getElementById('landing-view').style.display = 'none';
+            document.getElementById('workspace-view').style.display = 'flex';
+
+            // Initialize the Studio Engine
+            if (window.initializeJamStudio) {
+                window.initializeJamStudio();
+            } else {
+                console.error("JamStudio engine not loaded yet.");
+            }
+        }
+        function exitStudio() {
+            document.getElementById('workspace-view').style.display = 'none';
+            document.getElementById('landing-view').style.display = 'flex';
+        }
+    </script>
 
     <!-- ========== SITE FOOTER ========== -->
     <footer class="site-footer">

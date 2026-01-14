@@ -943,7 +943,7 @@ function renderizarDiagrama(posiciones) {
 
       // Sombra
       const rectShadow = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      rectShadow.setAttribute('filter', 'url(#note-shadow)');
+      // Removed filter injection to use CSS
       const radius = 14;
       const height = 2 * radius; // 28
       const width = (maxX - minX) + 2 * 15.3; // Ancho entre centros + padding bordes (aprox radio)
@@ -954,10 +954,6 @@ function renderizarDiagrama(posiciones) {
       rectShadow.setAttribute('height', height);
       rectShadow.setAttribute('rx', radius);
       rectShadow.setAttribute('ry', radius);
-
-      // Borde
-      rectShadow.setAttribute('stroke', 'black');
-      rectShadow.setAttribute('stroke-width', '1');
 
       gBarre.appendChild(rectShadow);
 
@@ -996,17 +992,13 @@ function renderizarDiagrama(posiciones) {
 
     // 1. Grupo para la sombra (usando el filtro definido en HTML)
     const gShadow = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    gShadow.setAttribute('filter', 'url(#note-shadow)');
+    // Removed filter injection to use CSS
 
     const ellipseShadow = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
     ellipseShadow.setAttribute('cx', x);
     ellipseShadow.setAttribute('cy', y);
     ellipseShadow.setAttribute('rx', '15.3');
     ellipseShadow.setAttribute('ry', '14');
-
-    // Borde negro
-    ellipseShadow.setAttribute('stroke', 'black');
-    ellipseShadow.setAttribute('stroke-width', '1');
 
     gShadow.appendChild(ellipseShadow);
     g.appendChild(gShadow);

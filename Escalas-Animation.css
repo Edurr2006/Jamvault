@@ -13,8 +13,7 @@
     }
 }
 
-/* Root note special styling */
-#fretboard .note.root-note ellipse {
+/* Root note special styling - DEPRECATED (Moved to IndexStyles.css for theming) */
+/* #fretboard .note.root-note ellipse {
     fill: #FF1F1C !important;
-    /* Vibrant red for root note */
-}
+} */

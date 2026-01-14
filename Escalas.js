@@ -43,43 +43,63 @@ function mostrarEscala() {
     return notas[(rootIndex + intervalo) % 12];
   });
 
-  // Ocultar todas las notas
-  var todas = document.querySelectorAll("#fretboard g.note");
-  todas.forEach(function (n) {
-    n.style.display = "none";
+  // Cache elements if not already done (Optimization)
+  if (!window.notesCache) {
+    window.notesCache = new Map();
+    document.querySelectorAll("#fretboard g.note").forEach(n => {
+      const noteName = n.getAttribute('data-note');
+      if (!window.notesCache.has(noteName)) {
+        window.notesCache.set(noteName, []);
+      }
+      window.notesCache.get(noteName).push(n);
+    });
+  }
+
+  // Create a Set of scale notes for O(1) lookup
+  var scaleSet = new Set(escala);
+
+  // Optimized rendering loop: Single pass through all note types
+  // We iterate through our cache to determine what to show/hide
+  // This preserves "musical order" animation if we iterate the 'escala' array,
+  // OR we can iterate the cache keys. To keep the requested "fluidez" and animation style:
+
+  // 1. Hide all notes first (efficiently)
+  window.notesCache.forEach(notes => {
+    notes.forEach(n => {
+      n.style.display = "none";
+      n.classList.remove('scale-note-appear');
+      n.classList.remove('root-note');
+      n.style.opacity = ""; // Reset inline opacity
+    });
   });
 
-  // Mostrar solo las notas que pertenecen a la escala
-  let noteIndex = 0;
-  escala.forEach(function (nota) {
-    var coincidencias = document.querySelectorAll('#fretboard g[data-note="' + nota + '"]');
-    coincidencias.forEach(function (n) {
-      // Remove any existing animation class first
-      n.classList.remove('scale-note-appear');
+  // 2. Show only scale notes with staggered animation
+  let animationDelay = 0;
 
-      // Set display to block
-      n.style.display = "block";
+  // Iterate strictly in the order of the scale (musical order)
+  escala.forEach(noteName => {
+    const notes = window.notesCache.get(noteName);
+    if (notes) {
+      notes.forEach(n => {
+        n.style.display = "block";
+        n.style.opacity = "0"; // Start invisible
 
-      // Set initial state for animation (invisible only, no transform to avoid breaking SVG positioning)
-      n.style.opacity = "0";
+        if (noteName === root) {
+          n.classList.add('root-note');
+        }
 
-      // Agregar clase root-note si es la nota raíz
-      if (nota === root) {
-        n.classList.add('root-note');
-      } else {
-        n.classList.remove('root-note');
-      }
-
-      // Apply staggered animation
-      setTimeout(function () {
-        n.classList.add('scale-note-appear');
-        // Remove inline opacity after animation
-        setTimeout(function () {
-          n.style.opacity = "";
-        }, 400); // Match animation duration
-      }, noteIndex * 50); // 50ms delay between each note
-
-      noteIndex++;
-    });
+        // Use requestAnimationFrame for smoother start
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            n.classList.add('scale-note-appear');
+            // Cleanup opacity after animation
+            setTimeout(() => {
+              n.style.opacity = "1";
+            }, 400);
+          }, animationDelay);
+        });
+      });
+      animationDelay += 20; // Stagger per note type
+    }
   });
 }
