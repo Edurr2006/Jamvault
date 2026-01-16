@@ -423,6 +423,13 @@ if (document.getElementById('at-volume')) document.getElementById('at-volume').o
 window.onload = () => {
   initDiscovery();
   applyThemeColors();
+
+  // Load song if songId is in URL
+  const params = new URLSearchParams(window.location.search);
+  const songId = params.get('songId') || params.get('id');
+  if (songId) {
+    loadSong(songId);
+  }
 };
 window.loadSong = loadSong;
 
