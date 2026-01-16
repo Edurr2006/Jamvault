@@ -74,6 +74,9 @@ class Jamstudio {
             // Start meter updates
             this.updateMeters();
 
+            // Initial playhead position
+            this.seekTo(0);
+
             console.log('JamStudio Pro initialized successfully');
 
         } catch (error) {
