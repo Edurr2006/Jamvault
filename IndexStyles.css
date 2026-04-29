@@ -62,8 +62,9 @@
 }
 
 .toast-warning {
-  border-left: 4px solid #FF9F1C;
+  border-left: 4px solid var(--theme-accent, #FF9F1C);
 }
+
 
 .toast-info {
   border-left: 4px solid #3DA9FC;
@@ -82,7 +83,7 @@
 }
 
 .toast-warning .toast-icon {
-  color: #FF9F1C;
+  color: var(--theme-accent, #FF9F1C);
 }
 
 .toast-info .toast-icon {
@@ -147,7 +148,7 @@
 }
 
 .JamVault .logo-title {
-  background-color: #0f0e17f0;
+  background-color: #07070a;
 }
 
 .vintage .logo-title {
@@ -248,7 +249,8 @@ header {
 }
 
 .JamVault header {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .JamVault .btn {
@@ -274,7 +276,7 @@ header {
 
 .natural header {
   background: rgba(11, 22, 11, 0.85);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .natural .btn {
@@ -301,7 +303,7 @@ header {
 
 .galactic header {
   background: rgba(8, 12, 25, 0.85);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .galactic .btn {
@@ -328,7 +330,7 @@ header {
 
 .retro header {
   background: rgba(18, 12, 25, 0.85);
-  border-bottom: 2px solid var(--theme-accent);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .retro .btn {
@@ -355,7 +357,7 @@ header {
 
 .vintage header {
   background: rgba(20, 18, 16, 0.85);
-  border-bottom: 1px solid rgba(230, 179, 37, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .vintage .btn {
@@ -382,7 +384,7 @@ header {
 
 .redblack header {
   background: rgba(15, 0, 0, 0.9);
-  border-bottom: 2px solid var(--theme-accent);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .redblack .btn {
@@ -424,7 +426,7 @@ header {
   align-items: center;
 }
 
-/* ---------- TARJETAS (MEN�) � ESTILO JAMVAULT ---------- */
+/* ---------- TARJETAS (MEN)  ESTILO JAMVAULT ---------- */
 .menu {
   position: relative;
   display: inline-block;
@@ -527,7 +529,7 @@ header {
 }
 
 
-/* ---------- ELEMENTOS DE DISE�O ADICIONALES ---------- */
+/* ---------- ELEMENTOS DE DISEO ADICIONALES ---------- */
 
 .menus {
   display: flex;
@@ -560,7 +562,7 @@ a {
 }
 
 .hero-btn {
-  background: #FF9F1C;
+  background: var(--theme-accent);
   color: #000;
   padding: 14px 28px;
   border-radius: 10px;
@@ -569,11 +571,12 @@ a {
   border: none;
   cursor: pointer;
   transition: background 0.25s, transform 0.25s;
+  box-shadow: 0 4px 15px var(--theme-accent-glow);
 }
 
 .hero-btn:hover {
-  background: #ffa852;
-  transform: translateY(-2px);
+  background: var(--theme-accent-hover);
+  transform: scale(1.05);
 }
 
 /* ---------- AFINADOR ---------- */
@@ -1504,7 +1507,13 @@ a {
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
 }
 
-.JamVault .social-circle:hover { background: #FF9F1C; color: #000; border-color: #FF9F1C; box-shadow: 0 4px 12px rgba(255,159,28,0.4); }
+.social-circle:hover { 
+  background: var(--theme-accent); 
+  color: #000; 
+  border-color: var(--theme-accent); 
+  box-shadow: 0 4px 12px var(--theme-accent-glow); 
+}
+
 .natural .social-circle:hover  { background: #10D96A; color: #000; border-color: #10D96A; box-shadow: 0 4px 12px rgba(16,217,106,0.4); }
 .galactic .social-circle:hover { background: #1E90FF; color: #000; border-color: #1E90FF; box-shadow: 0 4px 12px rgba(30,144,255,0.4); }
 .retro .social-circle:hover    { background: #D81B60; color: #fff; border-color: #D81B60; box-shadow: 0 4px 12px rgba(216,27,96,0.4); }
@@ -1540,8 +1549,8 @@ a {
 .footer-nav a:hover { transform: translateY(-2px); }
 .footer-nav a:hover::after { width: 100%; }
 
-.JamVault .footer-nav a:hover { color: #FF9F1C; }
-.JamVault .footer-nav a::after { background: #FF9F1C; }
+.footer-nav a:hover { color: var(--theme-accent); }
+.footer-nav a::after { background: var(--theme-accent); }
 .natural .footer-nav a:hover  { color: #10D96A; }
 .natural .footer-nav a::after  { background: #10D96A; }
 .galactic .footer-nav a:hover { color: #1E90FF; }
