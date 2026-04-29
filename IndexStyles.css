@@ -179,7 +179,7 @@ html {
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Inter', sans-serif; /* Modern font */
   margin: 0;
   padding: 0;
   width: 100%;
@@ -193,6 +193,16 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+/* Subtle background glow for all themes to avoid "too gray" look */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.03) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 header {
@@ -232,6 +242,9 @@ header {
 .JamVault {
   background: #0d0c14;
   color: #ffffff;
+  --theme-accent: #FF9F1C;
+  --theme-accent-hover: #FFB84D;
+  --theme-accent-glow: rgba(255, 159, 28, 0.2);
 }
 
 .JamVault header {
@@ -239,120 +252,151 @@ header {
 }
 
 .JamVault .btn {
-  background: #FF9F1C !important;
+  background: var(--theme-accent) !important;
   color: #000 !important;
-  box-shadow: 0 4px 12px rgba(255, 159, 28, 0.2);
+  box-shadow: 0 4px 12px var(--theme-accent-glow);
 }
 
 .JamVault .btn:hover {
-  background: #FFB84D !important;
+  background: var(--theme-accent-hover) !important;
   box-shadow: 0 4px 15px rgba(255, 159, 28, 0.35);
 }
 
-/* Natural */
+
+/* Natural - Lush Deep Forest */
 .natural {
-  background: #263238;
-  color: #DDE6D5;
+  background: #08110b; /* Deep Obsidian Green */
+  color: #e0eee0;
+  --theme-accent: #00FF85;
+  --theme-accent-hover: #33ff9d;
+  --theme-accent-glow: rgba(0, 255, 133, 0.15);
 }
 
 .natural header {
-  background: rgba(58, 90, 64, 0.7);
+  background: rgba(11, 22, 11, 0.85);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
 }
 
 .natural .btn {
-  background: #10D96A !important;
-  color: #000 !important;
-  box-shadow: 0 4px 12px rgba(16, 217, 106, 0.2);
+  background: var(--theme-accent) !important;
+  color: #0b160b !important;
+  box-shadow: 0 4px 15px var(--theme-accent-glow);
 }
 
 .natural .btn:hover {
-  background: #2EF37D !important;
-  box-shadow: 0 4px 15px rgba(16, 217, 106, 0.3);
+  background: var(--theme-accent-hover) !important;
+  box-shadow: 0 6px 20px rgba(0, 255, 133, 0.35);
 }
 
-/* Galactic */
+
+
+/* Galactic - Deep Space Nebula */
 .galactic {
-  background: #0C1B33;
-  color: #C9E7FF;
+  background: #050810; /* Deep Obsidian Navy */
+  color: #d1e8ff;
+  --theme-accent: #00D1FF;
+  --theme-accent-hover: #33daff;
+  --theme-accent-glow: rgba(0, 209, 255, 0.2);
 }
 
 .galactic header {
-  background: rgba(30, 76, 126, 0.7);
+  background: rgba(8, 12, 25, 0.85);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
 }
 
 .galactic .btn {
-  background: #1E90FF !important;
-  color: #000 !important;
-  box-shadow: 0 4px 12px rgba(30, 144, 255, 0.2);
+  background: var(--theme-accent) !important;
+  color: #050a15 !important;
+  box-shadow: 0 4px 15px var(--theme-accent-glow);
 }
 
 .galactic .btn:hover {
-  background: #4DA6FF !important;
-  box-shadow: 0 4px 15px rgba(30, 144, 255, 0.3);
+  background: var(--theme-accent-hover) !important;
+  box-shadow: 0 6px 20px rgba(0, 209, 255, 0.4);
 }
 
-/* Retro */
+
+
+/* Retro - Cyberpunk Neon */
 .retro {
-  background: #1E1A2B;
-  color: #F0EDEE;
+  background: #0d0912; /* Deep Obsidian Purple */
+  color: #fce7f3;
+  --theme-accent: #FF007F;
+  --theme-accent-hover: #ff3399;
+  --theme-accent-glow: rgba(255, 0, 127, 0.3);
 }
 
 .retro header {
-  background: rgba(255, 0, 127, 0.2);
+  background: rgba(18, 12, 25, 0.85);
+  border-bottom: 2px solid var(--theme-accent);
 }
 
 .retro .btn {
-  background: #D81B60 !important;
+  background: var(--theme-accent) !important;
   color: #fff !important;
-  box-shadow: 0 4px 12px rgba(216, 27, 96, 0.2);
+  box-shadow: 0 4px 15px var(--theme-accent-glow);
 }
 
 .retro .btn:hover {
-  background: #E91E63 !important;
-  box-shadow: 0 4px 15px rgba(216, 27, 96, 0.35);
+  background: var(--theme-accent-hover) !important;
+  box-shadow: 0 6px 25px rgba(255, 0, 127, 0.5);
 }
 
-/* Vintage */
+
+
+/* Vintage - Classic Rock Amp */
 .vintage {
-  background: #1F1A16;
-  color: #EAE0D5;
+  background: #0f0d0b; /* Deep Obsidian Charcoal */
+  color: #f5efe6;
+  --theme-accent: #E6B325;
+  --theme-accent-hover: #f0c54d;
+  --theme-accent-glow: rgba(230, 179, 37, 0.2);
 }
 
 .vintage header {
-  background: rgba(101, 67, 33, 0.7);
+  background: rgba(20, 18, 16, 0.85);
+  border-bottom: 1px solid rgba(230, 179, 37, 0.3);
 }
 
 .vintage .btn {
-  background: #F1C40F !important;
-  color: #000 !important;
-  box-shadow: 0 4px 12px rgba(241, 196, 15, 0.2);
+  background: var(--theme-accent) !important;
+  color: #12100e !important;
+  box-shadow: 0 4px 15px var(--theme-accent-glow);
 }
 
 .vintage .btn:hover {
-  background: #F4D03F !important;
-  box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3);
+  background: var(--theme-accent-hover) !important;
+  box-shadow: 0 6px 20px rgba(230, 179, 37, 0.4);
 }
 
-/* RedBlack */
+
+
+/* RedBlack - Blood & Shadow */
 .redblack {
-  background: #1A0B0B;
-  color: #E0E0E0;
+  background: #050000; /* Pure Obsidian Black */
+  color: #f5f5f5;
+  --theme-accent: #D32F2F;
+  --theme-accent-hover: #FF5252;
+  --theme-accent-glow: rgba(211, 47, 47, 0.3);
 }
 
 .redblack header {
-  background: rgba(125, 10, 10, 0.4);
+  background: rgba(15, 0, 0, 0.9);
+  border-bottom: 2px solid var(--theme-accent);
 }
 
 .redblack .btn {
-  background: #E81F2B !important;
+  background: var(--theme-accent) !important;
   color: #FFF !important;
-  box-shadow: 0 4px 12px rgba(232, 31, 43, 0.2);
+  box-shadow: 0 0 15px var(--theme-accent-glow);
 }
 
 .redblack .btn:hover {
-  background: #FF3D47 !important;
-  box-shadow: 0 4px 15px rgba(232, 31, 43, 0.35);
+  background: var(--theme-accent-hover) !important;
+  box-shadow: 0 0 25px rgba(211, 47, 47, 0.5);
 }
+
+
 
 /* ---------- ELEMENTOS COMUNES ---------- */
 .redblack {
@@ -382,32 +426,79 @@ header {
 
 /* ---------- TARJETAS (MEN�) � ESTILO JAMVAULT ---------- */
 .menu {
+  position: relative;
   display: inline-block;
-  background-color: #332a30;
-  padding: 3rem 2.2rem;
+  background-color: #1e1b24; /* Base dark background */
+  padding: 3.5rem 2.2rem;
   margin: 1.5rem;
   width: 30rem;
   cursor: pointer;
   border-radius: 1.5rem;
   box-shadow: 0px 0.625rem 1.56rem rgba(0, 0, 0, 0.35);
-  transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease;
   will-change: transform;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+}
+
+/* Professional Overlay Layer */
+.menu::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.65); /* Dark enough for readability */
+  transition: background 0.4s ease, opacity 0.4s ease;
+  z-index: -1;
+}
+
+.menu h3, .menu p {
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s ease;
 }
 
 .menu h3 {
-  font-size: 1.8rem;
+  font-size: 2rem;
   margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .menu p {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   line-height: 1.6;
+  opacity: 0.9;
 }
 
 .menu:hover {
-  transform: scale(1.015) translateY(-0.125rem);
-  box-shadow: 1.25rem 1.25rem 0rem rgba(0, 0, 0, 0.5);
+  transform: scale(1.02) translateY(-0.5rem);
+  box-shadow: 1.25rem 1.25rem 0rem rgba(0, 0, 0, 0.6); /* Restoring the Hard Relief Shadow */
 }
+
+.menu:hover::before {
+  background: rgba(0, 0, 0, 0.2); /* Much lighter on hover to "illuminate" the image */
+  opacity: 0.8;
+}
+
+.menu:hover h3, .menu:hover p {
+  transform: translateY(-5px); /* Subtle internal lift */
+}
+
+/* Background Image Assignment */
+.card-scales {
+  background-image: url('imagenes/escalas.jpg');
+}
+
+/* Placeholder backgrounds for other cards until user provides images */
+.card-chords {
+  background-image: url('imagenes/acordes.jpg'); 
+}
+
+.card-exercises {
+  background-image: url('imagenes/ejercicios.jpg');
+}
+
 
 /* Sombra más oscura para tema JamVault */
 .JamVault .menu {
@@ -419,30 +510,15 @@ header {
 }
 
 
-/* hover por tema vibrante */
-.JamVault .menu:hover {
-  background-color: #FF9F1C;
-  color: #000;
-}
-
-.natural .menu:hover {
-  background-color: #10D96A;
-  color: #000;
-}
-
-.galactic .menu:hover {
-  background-color: #1E90FF;
-  color: #000;
-}
-
-.retro .menu:hover {
-  background-color: #D81B60;
-  color: #fff;
-}
-
+/* Universal hover logic without color tinting - focus on illumination/clarity */
+.JamVault .menu:hover,
+.natural .menu:hover,
+.galactic .menu:hover,
+.retro .menu:hover,
 .vintage .menu:hover {
-  background-color: #F1C40F;
-  color: #000;
+  color: #fff; 
+  box-shadow: 1.25rem 1.25rem 0rem rgba(0, 0, 0, 0.85);
+  filter: brightness(1.1) contrast(1.05); /* Pro lighting effect */
 }
 
 .redblack .menu:hover {
