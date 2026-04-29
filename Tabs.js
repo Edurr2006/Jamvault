@@ -45,9 +45,8 @@ async function initDiscovery() {
   if (!loadingDiv) return;
   loadingDiv.style.display = 'block';
   try {
-    const popularQueries = ['Metallica', 'Led Zeppelin', 'AC/DC', 'Nirvana', 'Guns N Roses'];
-    const results = await Promise.all(popularQueries.map(q => fetchSongs(q)));
-    allSongs = results.flat().sort((a, b) => (b.views || 0) - (a.views || 0));
+    const results = await fetchSongs('');
+    allSongs = results;
     loadingDiv.style.display = 'none';
     renderSongsList(allSongs);
   } catch (error) {
@@ -57,44 +56,49 @@ async function initDiscovery() {
 }
 
 async function fetchSongs(query) {
-  const targetUrl = `https://www.songsterr.com/api/search?pattern=${encodeURIComponent(query)}&size=15`;
-  const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+  const url = query
+    ? `api/tabs.php?q=${encodeURIComponent(query)}`
+    : 'api/tabs.php';
   try {
-    const response = await fetch(proxyUrl);
+    const response = await fetch(url);
     if (!response.ok) return [];
-    const data = await response.json();
-    return data.records || data;
-  } catch (e) { return []; }
+    return await response.json();
+  } catch (e) {
+    console.error('❌ Error al obtener tabs:', e);
+    return [];
+  }
 }
 
 function renderSongsList(songs) {
   if (!songsListBody) return;
   songsListBody.innerHTML = '';
+  if (songs.length === 0) {
+    songsListBody.innerHTML = '<tr><td colspan="2" style="text-align:center;opacity:0.5;padding:2rem">No se encontraron resultados</td></tr>';
+    return;
+  }
   songs.forEach((song, index) => {
     const tr = document.createElement('tr');
-    const views = song.tracks?.reduce((acc, t) => acc + (t.views || 0), 0) || 0;
-    const displayViews = views > 1000 ? (views / 1000).toFixed(1) + 'k' : views;
+    const displayViews = song.views > 1000 ? (song.views / 1000).toFixed(1) + 'k' : song.views;
 
-    const diffs = song.tracks?.map(t => t.difficulty).filter(d => d > 0) || [];
-    const avg = diffs.length > 0 ? Math.round(diffs.reduce((a, b) => a + b, 0) / diffs.length) : 1;
+    const diff = parseInt(song.difficulty) || 1;
     let diffHTML = '<div class="difficulty-dots">';
-    for (let i = 1; i <= 5; i++) diffHTML += `<div class="dot ${i <= avg ? 'active' : ''}"></div>`;
+    for (let i = 1; i <= 5; i++) diffHTML += `<div class="dot ${i <= diff ? 'active' : ''}"></div>`;
     diffHTML += '</div>';
 
     tr.innerHTML = `
-            <td>
-                <div class="song-rank-info">
-                    <span class="rank-number">${(index + 1).toString().padStart(2, '0')}</span>
-                    <div class="song-details">
-                        <span class="song-title-cell">${song.title}</span>
-                        <span class="song-artist-cell">${song.artist}</span>
-                        ${diffHTML}
-                    </div>
+        <td>
+            <div class="song-rank-info">
+                <span class="rank-number">${(index + 1).toString().padStart(2, '0')}</span>
+                <div class="song-details">
+                    <span class="song-title-cell">${song.title}</span>
+                    <span class="song-artist-cell">${song.artist}</span>
+                    ${diffHTML}
                 </div>
-            </td>
-            <td style="text-align:right"><span class="popularity-badge">🔥 ${displayViews}</span></td>
-        `;
-    tr.onclick = () => loadSong(song.songId || song.id);
+            </div>
+        </td>
+        <td style="text-align:right"><span class="popularity-badge">🔥 ${displayViews}</span></td>
+    `;
+    tr.onclick = () => loadSong(song.id);
     songsListBody.appendChild(tr);
   });
 }
@@ -119,7 +123,7 @@ if (clearSearchBtn) clearSearchBtn.onclick = () => {
   searchInput.value = ''; clearSearchBtn.style.display = 'none'; initDiscovery();
 };
 
-// --- 2. THE ALPHATAB ENGINE (NATIVE-FIRST) ---
+// --- 2. THE ALPHATAB ENGINE ---
 
 function initAlphaTab() {
   if (alphaApi) alphaApi.destroy();
@@ -127,33 +131,22 @@ function initAlphaTab() {
   const settings = {
     core: { engine: 'svg' },
     display: {
-      layout: 'horizontal',
+      layout: { mode: 'page' },       // Vertical layout, line by line (like Songsterr)
       hideStandardNotation: true,
-      staveSpacing: 10, // Added spacing for better visibility
-      padding: [40, 40, 40, 40] // Increased padding
+      staveSpacing: 10,
+      padding: [40, 40, 40, 40]
     },
     player: {
       enablePlayer: true,
       enableUserInteraction: true,
       soundFont: 'https://cdn.jsdelivr.net/npm/@coderline/alphatab@latest/dist/soundfont/sonivox.sf2',
-      scrollElement: '#at-player-content'
+      scrollElement: '#at-player-content',
+      scrollOffsetY: -80
     },
-    ui: {
-      cursor: true
-    }
+    ui: { cursor: true }   // Keep native cursor for beat interaction; we overlay our smoother one
   };
 
   alphaApi = new alphaTab.AlphaTabApi(document.getElementById('alphaTab'), settings);
-
-  // DEBUG: Monitor Cursor DOM
-  alphaApi.playerPositionChanged.on(args => {
-    const cursor = document.querySelector('.at-cursor, .at-cursor-bar');
-    if (!cursor) {
-      console.warn('JamVault Debug: Cursor element NOT found in DOM during playback.');
-    } else if (window.getComputedStyle(cursor).display === 'none') {
-      console.warn('JamVault Debug: Cursor found but display is NONE.');
-    }
-  });
 
   // Score Loaded: Find the track that starts earliest
   alphaApi.scoreLoaded.on(score => {
@@ -182,114 +175,48 @@ function initAlphaTab() {
     if (loadingDiv) loadingDiv.style.display = 'none';
     if (controlsBar) controlsBar.classList.add('visible');
 
-    // Force Top Start
     const container = document.getElementById('at-player-content');
     if (container) container.scrollTop = 0;
   });
 
-
-  // Continuous smooth laser animation (Reverted to Safe Lerp)
-  let animationFrameId = null;
-  let targetX = 0, targetY = 0, targetHeight = 100;
-  let currentX = 0, currentY = 0, currentHeight = 100;
-
-  function startLaserAnimation() {
-    if (animationFrameId) return;
-
-    // Initialize starting values from DOM
-    const alphaCursor = document.querySelector('.at-cursor-bar');
-    if (alphaCursor) {
-      const cursorRect = alphaCursor.getBoundingClientRect();
-      const container = document.getElementById('at-player-content');
-      if (container) {
-        const containerRect = container.getBoundingClientRect();
-        currentX = cursorRect.left - containerRect.left + container.scrollLeft;
-        currentY = cursorRect.top - containerRect.top + container.scrollTop;
-        currentHeight = cursorRect.height;
-
-        targetX = currentX;
-        targetY = currentY;
-        targetHeight = currentHeight;
-      }
+  // ─── SIMPLE CSS-BASED OVERLAY CURSOR ───────────────────────
+  
+  alphaApi.playerPositionChanged.on(args => {
+    // Progress bar update
+    if (currentScore && progressBar) {
+      const totalDur = currentScore.masterBars.reduce((a, b) => a + (b.tickDuration || 0), 0) || 100000;
+      progressBar.style.width = ((args.currentTick / totalDur) * 100) + '%';
     }
 
-    function animate() {
-      const laser = document.getElementById('customLaser');
-      const alphaCursor = document.querySelector('.at-cursor-bar');
-      const container = document.getElementById('at-player-content');
-
-      if (!laser || !isPlaying || !container) {
-        animationFrameId = null;
-        return;
-      }
-
-      // Update target from AlphaTab cursor
-      if (alphaCursor) {
-        const cursorRect = alphaCursor.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-
-        targetX = cursorRect.left - containerRect.left + container.scrollLeft;
-        targetY = cursorRect.top - containerRect.top + container.scrollTop;
-        targetHeight = cursorRect.height;
-      }
-
-      // Smooth interpolation (lerp)
-      const smoothness = 0.2;
-
-      if (Math.abs(targetY - currentY) > 50) {
-        currentX = targetX;
-        currentY = targetY;
-        currentHeight = targetHeight;
-      } else {
-        currentX += (targetX - currentX) * smoothness;
-        currentY += (targetY - currentY) * smoothness;
-        currentHeight += (targetHeight - currentHeight) * smoothness;
-      }
-
-      laser.style.left = currentX + 'px';
-      laser.style.top = currentY + 'px';
-      laser.style.height = currentHeight + 'px';
-
-      animationFrameId = requestAnimationFrame(animate);
+    // Snap the laser overlay exactly over the AlphaTab internal selection
+    const laser = document.getElementById('customLaser');
+    const el = document.querySelector('.at-cursor') || document.querySelector('.at-cursor-bar') || document.querySelector('.at-cursor-beat');
+    const cont = document.getElementById('at-player-content');
+    
+    if (laser && el && cont) {
+      const elRect = el.getBoundingClientRect();
+      const contRect = cont.getBoundingClientRect();
+      
+      laser.style.left = (elRect.left - contRect.left + cont.scrollLeft - 3) + 'px';
+      laser.style.top = (elRect.top - contRect.top + cont.scrollTop) + 'px';
+      laser.style.width = '4px'; // <--- EXTRAS VISIBLE
+      laser.style.height = elRect.height + 'px';
     }
-
-    animate();
-  }
-
-  function stopLaserAnimation() {
-    if (animationFrameId) {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = null;
-    }
-  }
+  });
 
   alphaApi.playerStateChanged.on(args => {
     isPlaying = (args.state === 1);
     if (playPauseBtn) playPauseBtn.innerText = isPlaying ? '⏸' : '▶';
 
-    // Control custom laser visibility and animation
+    // Show or hide the laser when we start/stop playing
     const laser = document.getElementById('customLaser');
     if (laser) {
       laser.style.display = isPlaying ? 'block' : 'none';
     }
-
-    if (isPlaying) {
-      startLaserAnimation();
-    } else {
-      stopLaserAnimation();
-    }
-  });
-
-
-  alphaApi.playerPositionChanged.on(args => {
-    if (currentScore && progressBar) {
-      const duration = currentScore.masterBars.reduce((a, b) => a + (b.tickDuration || 0), 0) || 100000;
-      progressBar.style.width = ((args.currentTick / duration) * 100) + '%';
-    }
   });
 
   alphaApi.playerFinished.on(() => {
-    stopLaserAnimation();
+    isPlaying = false;
     const laser = document.getElementById('customLaser');
     if (laser) laser.style.display = 'none';
   });
@@ -299,6 +226,7 @@ function initAlphaTab() {
     if (alphaApi) alphaApi.updateSettings();
   });
 }
+
 
 // --- 3. LOADING LOGIC ---
 async function loadSong(songId) {
@@ -310,48 +238,36 @@ async function loadSong(songId) {
   if (searchInput) searchInput.disabled = true;
 
   // Reset Audio UI
-  console.log('🔄 Resetting Audio UI...');
   if (ytAutoDetected) ytAutoDetected.style.display = 'none';
   if (ytManualInput) ytManualInput.style.display = 'none';
   if (ytSyncControls) ytSyncControls.style.display = 'none';
-  if (ytSyncController) {
-    ytSyncController.destroy();
-    ytSyncController = null;
-  }
+  if (ytSyncController) { ytSyncController.destroy(); ytSyncController = null; }
 
   try {
-    const url = `https://www.songsterr.com/a/wa/song?id=${songId}`;
-    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-    const html = await res.text();
-    const stateTag = new DOMParser().parseFromString(html, 'text/html').getElementById('state');
-    if (!stateTag) throw new Error("No state found");
+    // Fetch tab metadata from local API
+    const response = await fetch(`api/tabs.php?id=${songId}`);
+    if (!response.ok) throw new Error('Tab no encontrado en la BD');
+    const tab = await response.json();
+    if (tab.error) throw new Error(tab.error);
 
-    const state = JSON.parse(stateTag.textContent);
-    const tabUrl = `https://corsproxy.io/?${encodeURIComponent(state.meta.current.source)}`;
+    console.log(`📋 Cargando: ${tab.title} by ${tab.artist}`);
 
-    // Extract song metadata
-    const songTitle = state?.meta?.current?.title || '';
-    const artist = state?.meta?.current?.artist || '';
+    // Build the URL pointing to the local .gpx file (relative to project root in XAMPP)
+    const tabUrl = `/TFG/Jamvault/${tab.file}`;
 
-    console.log('📋 Song loaded:', songTitle, 'by', artist);
-
-    // Initialize AlphaTab
+    // Initialize AlphaTab and load
     initAlphaTab();
     alphaApi.load(tabUrl);
 
-    // Wait for AlphaTab to be ready before showing Audio options
-    alphaApi.scoreLoaded.on(async (score) => {
-      console.log('🎸 AlphaTab ready - Manual Input Mode');
-
-      // Force Manual Input Mode (No Search)
-      if (ytAutoDetected) ytAutoDetected.style.display = 'none';
+    // Show manual audio input once score loads
+    alphaApi.scoreLoaded.on(() => {
       if (ytManualInput) ytManualInput.style.display = 'flex';
     });
 
   } catch (e) {
     console.error("❌ Load Failed", e);
     if (loadingDiv) loadingDiv.style.display = 'none';
-    showToast("Error al cargar la partitura", "error");
+    showToast("Error al cargar la partitura: " + e.message, "error");
   }
 }
 

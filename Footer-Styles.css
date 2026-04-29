@@ -1,8 +1,9 @@
-/* ========== FOOTER STYLES ========== */
 .site-footer {
-    margin-top: 4rem;
-    padding: 2rem 1rem;
+    margin-top: auto;
+    padding: 1rem 1rem;
     text-align: center;
+    background-color: #121212;
+    color: #fff;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -10,12 +11,12 @@
     display: flex;
     justify-content: center;
     gap: 1rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.75rem;
 }
 
 .social-circle {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -23,6 +24,7 @@
     background: rgba(255, 255, 255, 0.1);
     color: white;
     text-decoration: none;
+    font-size: 0.8rem;
     font-weight: bold;
     transition: all 0.3s ease;
     border: 2px solid transparent;
@@ -79,8 +81,8 @@
 .footer-nav {
     display: flex;
     justify-content: center;
-    gap: 2rem;
-    margin-bottom: 1.5rem;
+    gap: 1.5rem;
+    margin-bottom: 0.75rem;
     flex-wrap: wrap;
 }
 
@@ -160,7 +162,7 @@
 }
 
 .footer-copyright {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.5);
-    margin-top: 1rem;
+    margin-top: 0.5rem;
 }

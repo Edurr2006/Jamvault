@@ -124,19 +124,14 @@
       fill: #ffffff !important;
     }
 
-    /* CURSOR NATIVO ULTRA-FLUIDO (ENGINE 60FPS) */
-    .at-cursor {
-      display: block !important;
-      visibility: visible !important;
-    }
-
+    /* NATIVE CURSORS VISIBILITY */
     .at-cursor-bar {
       display: block !important;
+      fill: rgba(255, 255, 255, 0.1) !important;
     }
 
     .at-cursor-beat {
-      display: none !important;
-      /* Ocultar el resalte de nota "gordo" */
+      display: block !important;
     }
 
     /* ESTILO BOTÓN CERRAR VIBRANTE */
@@ -537,35 +532,25 @@
       filter: drop-shadow(0 0 5px var(--at-accent-color));
     }
 
-    /* --- ALPHATAB INTEGRATED ENGINE (SONGSTERR STYLE) --- */
+    /* --- ALPHATAB INTEGRATED ENGINE --- */
     #at-player-content {
       flex: 1;
       overflow-y: auto;
       background: #000;
       padding: 0;
-      /* Remove padding to let AlphaTab fill the space */
+      position: relative; /* important for laser absolute positioning */
     }
 
-    /* --- HIDE ALL ALPHATAB CURSORS (but keep them measurable) --- */
-    .at-cursor-bar,
-    .at-cursor-beat,
-    .at-cursor {
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
-
-    /* --- CUSTOM LASER CURSOR --- */
     #customLaser {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 3px;
-      height: 100%;
       background: var(--at-accent-color);
-      box-shadow: 0 0 15px var(--at-accent-color), 0 0 25px var(--at-accent-color);
-      z-index: 999999;
+      opacity: 1;
+      box-shadow: 0 0 10px var(--at-accent-color), 0 0 20px var(--at-accent-color);
+      border-radius: 4px;
+      z-index: 50;
       pointer-events: none;
-      border-radius: 2px;
+      transition: top 0.05s ease, left 0.05s ease, width 0.05s ease, height 0.05s ease;
+      display: none;
     }
 
     .alphaTab-wrapper {
@@ -831,7 +816,7 @@
 
         <!-- Área de Partitura -->
         <main class="player-content" id="at-player-content" style="position: relative;">
-          <div id="customLaser" style="display:none;"></div>
+          <div id="customLaser"></div>
           <div class="alphaTab-wrapper">
             <div id="alphaTab"></div>
           </div>
@@ -934,6 +919,7 @@
   <script src="LocalStorage.js"></script>
   <script src="Toast.js"></script>
   <script src="Tabs.js?v=vexflow_tone_v1"></script>
+  <script src="ResponsiveMenu.js"></script>
 </body>
 
 </html>

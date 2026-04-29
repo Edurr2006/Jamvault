@@ -8,66 +8,64 @@
   <link rel="stylesheet" href="IndexStyles.css">
   <script src="ThemeInit.js"></script>
 </head>
-</head>
 
 <body>
-  <center>
-    <header>
-      <a href="index.html">
-        <div class="logo-title">
-          <img src="imagenes/logo.png" alt="Logo" class="Logo">
-        </div>
-      </a>
-      <div class="nav-links">
-        <a href="Acordes.html" class="btn">Acordes</a>
-        <a href="Escalas.html" class="btn">Escalas</a>
-        <a href="Tabs.html" class="btn">Tabs</a>
-        <a href="Afinador.html" class="btn">Afinador</a>
-        <a href="Jamstudio.html" class="btn">JamStudio</a>
-        <a href="Songbook.html" class="btn">Canciones</a>
-        <a href="Ejercicios.html" class="btn">Ejercicios</a>
+  <header>
+    <a href="index.html">
+      <div class="logo-title">
+        <img src="imagenes/logo.png" alt="Logo" class="Logo">
       </div>
-      <button id="toggleTheme" class="btn">Cambiar Tema</button>
-    </header>
-    <br><br><br>
-
-    <div class="tuner-container">
-      <h1>Afinador de guitarra</h1>
-      <p>Permite el micrófono y toca una cuerda para afinar.</p>
-
-      <button id="startButton" class="btn">Iniciar afinador</button>
-      <br><br>
-
-      <div id="note-display" class="note-display">
-        <h1 id="note">—</h1>
-        <p id="freq">Frecuencia: — Hz</p>
-        <p id="deviation">Desviación: —</p>
-      </div>
+    </a>
+    <div class="nav-links">
+      <a href="Acordes.html" class="btn">Acordes</a>
+      <a href="Escalas.html" class="btn">Escalas</a>
+      <a href="Tabs.html" class="btn">Tabs</a>
+      <a href="Afinador.html" class="btn">Afinador</a>
+      <a href="Jamstudio.html" class="btn">JamStudio</a>
+      <a href="Songbook.html" class="btn">Canciones</a>
+      <a href="Ejercicios.html" class="btn">Ejercicios</a>
     </div>
+    <button id="toggleTheme" class="btn">Cambiar Tema</button>
+  </header>
+  <br><br><br>
 
-    <!-- ========== SITE FOOTER ========== -->
-    <footer class="site-footer">
-      <div class="footer-socials">
-        <a href="#" class="social-circle">f</a>
-        <a href="#" class="social-circle">t</a>
-        <a href="#" class="social-circle">i</a>
-        <a href="#" class="social-circle">y</a>
-      </div>
-      <nav class="footer-nav">
-        <a href="index.html">Home</a>
-        <a href="#">News</a>
-        <a href="#">About</a>
-        <a href="#">Contact</a>
-      </nav>
-      <div class="footer-copyright">
-        Copyright | Designed by JamVault
-      </div>
-    </footer>
+  <main class="tuner-container">
+    <h1>Afinador de guitarra</h1>
+    <p>Permite el micrófono y toca una cuerda para afinar.</p>
 
-    <script src="afinador.js"></script>
-    <script src="Toast.js"></script>
-    <script src="LocalStorage.js"></script>
-  </center>
+    <button id="startButton" class="btn">Iniciar afinador</button>
+    <br><br>
+
+    <div id="note-display" class="note-display">
+      <h1 id="note">—</h1>
+      <p id="freq">Frecuencia: — Hz</p>
+      <p id="deviation">Desviación: —</p>
+    </div>
+  </main>
+
+  <!-- ========== SITE FOOTER ========== -->
+  <footer class="site-footer">
+    <div class="footer-socials">
+      <a href="#" class="social-circle">f</a>
+      <a href="#" class="social-circle">t</a>
+      <a href="#" class="social-circle">i</a>
+      <a href="#" class="social-circle">y</a>
+    </div>
+    <nav class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="#">News</a>
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </nav>
+    <div class="footer-copyright">
+      Copyright | Designed by JamVault
+    </div>
+  </footer>
+
+  <script src="Afinador.js"></script>
+  <script src="Toast.js"></script>
+  <script src="LocalStorage.js"></script>
+  <script src="ResponsiveMenu.js"></script>
 </body>
 
 </html>
