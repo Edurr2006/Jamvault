@@ -4,250 +4,280 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Libro de Canciones</title>
-
-  <!-- Enlace al CSS general -->
-  <link rel="stylesheet" href="IndexStyles.css" />
+  <title>Libro de Canciones | JamVault</title>
+  <link rel="stylesheet" href="IndexStyles.css?v=2" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="ThemeInit.js"></script>
-
-  <!-- Script que gestiona el cambio de tema -->
   <script src="LocalStorage.js" defer></script>
 
   <style>
     .container {
       max-width: 1400px;
       width: 95%;
-      margin: 3rem auto;
+      margin: 2rem auto 5rem;
       padding: 0 2rem;
-      text-align: left;
-      /* Overriding global center */
     }
 
+    h1 {
+      font-size: 3rem;
+      font-weight: 900;
+      text-align: center;
+      margin-bottom: 2.5rem;
+      background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.4) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -1.5px;
+    }
+
+    /* --- MODERN SEARCH AREA --- */
     .search-area {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 20px;
-      margin-bottom: 2rem;
-      padding: 1.5rem;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 20px;
+      gap: 25px;
+      margin-bottom: 4rem;
+      padding: 2.5rem;
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
       border: 1px solid rgba(255, 255, 255, 0.05);
-      position: relative;
-      z-index: 100;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
     }
 
     .search-box-wrapper {
       position: relative;
       width: 100%;
-      max-width: 600px;
-      display: flex;
-      align-items: center;
+      max-width: 700px;
     }
 
     #searchInput {
       width: 100%;
-      text-align: left;
-      padding: 15px 50px 15px 25px;
-      font-size: 1.1rem;
-      background: rgba(0, 0, 0, 0.3);
+      padding: 20px 60px 20px 30px;
+      font-size: 1.15rem;
+      background: rgba(0, 0, 0, 0.4);
       border: 2px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      transition: all 0.3s ease;
+      border-radius: 18px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       color: #fff;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
     }
 
     #searchInput:focus {
-      border-color: #f39c12;
-      box-shadow: 0 0 20px rgba(243, 156, 18, 0.2);
+      border-color: var(--theme-accent, #f39c12);
+      background: rgba(0,0,0,0.6);
+      box-shadow: 0 0 30px rgba(255, 159, 28, 0.15),
+                  inset 0 2px 10px rgba(0,0,0,0.5);
       outline: none;
     }
 
     #clearSearch {
       position: absolute;
-      right: 15px;
-      background: #f39c12;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.1);
       border: none;
       color: #fff;
-      width: 24px;
-      height: 24px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       display: none;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 0.8rem;
+      transition: all 0.2s;
     }
 
-    /* Static Search Results Area */
-    #search-results-area {
+    #clearSearch:hover {
+      background: #ff4444;
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    /* --- DISCOVERY / RESULTS AREA --- */
+    #discovery-area {
       width: 100%;
-      max-width: 1000px;
-      margin-top: 15px;
-      display: none;
-      /* Hidden when empty */
+      max-width: 1100px;
+      margin-top: 10px;
+      display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 15px;
       justify-content: center;
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 15px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 25px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .discovery-title {
+      width: 100%;
+      text-align: left;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 15px;
+      padding-left: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .search-result-item {
-      padding: 10px 15px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
+      padding: 15px 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 14px;
       cursor: grab;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      transition: all 0.2s;
-      width: 140px;
-      text-align: center;
+      transition: all 0.3s ease;
+      width: 200px;
+      position: relative;
+      overflow: hidden;
     }
 
     .search-result-item:hover {
-      background: rgba(243, 156, 18, 0.1);
+      background: rgba(255, 255, 255, 0.07);
+      border-color: var(--accent-theme, #f39c12);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.4);
     }
 
-    .search-result-item:active {
-      cursor: grabbing;
-    }
-
-    .result-info {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .result-title {
-      font-weight: bold;
-      color: #fff;
-      font-size: 0.9rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 100%;
-    }
-
-    .result-artist {
-      font-size: 0.75rem;
-      color: #888;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 100%;
-    }
-
-    /* Songbook Columns */
+    /* --- COLUMNS & CARDS --- */
     .songbook-container {
-      display: flex;
-      flex-direction: row;
-      gap: 1.5rem;
-      margin-top: 2rem;
-      align-items: stretch;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2.5rem;
+      align-items: start;
     }
 
     .songbook-column {
       background: rgba(255, 255, 255, 0.02);
-      border-radius: 20px;
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 35px;
       border: 1px solid rgba(255, 255, 255, 0.05);
-      padding: 1.5rem;
-      min-height: 500px;
-      flex: 1;
-      /* Stretch to fill space horizontally */
+      padding: 2.2rem;
+      min-height: 650px;
       display: flex;
       flex-direction: column;
-      transition: all 0.3s ease;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
     }
 
-    .songbook-column.drag-over {
-      background: rgba(243, 156, 18, 0.05);
-      border-color: #f39c12;
-      transform: scale(1.02);
+    /* Soft Glows for Categories */
+    .songbook-column[data-category="want"] { box-shadow: 0 10px 40px rgba(255, 68, 68, 0.08); }
+    .songbook-column[data-category="progress"] { box-shadow: 0 10px 40px rgba(243, 156, 18, 0.08); }
+    .songbook-column[data-category="done"] { box-shadow: 0 10px 40px rgba(46, 204, 113, 0.08); }
+
+    .songbook-column:hover {
+      transform: translateY(-10px);
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255,255,255,0.1);
     }
 
     .songbook-header {
-      font-size: 1.25rem;
-      margin-bottom: 1.5rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 2px solid rgba(243, 156, 18, 0.5);
+      font-size: 1.15rem; /* Reduced slightly to ensure fit */
+      font-weight: 800;
+      margin-bottom: 2.5rem;
+      padding: 0.5rem 0 1.2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       color: #fff;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      min-height: 50px;
+      white-space: nowrap;
+    }
+
+    .songbook-header span:first-child {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .songbook-header i {
+      font-size: 1.4rem;
+    }
+
+    [data-category="want"] i { color: #ff4444; text-shadow: 0 0 10px rgba(255, 68, 68, 0.5); }
+    [data-category="progress"] i { color: #f39c12; text-shadow: 0 0 10px rgba(243, 156, 18, 0.5); }
+    [data-category="done"] i { color: #2ecc71; text-shadow: 0 0 10px rgba(46, 204, 113, 0.5); }
+
+    .songbook-header i {
+      margin-right: 12px;
+      font-size: 1.2rem;
+      opacity: 0.8;
+    }
+
+    .count {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.6);
+      border: 1px solid rgba(255,255,255,0.1);
     }
 
     .songbook-list {
       flex: 1;
       display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      gap: 15px;
-      align-content: flex-start;
+      flex-direction: column;
+      gap: 12px;
     }
 
     .song-card {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 10px;
-      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 20px;
+      padding: 18px 24px;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
       align-items: center;
-      cursor: grab;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      justify-content: space-between;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.06);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      width: 150px;
-      /* Reduced width */
-      min-height: 80px;
-      /* Reduced height */
-      text-align: center;
       position: relative;
+      margin-bottom: 5px;
     }
 
     .song-card:hover {
       background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(243, 156, 18, 0.3);
-    }
-
-    .song-card:active {
-      cursor: grabbing;
+      border-color: rgba(255,255,255,0.15);
+      transform: translateX(5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
 
     .song-card-info {
       display: flex;
       flex-direction: column;
+      gap: 4px;
     }
 
     .song-card-title {
-      font-weight: 600;
+      font-weight: 700;
       color: #fff;
-      font-size: 0.85rem;
-      /* Smaller font */
+      font-size: 1.05rem;
+      letter-spacing: -0.3px;
     }
 
     .song-card-artist {
-      font-size: 0.7rem;
-      /* Smaller font */
-      color: #aaa;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.5);
+      font-weight: 500;
     }
 
     .btn-delete {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: rgba(255, 85, 85, 0.1);
+      background: rgba(255, 68, 68, 0.1);
       border: none;
-      color: #ff5555;
+      color: #ff4444;
       cursor: pointer;
-      font-size: 0.9rem;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -260,7 +290,7 @@
     }
 
     .btn-delete:hover {
-      background: #ff5555;
+      background: #ff4444;
       color: #fff;
       transform: scale(1.1);
     }
@@ -268,9 +298,29 @@
     #loading {
       display: none;
       text-align: center;
-      color: #f39c12;
-      margin-top: 10px;
-      font-size: 0.9rem;
+      color: var(--accent-theme, #f39c12);
+      margin-top: 15px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
+    }
+
+    @media (max-width: 950px) {
+      .songbook-container {
+        grid-template-columns: 1fr;
+      }
+      .container {
+        padding: 0 1rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+      }
     }
   </style>
 </head>
@@ -308,22 +358,37 @@
         <button id="clearSearch" title="Limpiar búsqueda">✕</button>
       </div>
       <div id="loading">🤘 Buscando canciones...</div>
-      <div id="search-results-area"></div>
+      <div id="discovery-area">
+        <div class="discovery-title"><i class="fas fa-compact-disc"></i> Biblioteca JamVault</div>
+        <!-- Canciones cargadas dinámicamente -->
+      </div>
     </div>
 
     <section class="songbook-container">
+      <!-- QUIERO APRENDERLAS -->
       <div class="songbook-column" data-category="want">
-        <h2 class="songbook-header">Quiero Aprenderlas <span class="count">0</span></h2>
+        <h2 class="songbook-header">
+          <span><i class="fas fa-heart"></i> Pendientes</span>
+          <span class="count">0</span>
+        </h2>
         <div class="songbook-list" id="want-list"></div>
       </div>
 
+      <!-- EN PROCESO -->
       <div class="songbook-column" data-category="progress">
-        <h2 class="songbook-header">En Proceso <span class="count">0</span></h2>
+        <h2 class="songbook-header">
+          <span><i class="fas fa-spinner fa-spin-slow"></i> En Proceso</span>
+          <span class="count">0</span>
+        </h2>
         <div class="songbook-list" id="progress-list"></div>
       </div>
 
+      <!-- APRENDIDAS -->
       <div class="songbook-column" data-category="done">
-        <h2 class="songbook-header">Aprendidas <span class="count">0</span></h2>
+        <h2 class="songbook-header">
+          <span><i class="fas fa-check-circle"></i> Aprendidas</span>
+          <span class="count">0</span>
+        </h2>
         <div class="songbook-list" id="done-list"></div>
       </div>
     </section>
@@ -351,6 +416,7 @@
   <script src="Toast.js"></script>
   <script src="Songbook.js"></script>
   <script src="ResponsiveMenu.js"></script>
+<script src="Auth.js?v=5"></script>
 </body>
 
 </html>

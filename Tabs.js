@@ -252,8 +252,8 @@ async function loadSong(songId) {
 
     console.log(`📋 Cargando: ${tab.title} by ${tab.artist}`);
 
-    // Build the URL pointing to the local .gpx file (relative to project root in XAMPP)
-    const tabUrl = `/TFG/Jamvault/${tab.file}`;
+    // Build the URL pointing to the local .gpx file (relative to project root)
+    const tabUrl = tab.file;
 
     // Initialize AlphaTab and load
     initAlphaTab();

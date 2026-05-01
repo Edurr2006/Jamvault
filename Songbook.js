@@ -14,7 +14,7 @@ let songLists = {
 const searchInput = document.getElementById('searchInput');
 const clearSearchBtn = document.getElementById('clearSearch');
 const loadingDiv = document.getElementById('loading');
-const resultsArea = document.getElementById('search-results-area');
+const discoveryArea = document.getElementById('discovery-area');
 
 const listsNodes = {
     want: document.getElementById('want-list'),
@@ -30,7 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
     setupEventListeners();
     renderAllLists();
+    initDiscovery(); // Load all songs on start
 });
+
+async function initDiscovery() {
+    loadingDiv.style.display = 'block';
+    const songs = await fetchSongs(''); 
+    loadingDiv.style.display = 'none';
+    renderSearchResults(songs, "Biblioteca JamVault");
+}
 
 function setupEventListeners() {
     // Search input with debounce
@@ -41,28 +49,22 @@ function setupEventListeners() {
 
         clearTimeout(searchTimeout);
         if (!q) {
-            resultsArea.style.display = 'none';
+            initDiscovery(); // Show all if empty
             return;
         }
 
         searchTimeout = setTimeout(async () => {
             loadingDiv.style.display = 'block';
-            resultsArea.style.display = 'none';
-
             const results = await fetchSongs(q);
-            renderSearchResults(results);
-
             loadingDiv.style.display = 'none';
-            if (results.length > 0) {
-                resultsArea.style.display = 'flex'; // Changed to flex to match CSS
-            }
+            renderSearchResults(results, `Resultados para "${q}"`);
         }, 500);
     };
 
     clearSearchBtn.onclick = () => {
         searchInput.value = '';
         clearSearchBtn.style.display = 'none';
-        resultsArea.style.display = 'none';
+        initDiscovery();
     };
 
     // Drag and Drop for Columns
@@ -98,36 +100,50 @@ function setupEventListeners() {
     });
 }
 
-// --- 2. SONGSTERR API ---
+// --- 2. LOCAL TABS API ---
 
 async function fetchSongs(query) {
-    const targetUrl = `https://www.songsterr.com/api/search?pattern=${encodeURIComponent(query)}&size=10`;
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+    const url = query
+        ? `api/tabs.php?q=${encodeURIComponent(query)}`
+        : 'api/tabs.php';
     try {
-        const response = await fetch(proxyUrl);
-        if (!response.ok) return [];
+        const response = await fetch(url);
+        if (!response.ok) {
+            const err = await response.json();
+            console.error('❌ Error API:', err.error || 'Desconocido');
+            return [];
+        }
         const data = await response.json();
-        return data.records || data;
+        return Array.isArray(data) ? data : [];
     } catch (e) {
-        console.error('Fetch error:', e);
+        console.error('❌ Error al obtener tabs de la DB:', e);
         return [];
     }
 }
 
 // --- 3. RENDERING ---
 
-function renderSearchResults(results) {
-    resultsArea.innerHTML = '';
+function renderSearchResults(results, titleText) {
+    discoveryArea.innerHTML = `<div class="discovery-title"><i class="fas fa-compact-disc"></i> ${titleText || 'Biblioteca JamVault'}</div>`;
+    
+    if (!Array.isArray(results) || results.length === 0) {
+        discoveryArea.innerHTML += '<div style="padding: 1.5rem; opacity: 0.5; width: 100%; text-align: center;">No se encontraron canciones disponibles</div>';
+        return;
+    }
     results.forEach(song => {
         const item = document.createElement('div');
         item.className = 'search-result-item';
         item.draggable = true;
 
         item.innerHTML = `
-            <span class="result-title" title="${song.title}">${song.title}</span>
-            <span class="result-artist" title="${song.artist}">${song.artist}</span>
-            <span style="font-size: 0.8rem; opacity: 0.4; margin-top: 5px;"><i>click to view</i></span>
-            <span style="font-size: 0.9rem; opacity: 0.4; margin-top: 2px;">drag ⣿</span>
+            <div class="result-info">
+                <span class="result-title" title="${song.title}">${song.title}</span>
+                <span class="result-artist" title="${song.artist}">${song.artist}</span>
+            </div>
+            <div class="result-actions" style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; opacity: 0.6; font-size: 0.8rem;">
+                <span><i class="fas fa-eye"></i> Ver</span>
+                <span>Arrastrar <i class="fas fa-grip-vertical"></i></span>
+            </div>
         `;
 
         item.style.cursor = 'pointer'; // Make it clear it's clickable
@@ -149,11 +165,10 @@ function renderSearchResults(results) {
 
         // Click to view immediately
         item.onclick = (e) => {
-            // Prevent interference with drag if possible, but basic click is fine
             window.location.href = `Tabs.html?songId=${song.id || song.songId}`;
         };
 
-        resultsArea.appendChild(item);
+        discoveryArea.appendChild(item);
     });
 }
 
@@ -183,7 +198,7 @@ function renderList(category) {
                 <span class="song-card-title">${song.title}</span>
                 <span class="song-card-artist">${song.artist}</span>
             </div>
-            <button class="btn-delete" title="Eliminar">🗑</button>
+            <button class="btn-delete" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
         `;
 
         // Drag Start

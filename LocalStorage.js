@@ -1,7 +1,8 @@
 // theme.js
 document.addEventListener("DOMContentLoaded", () => {
   const themes = ["JamVault", "natural", "galactic", "retro", "vintage", "redblack"];
-  let currentTheme = localStorage.getItem("theme") || "JamVault";
+  let savedTheme = localStorage.getItem("theme");
+  let currentTheme = themes.includes(savedTheme) ? savedTheme : "JamVault";
 
   // Global function to apply a specific theme
   window.applyTheme = function (newTheme) {
@@ -15,7 +16,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const button = document.getElementById("toggleTheme");
     if (button) {
-      button.textContent = "Cambiar Tema (" + newTheme + ")";
+      button.innerHTML = '<i class="fas fa-palette"></i>';
+      button.title = "Cambiar Tema (" + newTheme + ")";
     }
 
     // Sync other components

@@ -211,6 +211,7 @@ header {
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   box-sizing: border-box;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -409,15 +410,29 @@ header {
   width: 5.625rem;
 }
 
-#toggleTheme {
-  margin-left: auto;
-}
+
 
 .nav-links {
-  margin-left: auto;
   display: flex;
   gap: 1rem;
   align-items: center;
+  justify-content: center;
+  flex: 0 1 auto;
+}
+
+header > a {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+  text-decoration: none;
+}
+
+.header-actions {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
 }
 
 .title-logo {
@@ -1438,35 +1453,7 @@ a {
   border: 1px solid rgba(255,255,255,0.05);
 }
 
-.songbook-column:hover {
-  transform: scale(1.005);
-}
 
-.songbook-header {
-  padding: 1rem;
-  text-align: center;
-  font-weight: bold;
-  font-size: 1.2rem;
-}
-
-.songbook-list {
-  flex-grow: 1;
-  padding: 1rem;
-}
-
-[data-category="want"] .songbook-header {
-  background-color: #e84a5f;
-}
-
-[data-category="progress"] .songbook-header {
-  background-color: #f6b352;
-  color: #000;
-}
-
-[data-category="done"] .songbook-header {
-  background-color: #d8d8d8;
-  color: #000;
-}
 
 /* ========== SITE FOOTER (GLOBAL) ========== */
 .site-footer {
