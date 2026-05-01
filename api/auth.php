@@ -82,7 +82,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($action === 'me') {
         if (isset($_SESSION['user_id'])) {
-            echo json_encode(['loggedIn' => true, 'user' => ['id' => $_SESSION['user_id'], 'username' => $_SESSION['username']]]);
+            // Verify user actually exists in DB to prevent zombie sessions after DB resets
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE id = ?");
+            $stmt->execute([$_SESSION['user_id']]);
+            if ($stmt->fetch()) {
+                echo json_encode(['loggedIn' => true, 'user' => ['id' => $_SESSION['user_id'], 'username' => $_SESSION['username']]]);
+            } else {
+                session_destroy();
+                echo json_encode(['loggedIn' => false]);
+            }
         } else {
             echo json_encode(['loggedIn' => false]);
         }

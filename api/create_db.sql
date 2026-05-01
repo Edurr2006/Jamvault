@@ -3,7 +3,13 @@
 CREATE DATABASE IF NOT EXISTS jamvault CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE jamvault;
 
+SET FOREIGN_KEY_CHECKS=0;
+DROP TABLE IF EXISTS user_songbook;
+DROP TABLE IF EXISTS user_jamstudio_projects;
+DROP TABLE IF EXISTS user_exercises;
+DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS tabs;
+SET FOREIGN_KEY_CHECKS=1;
 CREATE TABLE IF NOT EXISTS tabs (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   title       VARCHAR(200) NOT NULL,
@@ -28,10 +34,6 @@ INSERT INTO tabs (title, artist, genre, difficulty, file, views) VALUES
 -- USER PROFILES & SAVED DATA SYSTEM
 -- ==========================================
 
-DROP TABLE IF EXISTS user_songbook;
-DROP TABLE IF EXISTS user_jamstudio_projects;
-DROP TABLE IF EXISTS user_exercises;
-DROP TABLE IF EXISTS users;
 
 -- 1. Users Table
 CREATE TABLE users (

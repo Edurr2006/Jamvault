@@ -8,6 +8,7 @@ export class ExerciseState {
     constructor() {
         this.STORAGE_KEY = 'jamvault_custom_exercises';
         this.currentExercise = null;
+        this.cloudExercises = null; // null means not loaded/not logged in
     }
 
     /**
@@ -138,9 +139,27 @@ export class ExerciseState {
 
     // --- PERSISTENCE ---
 
-    save() {
+    async save() {
         if (!this.currentExercise) return;
-        const exercises = this.getAll();
+
+        // Si el usuario está logueado, sincronicemos con el backend
+        if (window.jamvaultUser) {
+            try {
+                const response = await fetch('api/exercises.php?action=save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(this.currentExercise)
+                });
+                const data = await response.json();
+                if (data.success && data.db_id) {
+                    this.currentExercise._db_id = data.db_id;
+                }
+            } catch(e) {
+                console.error("Error saving to cloud", e);
+            }
+        }
+
+        const exercises = this.getAllRaw();
         const index = exercises.findIndex(ex => ex.id === this.currentExercise.id);
 
         if (index > -1) {
@@ -149,11 +168,17 @@ export class ExerciseState {
             exercises.push(this.currentExercise);
         }
 
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(exercises));
+        if (this.cloudExercises !== null) {
+            // Update local cloud cache
+            this.cloudExercises = exercises;
+        } else {
+            // Fallback to localStorage for guests
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(exercises));
+        }
     }
 
     load(id) {
-        const exercises = this.getAll();
+        const exercises = this.getAllRaw();
         const found = exercises.find(ex => ex.id === id);
         if (found) {
             this.currentExercise = found;
@@ -174,12 +199,55 @@ export class ExerciseState {
         return null;
     }
 
-    getAll() {
+    getAllRaw() {
+        if (this.cloudExercises !== null) {
+            return this.cloudExercises;
+        }
         return JSON.parse(localStorage.getItem(this.STORAGE_KEY)) || [];
     }
 
-    delete(id) {
-        const exercises = this.getAll().filter(ex => ex.id !== id);
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(exercises));
+    getAll() {
+        return this.getAllRaw();
+    }
+
+    async delete(id) {
+        const exercises = this.getAllRaw();
+        const target = exercises.find(ex => ex.id === id);
+        
+        if (target && target._db_id && window.jamvaultUser) {
+            try {
+                await fetch('api/exercises.php?action=delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ db_id: target._db_id })
+                });
+            } catch(e) {
+                console.error("Error deleting from cloud", e);
+            }
+        }
+
+        const filtered = exercises.filter(ex => ex.id !== id);
+        if (this.cloudExercises !== null) {
+            this.cloudExercises = filtered;
+        } else {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filtered));
+        }
+    }
+
+    // New sync function to call on login/load
+    async fetchCloudExercises() {
+        if (!window.jamvaultUser) {
+            this.cloudExercises = null;
+            return;
+        }
+        try {
+            const response = await fetch('api/exercises.php?action=list');
+            const data = await response.json();
+            if (data.success) {
+                this.cloudExercises = data.exercises;
+            }
+        } catch(e) {
+            console.error("Error fetching cloud exercises", e);
+        }
     }
 }

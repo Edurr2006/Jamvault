@@ -22,11 +22,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const exId = urlParams.get('id');
 
-    if (!exId || !state.load(Number(exId))) {
-        showToast('Ejercicio no encontrado', 'error');
+    if (!exId) {
         window.location.href = 'Ejercicios.html';
         return;
     }
+
+    // Auth sync before loading
+    let initialized = false;
+    window.addEventListener('jamvault:auth_changed', async () => {
+        if (initialized) return;
+        initialized = true;
+        await state.fetchCloudExercises();
+        initializePractice();
+    });
+
+    async function initializePractice() {
+        if (!state.load(Number(exId))) {
+            showToast('Ejercicio no encontrado', 'error');
+            setTimeout(() => window.location.href = 'Ejercicios.html', 1500);
+            return;
+        }
 
     const ex = state.currentExercise;
     document.getElementById('exName').textContent = ex.name;
@@ -508,4 +523,5 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Metronome initial state
     metronomeBtn.classList.toggle('active', ex.metronomeEnabled);
+    } // End initializePractice()
 });

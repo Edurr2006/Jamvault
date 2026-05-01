@@ -875,17 +875,19 @@ function renderizarDiagrama(posiciones) {
     badgeGroup.classList.add('chord-label', 'fret-badge-group');
 
     const badgeRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    badgeRect.setAttribute('x', '-45');
-    badgeRect.setAttribute('y', calcularY(1) - 18);
-    badgeRect.setAttribute('width', '42');
-    badgeRect.setAttribute('height', '36');
-    badgeRect.setAttribute('rx', '10');
+    badgeRect.setAttribute('x', '-48');
+    badgeRect.setAttribute('y', calcularY(1) - 20);
+    badgeRect.setAttribute('width', '45');
+    badgeRect.setAttribute('height', '40');
+    badgeRect.setAttribute('rx', '12');
     badgeRect.classList.add('fret-badge-bg');
 
     const labelFret = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    labelFret.setAttribute('x', '-24');
-    labelFret.setAttribute('y', calcularY(1) + 6);
+    labelFret.setAttribute('x', '-25.5');
+    labelFret.setAttribute('y', calcularY(1) + 7);
     labelFret.setAttribute('text-anchor', 'middle');
+    labelFret.setAttribute('font-size', '18');
+    labelFret.setAttribute('font-weight', 'bold');
     labelFret.classList.add('fret-badge-text');
     labelFret.textContent = `${startFret}fr`;
 
@@ -944,11 +946,11 @@ function renderizarDiagrama(posiciones) {
       // Sombra
       const rectShadow = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       // Removed filter injection to use CSS
-      const radius = 14;
-      const height = 2 * radius; // 28
-      const width = (maxX - minX) + 2 * 15.3; // Ancho entre centros + padding bordes (aprox radio)
+      const radius = 19;
+      const height = 2 * radius; // 38
+      const width = (maxX - minX) + 2 * 19; // Ancho entre centros + padding bordes (aprox radio)
 
-      rectShadow.setAttribute('x', minX - 15.3);
+      rectShadow.setAttribute('x', minX - 19);
       rectShadow.setAttribute('y', y - radius);
       rectShadow.setAttribute('width', width);
       rectShadow.setAttribute('height', height);
@@ -960,10 +962,10 @@ function renderizarDiagrama(posiciones) {
       // Texto "1" en el centro
       const labelFinger = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       labelFinger.setAttribute('x', (minX + maxX) / 2);
-      labelFinger.setAttribute('y', y + 5);
+      labelFinger.setAttribute('y', y + 7);
       labelFinger.setAttribute('text-anchor', 'middle');
       labelFinger.setAttribute('fill', 'black');
-      labelFinger.setAttribute('font-size', '16');
+      labelFinger.setAttribute('font-size', '20');
       labelFinger.setAttribute('font-weight', 'bold');
       labelFinger.textContent = "1";
       gBarre.appendChild(labelFinger);
@@ -997,8 +999,8 @@ function renderizarDiagrama(posiciones) {
     const ellipseShadow = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
     ellipseShadow.setAttribute('cx', x);
     ellipseShadow.setAttribute('cy', y);
-    ellipseShadow.setAttribute('rx', '15.3');
-    ellipseShadow.setAttribute('ry', '14');
+    ellipseShadow.setAttribute('rx', '19');
+    ellipseShadow.setAttribute('ry', '19');
 
     gShadow.appendChild(ellipseShadow);
     g.appendChild(gShadow);
@@ -1008,10 +1010,10 @@ function renderizarDiagrama(posiciones) {
     if (dedo !== undefined && dedo > 0) {
       const labelFinger = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       labelFinger.setAttribute('x', x);
-      labelFinger.setAttribute('y', y + 5);
+      labelFinger.setAttribute('y', y + 7);
       labelFinger.setAttribute('text-anchor', 'middle');
       labelFinger.setAttribute('fill', 'black');
-      labelFinger.setAttribute('font-size', '16');
+      labelFinger.setAttribute('font-size', '20');
       labelFinger.setAttribute('font-weight', 'bold');
       labelFinger.textContent = dedo;
       g.appendChild(labelFinger);

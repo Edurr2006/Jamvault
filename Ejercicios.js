@@ -99,6 +99,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 1. CREATION WORKFLOW EVENTS ---
 
     addExerciseBtn.onclick = () => {
+        if (!window.jamvaultUser) {
+            // Usuario invitado: mostrar modal de login en lugar de crear
+            const authModal = document.getElementById('authModal');
+            if (authModal) authModal.classList.add('modal-active');
+            else showToast("Inicia sesión para crear ejercicios", "info");
+            return;
+        }
         creationModal.style.display = 'flex';
     };
 
@@ -199,8 +206,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         player.isMetronomeOn = e.target.checked;
     };
 
-    saveBtn.onclick = () => {
-        state.save();
+    saveBtn.onclick = async () => {
+        await state.save();
         showToast("¡Ejercicio guardado correctamente!", "success");
     };
 
@@ -271,7 +278,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             item.style.marginBottom = '2px';
 
             item.innerText = `Paso ${idx + 1}`;
-            item.onmouseover = () => item.style.background = 'rgba(255,137,6,0.1)';
+            item.onmouseover = () => item.style.background = 'var(--accent-dim)';
             item.onmouseout = () => item.style.background = 'transparent';
 
             item.onclick = () => {
@@ -370,7 +377,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
                     <i class="fas fa-ellipsis-v" style="color: #444; font-size: 0.8rem;"></i>
                     <div>
-                        <span style="color: #FF8906; font-weight: bold; font-size: 0.9rem;">${index + 1}. ${title}</span>
+                        <span style="color: var(--accent-theme); font-weight: bold; font-size: 0.9rem;">${index + 1}. ${title}</span>
                         <div style="color: #555; font-size: 0.7rem;">${sub}</div>
                     </div>
                 </div>
@@ -398,16 +405,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 draggedItemIndex = index;
                 div.style.opacity = '0.3';
                 div.style.background = '#111';
-                div.style.border = '1px dashed #FF8906';
+                div.style.border = '1px dashed var(--accent-theme)';
                 e.dataTransfer.effectAllowed = 'move';
             };
 
             div.ondragover = (e) => {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
-                div.style.borderTop = '4px solid #FF8906';
+                div.style.borderTop = '4px solid var(--accent-theme)';
                 div.style.transform = 'translateY(2px)';
-                div.style.background = 'rgba(255,137,6,0.05)';
+                div.style.background = 'var(--accent-dim)';
             };
 
             div.ondragleave = () => {
@@ -557,10 +564,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Rename Button
             card.querySelector('.rename-btn').onclick = (e) => {
                 e.stopPropagation();
-                showPrompt(`Nuevo nombre para "${ex.name}":`, ex.name, (newName) => {
+                showPrompt(`Nuevo nombre para "${ex.name}":`, ex.name, async (newName) => {
                     state.load(ex.id);
                     state.updateName(newName);
-                    state.save();
+                    await state.save();
                     renderMainList();
                     showToast("¡Renombrado con éxito!", "success");
                 });
@@ -575,8 +582,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Delete click handles removal
             card.querySelector('.delete-ex-btn').onclick = (e) => {
                 e.stopPropagation();
-                showConfirm(`¿Estás seguro de que quieres borrar "${ex.name}"?`, () => {
-                    state.delete(ex.id);
+                showConfirm(`¿Estás seguro de que quieres borrar "${ex.name}"?`, async () => {
+                    await state.delete(ex.id);
                     renderMainList();
                     showToast("Ejercicio eliminado", "info");
                 });
@@ -585,4 +592,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             listContainer.appendChild(card);
         });
     }
+
+    // --- 6. AUTH INTEGRATION ---
+
+    window.addEventListener('jamvault:auth_changed', async () => {
+        // Fetch cloud if logged in; clears if out
+        await state.fetchCloudExercises();
+        renderMainList();
+    });
+
+    // Check on initial load if user is already established
+    setTimeout(async () => {
+        if (window.jamvaultUser) {
+            await state.fetchCloudExercises();
+            renderMainList();
+        }
+    }, 500); // Give Auth.js time to checkSession
 });

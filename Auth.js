@@ -64,25 +64,34 @@ function injectAuthUI() {
 
     // Inject the Modal HTML to the body
     const modalHTML = `
-    <div id="authModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); z-index: 10000; justify-content: center; align-items: center;">
-        <div class="modal-content" style="background: rgba(20, 20, 25, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; width: 90%; max-width: 400px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); overflow: hidden;">
-            <div class="modal-header" style="padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); display: flex; justify-content: space-between; align-items: center;">
-                <h2 class="modal-title" id="authTitle" style="margin: 0; font-size: 1.5rem; color: #fff;">Iniciar Sesión</h2>
-                <button class="modal-close" id="closeAuthModal" style="background: none; border: none; color: rgba(255,255,255,0.5); font-size: 2rem; cursor: pointer;">&times;</button>
+    <div id="authModal" class="modal-overlay">
+        <div class="auth-modal-content">
+            <div class="auth-modal-header">
+                <h2 id="authTitle">Iniciar Sesión</h2>
+                <button class="auth-modal-close" id="closeAuthModal"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body" style="padding: 2rem;">
+            <div class="auth-modal-body">
                 <form id="authForm">
                     <div id="registerFields" style="display: none;">
-                        <input type="email" id="authEmail" class="modal-input" placeholder="Correo electrónico" autocomplete="email" style="width: 100%; padding: 1rem; margin-bottom: 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; box-sizing: border-box;">
+                        <div class="auth-input-group">
+                            <input type="email" id="authEmail" class="auth-input" placeholder="Correo electrónico" autocomplete="email">
+                            <i class="fas fa-envelope" style="position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4); pointer-events: none;"></i>
+                        </div>
                     </div>
-                    <input type="text" id="authUsername" class="modal-input" placeholder="Usuario" required autocomplete="username" style="width: 100%; padding: 1rem; margin-bottom: 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; box-sizing: border-box;">
-                    <input type="password" id="authPassword" class="modal-input" placeholder="Contraseña" required autocomplete="current-password" style="width: 100%; padding: 1rem; margin-bottom: 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; box-sizing: border-box;">
-                    <div id="authError" style="color: #ff4444; margin-top: 10px; font-size: 0.9rem; text-align: center; display: none;"></div>
-                    <button type="submit" class="btn" style="width: 100%; margin-top: 20px;" id="authSubmitBtn">Entrar</button>
+                    <div class="auth-input-group">
+                        <input type="text" id="authUsername" class="auth-input" placeholder="Nombre de usuario" required autocomplete="username">
+                        <i class="fas fa-user" style="position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4); pointer-events: none;"></i>
+                    </div>
+                    <div class="auth-input-group">
+                        <input type="password" id="authPassword" class="auth-input" placeholder="Contraseña" required autocomplete="current-password">
+                        <i class="fas fa-lock" style="position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4); pointer-events: none;"></i>
+                    </div>
+                    <div id="authError" style="color: #ff4444; margin-bottom: 1.5rem; font-size: 0.95rem; text-align: center; display: none; background: rgba(255, 68, 68, 0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 68, 68, 0.3);"></div>
+                    <button type="submit" class="auth-submit-btn" id="authSubmitBtn">ENTRAR</button>
                 </form>
-                <div style="text-align: center; margin-top: 15px; font-size: 0.9rem; color: rgba(255,255,255,0.6);">
+                <div class="auth-footer">
                     <span id="authToggleText">¿No tienes cuenta?</span> 
-                    <a href="#" id="toggleAuthMode" style="color: var(--theme-accent, #FF9F1C); text-decoration: none; font-weight: bold;">Regístrate</a>
+                    <a href="#" id="toggleAuthMode">Regístrate</a>
                 </div>
             </div>
         </div>
@@ -108,29 +117,28 @@ function setupAuthEvents() {
             e.preventDefault();
             const modal = document.getElementById('authModal');
             if (modal) {
-                modal.style.display = 'flex';
-                // Force an exact layout check
-                setTimeout(() => {
-                    const rect = modal.getBoundingClientRect();
-                    const comp = window.getComputedStyle(modal);
-                    alert("Modal Stats:\nDisplay: " + comp.display + "\nPosition: " + comp.position + "\nZ-Index: " + comp.zIndex + "\nOpacity: " + comp.opacity + "\nVisibility: " + comp.visibility + "\nRect: " + rect.width + "x" + rect.height + " at " + rect.top + "," + rect.left);
-                }, 100);
-            } else {
-                alert("ERROR: No se encontró el modal en el HTML."); // DEBUG
+                modal.classList.add('modal-active');
             }
         }
 
         if (closeBtnClicked) {
             e.preventDefault();
             const modal = document.getElementById('authModal');
-            if (modal) modal.style.display = 'none';
+            if (modal) modal.classList.remove('modal-active');
         }
 
         if (logoutBtnClicked) {
             e.preventDefault();
-            handleLogout();
+            if (typeof window.showConfirm === 'function') {
+                window.showConfirm("¿Estás seguro de que deseas cerrar sesión?", () => {
+                    handleLogout();
+                });
+            } else {
+                handleLogout();
+            }
+            return;
         }
-
+        
         if (toggleModeClicked) {
             e.preventDefault();
             isLoginMode = !isLoginMode;
@@ -147,6 +155,7 @@ function setupAuthEvents() {
     if (form) {
         form.onsubmit = async (e) => {
             e.preventDefault();
+            const modal = document.getElementById('authModal');
             const action = isLoginMode ? 'login' : 'register';
             const username = document.getElementById('authUsername').value;
             const password = document.getElementById('authPassword').value;
@@ -168,9 +177,9 @@ function setupAuthEvents() {
                     errDiv.textContent = data.error;
                     errDiv.style.display = 'block';
                 } else if (data.success) {
-                    modal.style.display = 'none';
+                    if (modal) modal.classList.remove('modal-active');
                     if (typeof showToast === 'function') {
-                        showToast(`Bienvenido, ${data.user.username}!`, 'success');
+                        showToast(`¡Bienvenido, ${data.user.username}!`, 'success');
                     }
                     updateUIForUser(data.user);
                     // Disparar evento para que otras partes de la app recarguen sus datos
