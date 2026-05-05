@@ -1,0 +1,282 @@
+/* ============================================================
+   LANDING PAGE — SCROLL REVEAL SECTIONS
+   ============================================================ */
+
+/* Enough bottom padding on the cards so the first section doesn't peek */
+.menus {
+  padding-bottom: 2rem;
+}
+
+/* ---------- Scroll hint divider ---------- */
+
+.ls-scroll-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 4rem 1rem 5rem;
+}
+
+.ls-hint-text {
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  font-weight: 600;
+}
+
+.ls-hint-arrow {
+  width: 2px;
+  height: 48px;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, transparent, var(--theme-accent, #FF9F1C));
+  animation: lsArrowPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes lsArrowPulse {
+  0%, 100% { opacity: 0.25; transform: scaleY(0.75) translateY(-4px); }
+  50%       { opacity: 1;    transform: scaleY(1)    translateY(0); }
+}
+
+/* ---------- Scroll-reveal animation states ---------- */
+
+.reveal {
+  opacity: 0;
+  transform: translateX(-60px);
+  transition: opacity 0.75s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.reveal-right {
+  transform: translateX(60px);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Stagger child elements inside visible sections */
+.reveal.visible .ls-tag   { transition-delay: 0.05s; }
+.reveal.visible .ls-title { transition-delay: 0.12s; }
+.reveal.visible .ls-desc  { transition-delay: 0.20s; }
+.reveal.visible .ls-btn   { transition-delay: 0.28s; }
+.reveal.visible .ls-visual { transition-delay: 0.15s; }
+
+/* Exit — scroll back up */
+.reveal.hidden {
+  opacity: 0;
+  transform: translateX(-60px);
+}
+.reveal-right.hidden {
+  transform: translateX(60px);
+}
+
+/* ---------- Section layout ---------- */
+
+.landing-section {
+  width: 100%;
+  padding: 5rem 2rem;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle divider line between sections */
+.landing-section + .landing-section {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ls-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4rem;
+  text-align: left;
+}
+
+.ls-content-reverse {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.ls-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ---------- Text elements ---------- */
+
+.ls-tag {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--theme-accent, #FF9F1C);
+  background: var(--theme-accent-glow, rgba(255, 159, 28, 0.15));
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  width: fit-content;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.ls-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.15;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.ls-desc {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  transform: translateY(10px);
+  max-width: 480px;
+}
+
+.ls-btn {
+  width: fit-content;
+  margin-top: 0.5rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* Once parent is visible, animate children in */
+.reveal.visible .ls-tag,
+.reveal.visible .ls-title,
+.reveal.visible .ls-desc,
+.reveal.visible .ls-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Right-aligned sections: desc should not overflow awkwardly */
+.ls-content-reverse .ls-desc {
+  max-width: 480px;
+  margin-left: auto;
+}
+
+/* ---------- Visual panel (icon ring) ---------- */
+
+.ls-visual {
+  flex: 0 0 300px;
+  height: 300px;
+  border-radius: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible .ls-visual {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Dark overlay on visuals */
+.ls-visual::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 2rem;
+  z-index: 0;
+}
+
+.ls-icon-ring {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.05);
+  transition: transform 0.4s ease;
+}
+
+.ls-icon-ring svg {
+  width: 44px;
+  height: 44px;
+  stroke: var(--theme-accent, #FF9F1C);
+  flex-shrink: 0;
+}
+
+.ls-visual:hover .ls-icon-ring {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Background images */
+.ls-visual-acordes   { background-image: url('imagenes/acordes.jpg'); }
+.ls-visual-escalas   { background-image: url('imagenes/escalas.jpg'); }
+.ls-visual-tabs      { background-image: url('imagenes/acordes.jpg'); }
+.ls-visual-afinador  { background-image: url('imagenes/escalas.jpg'); }
+.ls-visual-ejercicios{ background-image: url('imagenes/ejercicios.jpg'); }
+.ls-visual-jamstudio { background-image: url('imagenes/acordes.jpg'); }
+
+/* Accent glow border on visuals */
+.ls-visual {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Accent ring on hover driven by theme */
+.ls-visual:hover {
+  border-color: var(--theme-accent, #FF9F1C);
+  box-shadow: 0 0 0 2px var(--theme-accent-glow, rgba(255,159,28,0.3)),
+              0 20px 50px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .ls-content,
+  .ls-content-reverse {
+    flex-direction: column;
+    text-align: center;
+    gap: 2.5rem;
+  }
+
+  .ls-content-reverse .ls-desc {
+    margin-left: 0;
+  }
+
+  .ls-tag,
+  .ls-btn {
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
+  }
+
+  .ls-visual {
+    flex: 0 0 220px;
+    height: 220px;
+    width: 220px;
+  }
+
+  .ls-title {
+    font-size: 1.8rem;
+  }
+}
