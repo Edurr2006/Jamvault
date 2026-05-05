@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userId = $pdo->lastInsertId();
             $_SESSION['user_id'] = $userId;
             $_SESSION['username'] = $username;
-            echo json_encode(['success' => true, 'user' => ['id' => $userId, 'username' => $username]]);
+            echo json_encode(['success' => true, 'user' => ['id' => $userId, 'username' => $username, 'email' => $email]]);
         } else {
             echo json_encode(['error' => 'Registration failed']);
         }
@@ -58,14 +58,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $username = trim($data['username'] ?? '');
         $password = $data['password'] ?? '';
 
-        $stmt = $pdo->prepare("SELECT id, username, password_hash FROM users WHERE username = ? OR email = ?");
+        $stmt = $pdo->prepare("SELECT id, username, email, password_hash FROM users WHERE username = ? OR email = ?");
         $stmt->execute([$username, $username]);
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password_hash'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
-            echo json_encode(['success' => true, 'user' => ['id' => $user['id'], 'username' => $user['username']]]);
+            echo json_encode(['success' => true, 'user' => ['id' => $user['id'], 'username' => $user['username'], 'email' => $user['email']]]);
         } else {
             echo json_encode(['error' => 'Invalid credentials']);
         }
@@ -77,16 +77,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => true]);
         exit;
     }
+
+    if ($action === 'update_profile') {
+        if (!isset($_SESSION['user_id'])) {
+            echo json_encode(['error' => 'Not authenticated']);
+            exit;
+        }
+
+        $userId = $_SESSION['user_id'];
+        $newUsername = trim($data['username'] ?? '');
+        $newEmail = trim($data['email'] ?? '');
+        $newPassword = $data['password'] ?? '';
+
+        if (!$newUsername || !$newEmail) {
+            echo json_encode(['error' => 'Missing fields']);
+            exit;
+        }
+
+        // Check conflicts
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ?");
+        $stmt->execute([$newUsername, $newEmail, $userId]);
+        if ($stmt->fetch()) {
+            echo json_encode(['error' => 'Username or email already in use']);
+            exit;
+        }
+
+        if ($newPassword) {
+            $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, password_hash = ? WHERE id = ?");
+            $res = $stmt->execute([$newUsername, $newEmail, $hash, $userId]);
+        } else {
+            $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ? WHERE id = ?");
+            $res = $stmt->execute([$newUsername, $newEmail, $userId]);
+        }
+
+        if ($res) {
+            $_SESSION['username'] = $newUsername;
+            echo json_encode(['success' => true, 'user' => ['id' => $userId, 'username' => $newUsername, 'email' => $newEmail]]);
+        } else {
+            echo json_encode(['error' => 'Failed to update profile']);
+        }
+        exit;
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($action === 'me') {
         if (isset($_SESSION['user_id'])) {
             // Verify user actually exists in DB to prevent zombie sessions after DB resets
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT id, email FROM users WHERE id = ?");
             $stmt->execute([$_SESSION['user_id']]);
-            if ($stmt->fetch()) {
-                echo json_encode(['loggedIn' => true, 'user' => ['id' => $_SESSION['user_id'], 'username' => $_SESSION['username']]]);
+            $user = $stmt->fetch();
+            if ($user) {
+                echo json_encode(['loggedIn' => true, 'user' => ['id' => $_SESSION['user_id'], 'username' => $_SESSION['username'], 'email' => $user['email']]]);
             } else {
                 session_destroy();
                 echo json_encode(['loggedIn' => false]);

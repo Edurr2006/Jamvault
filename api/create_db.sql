@@ -28,7 +28,8 @@ INSERT INTO tabs (title, artist, genre, difficulty, file, views) VALUES
 ('Smells Like Teen Spirit', 'Nirvana', 'Grunge', 2, 'tabs/Nirvana - Smells Like Teen Spirit.gp4', 7800),
 ('Enter Sandman', 'Metallica', 'Heavy Metal', 3, 'tabs/Metallica - Enter Sandman (6).gp3', 7100),
 ('Hotel California', 'Eagles', 'Rock', 3, 'tabs/Eagles (The) - Hotel California (2).gp3', 6500),
-('Sweet Child O Mine', 'Guns N Roses', 'Hard Rock', 4, 'tabs/Guns N Roses - Sweet Child O Mine.gp3', 6000);
+('Sweet Child O Mine', 'Guns N Roses', 'Hard Rock', 4, 'tabs/Guns N Roses - Sweet Child O Mine.gp3', 6000),
+('Parisienne Walkways', 'Gary Moore', 'Blues Rock', 4, 'tabs/Moore, Gary - Parisienne Walkways.gp3', 0);
 
 -- ==========================================
 -- USER PROFILES & SAVED DATA SYSTEM

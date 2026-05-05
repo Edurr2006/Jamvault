@@ -34,6 +34,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await player.init();
 
+    // --- AUTH OVERLAY HELPERS ---
+    let wasEverLoggedInEx = false;
+    const authOverlayEx = document.getElementById('exercises-auth-overlay');
+
+    function showExOverlay() {
+        if (authOverlayEx) authOverlayEx.style.display = 'flex';
+    }
+    function hideExOverlay() {
+        if (authOverlayEx) authOverlayEx.style.display = 'none';
+    }
+
     // --- DOM ELEMENTS: CREATION WORKFLOW ---
     const addExerciseBtn = document.getElementById('addExerciseBtn');
     const creationModal = document.getElementById('creationModal');
@@ -595,17 +606,34 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 6. AUTH INTEGRATION ---
 
-    window.addEventListener('jamvault:auth_changed', async () => {
-        // Fetch cloud if logged in; clears if out
-        await state.fetchCloudExercises();
-        renderMainList();
+    window.addEventListener('jamvault:auth_changed', async (e) => {
+        if (e.detail) {
+            // User logged in
+            wasEverLoggedInEx = true;
+            hideExOverlay();
+            await state.fetchCloudExercises();
+            renderMainList();
+        } else if (wasEverLoggedInEx) {
+            // Real logout: had a session, now gone
+            wasEverLoggedInEx = false; // Reset
+            await state.fetchCloudExercises();
+            showExOverlay();
+            renderMainList();
+        } else {
+            // First load with no session: show overlay silently (no toast)
+            showExOverlay();
+        }
     });
 
     // Check on initial load if user is already established
     setTimeout(async () => {
         if (window.jamvaultUser) {
+            wasEverLoggedInEx = true;
+            hideExOverlay();
             await state.fetchCloudExercises();
             renderMainList();
+        } else {
+            showExOverlay();
         }
     }, 500); // Give Auth.js time to checkSession
 });

@@ -423,6 +423,74 @@
             background-color: #121212;
             color: #fff;
         }
+        /* --- AUTH GATE OVERLAY (Exercises) --- */
+        .exercises-list-wrapper {
+            position: relative;
+            min-height: 300px;
+        }
+
+        #exercises-auth-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            z-index: 50;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 20px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.2rem;
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        #exercises-auth-overlay .lock-icon {
+            font-size: 3.5rem;
+            color: var(--accent-theme, #FF8906);
+            filter: drop-shadow(0 0 18px rgba(255, 137, 6, 0.45));
+            animation: ex-pulse 2s infinite;
+        }
+
+        @keyframes ex-pulse {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.08); }
+        }
+
+        #exercises-auth-overlay h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0;
+        }
+
+        #exercises-auth-overlay p {
+            color: rgba(255,255,255,0.55);
+            font-size: 0.95rem;
+            margin: 0;
+            max-width: 340px;
+        }
+
+        #exercises-auth-overlay .btn-login-overlay {
+            margin-top: 0.5rem;
+            padding: 14px 36px;
+            background: var(--accent-theme, #FF8906);
+            color: #000;
+            font-weight: 800;
+            font-size: 1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 6px 20px rgba(255,137,6,0.4);
+        }
+
+        #exercises-auth-overlay .btn-login-overlay:hover {
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 10px 28px rgba(255,137,6,0.55);
+        }
     </style>
 </head>
 
@@ -456,8 +524,20 @@
             </div>
         </div>
 
-        <div id="exercisesList">
-            <!-- Los ejercicios se generarán aquí dinámicamente -->
+        <div class="exercises-list-wrapper">
+            <!-- AUTH GATE OVERLAY -->
+            <div id="exercises-auth-overlay">
+                <div class="lock-icon"><i class="fas fa-lock"></i></div>
+                <h3>Inicia sesión para continuar</h3>
+                <p>Crea y guarda tus ejercicios personalizados sincronizando con tu cuenta JamVault.</p>
+                <button class="btn-login-overlay" onclick="document.getElementById('authModal') && document.getElementById('authModal').classList.add('modal-active')">
+                    <i class="fas fa-sign-in-alt" style="margin-right:8px;"></i>Iniciar Sesión
+                </button>
+            </div>
+
+            <div id="exercisesList">
+                <!-- Los ejercicios se generarán aquí dinámicamente -->
+            </div>
         </div>
     </main>
 
@@ -746,7 +826,7 @@
     <script src="Toast.js"></script>
     <script type="module" src="Ejercicios.js"></script>
     <script src="ResponsiveMenu.js"></script>
-    <script src="Auth.js?v=5"></script>
+    <script src="Auth.js?v=10"></script>
 </body>
 
 </html>

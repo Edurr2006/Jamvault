@@ -311,6 +311,88 @@
       100% { opacity: 0.6; }
     }
 
+    /* --- RESULT CARDS (used by Songbook.js) --- */
+    .result-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .result-title {
+      font-weight: 700;
+      color: #fff;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .result-artist {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.5);
+    }
+
+    /* --- AUTH GATE OVERLAY --- */
+    .songbook-wrapper {
+      position: relative;
+    }
+
+    #songbook-auth-overlay {
+      display: none; /* shown via JS when not logged in */
+      position: absolute;
+      inset: 0;
+      z-index: 50;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border-radius: 35px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.2rem;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    #songbook-auth-overlay .lock-icon {
+      font-size: 3.5rem;
+      color: var(--accent-theme, #f39c12);
+      filter: drop-shadow(0 0 18px rgba(243,156,18,0.45));
+      animation: pulse 2s infinite;
+    }
+
+    #songbook-auth-overlay h3 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+      margin: 0;
+    }
+
+    #songbook-auth-overlay p {
+      color: rgba(255,255,255,0.55);
+      font-size: 0.95rem;
+      margin: 0;
+      max-width: 320px;
+    }
+
+    #songbook-auth-overlay .btn-login-overlay {
+      margin-top: 0.5rem;
+      padding: 14px 36px;
+      background: var(--accent-theme, #f39c12);
+      color: #000;
+      font-weight: 800;
+      font-size: 1rem;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 6px 20px rgba(243,156,18,0.4);
+    }
+
+    #songbook-auth-overlay .btn-login-overlay:hover {
+      transform: translateY(-2px) scale(1.04);
+      box-shadow: 0 10px 28px rgba(243,156,18,0.55);
+    }
+
     @media (max-width: 950px) {
       .songbook-container {
         grid-template-columns: 1fr;
@@ -364,34 +446,48 @@
       </div>
     </div>
 
-    <section class="songbook-container">
-      <!-- QUIERO APRENDERLAS -->
-      <div class="songbook-column" data-category="want">
-        <h2 class="songbook-header">
-          <span><i class="fas fa-heart"></i> Pendientes</span>
-          <span class="count">0</span>
-        </h2>
-        <div class="songbook-list" id="want-list"></div>
+    <div class="songbook-wrapper">
+
+      <!-- AUTH GATE OVERLAY (shown when not logged in) -->
+      <div id="songbook-auth-overlay">
+        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+        <h3>Inicia sesión para continuar</h3>
+        <p>Guarda y organiza tus canciones en el Kanban sincronizando con tu cuenta JamVault.</p>
+        <button class="btn-login-overlay" onclick="document.getElementById('authModal') && document.getElementById('authModal').classList.add('modal-active')">
+          <i class="fas fa-sign-in-alt" style="margin-right:8px;"></i>Iniciar Sesión
+        </button>
       </div>
 
-      <!-- EN PROCESO -->
-      <div class="songbook-column" data-category="progress">
-        <h2 class="songbook-header">
-          <span><i class="fas fa-spinner fa-spin-slow"></i> En Proceso</span>
-          <span class="count">0</span>
-        </h2>
-        <div class="songbook-list" id="progress-list"></div>
-      </div>
+      <section class="songbook-container">
+        <!-- QUIERO APRENDERLAS -->
+        <div class="songbook-column" data-category="want">
+          <h2 class="songbook-header">
+            <span><i class="fas fa-heart"></i> Pendientes</span>
+            <span class="count">0</span>
+          </h2>
+          <div class="songbook-list" id="want-list"></div>
+        </div>
 
-      <!-- APRENDIDAS -->
-      <div class="songbook-column" data-category="done">
-        <h2 class="songbook-header">
-          <span><i class="fas fa-check-circle"></i> Aprendidas</span>
-          <span class="count">0</span>
-        </h2>
-        <div class="songbook-list" id="done-list"></div>
-      </div>
-    </section>
+        <!-- EN PROCESO -->
+        <div class="songbook-column" data-category="progress">
+          <h2 class="songbook-header">
+            <span><i class="fas fa-spinner fa-spin-slow"></i> En Proceso</span>
+            <span class="count">0</span>
+          </h2>
+          <div class="songbook-list" id="progress-list"></div>
+        </div>
+
+        <!-- APRENDIDAS -->
+        <div class="songbook-column" data-category="done">
+          <h2 class="songbook-header">
+            <span><i class="fas fa-check-circle"></i> Aprendidas</span>
+            <span class="count">0</span>
+          </h2>
+          <div class="songbook-list" id="done-list"></div>
+        </div>
+      </section>
+
+    </div>
   </main>
 
   <!-- ========== SITE FOOTER ========== -->
