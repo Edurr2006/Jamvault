@@ -1,15 +1,15 @@
 /**
  * JamVault - Tabs.js
  * Native Engine = AlphaTab Vector Rendering + Native Audio
- * 100% Songsterr-quality synchronization and musical notation.
+ * 100% professional-quality synchronization and musical notation.
  */
 
-// Global State
 let alphaApi = null;
 let currentScore = null;
 let currentTrack = null;
 let isPlaying = false;
-let ytSyncController = null; // Audio sync controller instance (SoundCloud)
+let isSoloMode = false;
+let totalScoreTicks = 0; // Pre-calculated for performance
 
 // UI Elements
 const searchInput = document.getElementById('searchInput');
@@ -25,19 +25,6 @@ const speedLabel = document.getElementById('at-speed-label');
 const trackSidebar = document.getElementById('at-track-sidebar');
 const controlsBar = document.getElementById('atControlsBar');
 const progressBar = document.getElementById('at-progress-bar');
-
-// Audio UI Elements (Reusing "yt" IDs for SoundCloud to minimize changes)
-const ytAutoDetected = document.getElementById('yt-auto-detected');
-const ytManualInput = document.getElementById('yt-manual-input');
-const ytSyncControls = document.getElementById('yt-sync-controls');
-const ytEnableBtn = document.getElementById('yt-enable-btn');
-const ytLinkBtn = document.getElementById('yt-link-btn');
-const ytUrlInput = document.getElementById('yt-url-input');
-const ytSourceToggle = document.getElementById('yt-source-toggle');
-const ytSourceLabel = document.getElementById('yt-source-label');
-const ytOffsetMinus = document.getElementById('yt-offset-minus');
-const ytOffsetPlus = document.getElementById('yt-offset-plus');
-const ytOffsetDisplay = document.getElementById('yt-offset-display');
 
 // --- 1. SEARCH & DISCOVERY ---
 let allSongs = [];
@@ -131,7 +118,7 @@ function initAlphaTab() {
   const settings = {
     core: { engine: 'svg' },
     display: {
-      layout: { mode: 'page' },       // Vertical layout, line by line (like Songsterr)
+      layout: { mode: 'page' },       // Vertical layout, line by line
       hideStandardNotation: true,
       staveSpacing: 10,
       padding: [40, 40, 40, 40]
@@ -151,6 +138,9 @@ function initAlphaTab() {
   // Score Loaded: Find the track that starts earliest
   alphaApi.scoreLoaded.on(score => {
     currentScore = score;
+    // PRE-CALCULATE DURATION ONCE (Optimization)
+    totalScoreTicks = score.masterBars.reduce((a, b) => a + (b.tickDuration || 0), 0) || 100000;
+    
     const validTracks = (score.tracks || []).filter(t => !t.name.match(/vocal|voice|voz|lyric|capo/i));
 
     const getStartTick = (tr) => {
@@ -170,6 +160,18 @@ function initAlphaTab() {
     currentTrack = validTracks[0] || score.tracks[0];
 
     alphaApi.renderTracks([currentTrack]);
+    
+    // Restore Multi-Track Playback: Ensure all tracks are unmuted and respect solo mode
+    if (score.tracks) {
+      alphaApi.changeTrackMute(score.tracks, false);
+      if (isSoloMode) {
+        alphaApi.changeTrackSolo(score.tracks, false);
+        alphaApi.changeTrackSolo([currentTrack], true);
+      } else {
+        alphaApi.changeTrackSolo(score.tracks, false);
+      }
+    }
+    
     renderTrackSidebar(score);
 
     if (loadingDiv) loadingDiv.style.display = 'none';
@@ -179,19 +181,22 @@ function initAlphaTab() {
     if (container) container.scrollTop = 0;
   });
 
-  // ─── SIMPLE CSS-BASED OVERLAY CURSOR ───────────────────────
+  // ─── OPTIMIZED CSS-BASED OVERLAY CURSOR ───────────────────────
   
+  // Caching elements for laser performance
+  const laser = document.getElementById('customLaser');
+  const cont = document.getElementById('at-player-content');
+
+  let lastATTime = 0; // For detecting manual seeks
+
   alphaApi.playerPositionChanged.on(args => {
-    // Progress bar update
-    if (currentScore && progressBar) {
-      const totalDur = currentScore.masterBars.reduce((a, b) => a + (b.tickDuration || 0), 0) || 100000;
-      progressBar.style.width = ((args.currentTick / totalDur) * 100) + '%';
+    // Progress bar update - Optimized with pre-calculated totalScoreTicks
+    if (progressBar) {
+      progressBar.style.width = ((args.currentTick / totalScoreTicks) * 100) + '%';
     }
 
     // Snap the laser overlay exactly over the AlphaTab internal selection
-    const laser = document.getElementById('customLaser');
-    const el = document.querySelector('.at-cursor') || document.querySelector('.at-cursor-bar') || document.querySelector('.at-cursor-beat');
-    const cont = document.getElementById('at-player-content');
+    const el = document.querySelector('.at-cursor') || document.querySelector('.at-cursor-bar');
     
     if (laser && el && cont) {
       const elRect = el.getBoundingClientRect();
@@ -199,7 +204,7 @@ function initAlphaTab() {
       
       laser.style.left = (elRect.left - contRect.left + cont.scrollLeft - 3) + 'px';
       laser.style.top = (elRect.top - contRect.top + cont.scrollTop) + 'px';
-      laser.style.width = '4px'; // <--- EXTRAS VISIBLE
+      laser.style.width = '4px';
       laser.style.height = elRect.height + 'px';
     }
   });
@@ -209,7 +214,6 @@ function initAlphaTab() {
     if (playPauseBtn) playPauseBtn.innerText = isPlaying ? '⏸' : '▶';
 
     // Show or hide the laser when we start/stop playing
-    const laser = document.getElementById('customLaser');
     if (laser) {
       laser.style.display = isPlaying ? 'block' : 'none';
     }
@@ -217,7 +221,6 @@ function initAlphaTab() {
 
   alphaApi.playerFinished.on(() => {
     isPlaying = false;
-    const laser = document.getElementById('customLaser');
     if (laser) laser.style.display = 'none';
   });
 
@@ -238,10 +241,6 @@ async function loadSong(songId) {
   if (searchInput) searchInput.disabled = true;
 
   // Reset Audio UI
-  if (ytAutoDetected) ytAutoDetected.style.display = 'none';
-  if (ytManualInput) ytManualInput.style.display = 'none';
-  if (ytSyncControls) ytSyncControls.style.display = 'none';
-  if (ytSyncController) { ytSyncController.destroy(); ytSyncController = null; }
 
   try {
     // Fetch tab metadata from local API
@@ -259,10 +258,9 @@ async function loadSong(songId) {
     initAlphaTab();
     alphaApi.load(tabUrl);
 
-    // Show manual audio input once score loads
     alphaApi.scoreLoaded.on(() => {
-      if (ytManualInput) ytManualInput.style.display = 'flex';
-    });
+      // nothing extra on load
+    }, true);
 
   } catch (e) {
     console.error("❌ Load Failed", e);
@@ -283,6 +281,12 @@ function renderTrackSidebar(score) {
     div.onclick = () => {
       currentTrack = t;
       alphaApi.renderTracks([t]);
+      
+      if (isSoloMode) {
+        alphaApi.changeTrackSolo(alphaApi.score.tracks, false);
+        alphaApi.changeTrackSolo([t], true);
+      }
+
       document.querySelectorAll('.track-item').forEach(i => i.classList.remove('active'));
       div.classList.add('active');
     };
@@ -298,31 +302,28 @@ const themeColors = {
   'retro': '#D81B60', 'vintage': '#B7950B', 'redblack': '#C0392B'
 };
 
-// Global Listeners
+// Global Listeners with Safety Guards
 if (playPauseBtn) playPauseBtn.onclick = () => {
-  alphaApi?.playPause();
-  if (ytSyncController && ytSyncController.activeSource === 'soundcloud') {
-    if (isPlaying) {
-      ytSyncController.pause();
-    } else {
-      ytSyncController.play();
-    }
+  resumeAudioContext();
+  try {
+    alphaApi?.playPause();
+  } catch (e) {
+    console.warn("AlphaTab Play/Pause suppressed:", e);
   }
 };
 
 if (stopBtn) stopBtn.onclick = () => {
-  alphaApi?.stop();
-  if (ytSyncController) {
-    ytSyncController.stop();
+  try {
+    alphaApi?.stop();
+  } catch (e) {
+    console.warn("AlphaTab Stop suppressed:", e);
   }
 };
 
 if (closeBtn) closeBtn.onclick = () => {
-  alphaApi?.stop();
-  if (ytSyncController) {
-    ytSyncController.destroy();
-    ytSyncController = null;
-  }
+  try {
+    alphaApi?.stop();
+  } catch (e) { }
   playerSection.style.display = 'none';
   searchInput.disabled = false;
 };
@@ -333,8 +334,70 @@ if (speedSlider) speedSlider.oninput = (e) => {
 };
 
 if (document.getElementById('at-volume')) document.getElementById('at-volume').oninput = (e) => {
-  if (alphaApi) alphaApi.masterVolume = e.target.value / 100;
+  const vol = e.target.value / 100;
+  if (alphaApi) alphaApi.masterVolume = vol;
 };
+
+const soloToggleBtn = document.getElementById('at-solo-toggle');
+if (soloToggleBtn) soloToggleBtn.onclick = () => {
+  isSoloMode = !isSoloMode;
+  soloToggleBtn.innerText = isSoloMode ? '🎧 Solo: ON' : '🎧 Solo: OFF';
+  soloToggleBtn.style.color = isSoloMode ? 'var(--at-accent-color)' : '#fff';
+  
+  if (alphaApi && alphaApi.score) {
+    if (isSoloMode) {
+      alphaApi.changeTrackSolo(alphaApi.score.tracks, false);
+      alphaApi.changeTrackSolo([currentTrack], true);
+    } else {
+      alphaApi.changeTrackSolo(alphaApi.score.tracks, false);
+    }
+  }
+};
+
+const metronomeBtn = document.getElementById('at-metronome');
+if (metronomeBtn) metronomeBtn.onclick = () => {
+  if (!alphaApi) return;
+  const isActive = alphaApi.metronomeVolume > 0;
+  alphaApi.metronomeVolume = isActive ? 0 : 1;
+  metronomeBtn.style.color = !isActive ? 'var(--at-accent-color)' : '#fff';
+  metronomeBtn.innerText = !isActive ? '🔔 Metrónomo: ON' : '🔔 Metrónomo';
+};
+
+const countInBtn = document.getElementById('at-count-in');
+if (countInBtn) countInBtn.onclick = () => {
+  if (!alphaApi) return;
+  const isActive = alphaApi.countInVolume > 0;
+  alphaApi.countInVolume = isActive ? 0 : 1;
+  countInBtn.style.color = !isActive ? 'var(--at-accent-color)' : '#fff';
+  countInBtn.innerText = !isActive ? '🔢 Cuenta atrás: ON' : '🔢 Cuenta atrás';
+};
+
+// Slider Helper
+window.adjustSlider = (id, delta) => {
+  const slider = document.getElementById(id);
+  if (slider) {
+    let newVal = parseFloat(slider.value) + delta;
+    newVal = Math.min(parseFloat(slider.max), Math.max(parseFloat(slider.min), newVal));
+    slider.value = newVal;
+    slider.dispatchEvent(new Event('input'));
+  }
+};
+
+// AudioContext Resume Helper
+function resumeAudioContext() {
+  if (alphaApi && alphaApi.renderer && alphaApi.renderer.engine && alphaApi.renderer.engine.audioContext) {
+    const ctx = alphaApi.renderer.engine.audioContext;
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(() => console.log("🔊 AudioContext resumed via gesture"));
+    }
+  }
+  if (window.Tone && Tone.State === 'suspended') {
+    Tone.start();
+  }
+}
+
+// Global gesture to unlock audio
+document.addEventListener('click', resumeAudioContext, { once: true });
 
 window.onload = () => {
   initDiscovery();
@@ -365,250 +428,3 @@ function applyThemeColors() {
 
 window.addEventListener('themeChanged', applyThemeColors);
 
-
-// ========== SOUNDCLOUD AUDIO SYNC SYSTEM ==========
-
-// SoundCloud Client ID (public)
-// SoundCloud Client ID (public)
-const SC_CLIENT_ID = 'So2b20f015a9ff5e0842e472251a704a'; // Known working public ID
-
-// Load SoundCloud Widget API
-let scAPIReady = false;
-function loadSoundCloudAPI() {
-  return new Promise((resolve) => {
-    if (scAPIReady || (window.SC && window.SC.Widget)) {
-      scAPIReady = true;
-      resolve();
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://w.soundcloud.com/player/api.js';
-    script.onload = () => {
-      scAPIReady = true;
-      resolve();
-    };
-    document.head.appendChild(script);
-  });
-}
-
-// Search SoundCloud for a track
-// Search SoundCloud for a track with Smart Scoring
-/* searchSoundCloud removed as per user request (Manual Link Only) */
-
-// SoundCloud Sync Controller
-class SoundCloudSyncController {
-  constructor(alphaApi) {
-    this.alphaApi = alphaApi;
-    this.widget = null;
-    this.syncOffset = 0;
-    this.activeSource = 'midi';
-    this.isSyncing = false;
-  }
-
-  async loadTrack(trackUrl) {
-    await loadSoundCloudAPI();
-
-    return new Promise((resolve, reject) => {
-      const iframe = document.getElementById('sc-widget');
-      if (!iframe) {
-        reject(new Error('SoundCloud iframe not found'));
-        return;
-      }
-
-      // Set iframe src
-      iframe.src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(trackUrl)}&auto_play=false&hide_related=true&show_comments=false`;
-
-      // Show player
-      const container = document.getElementById('sc-player-container');
-      if (container) container.style.display = 'block';
-
-      // Initialize widget
-      this.widget = SC.Widget(iframe);
-
-      this.widget.bind(SC.Widget.Events.READY, () => {
-        console.log('✅ SoundCloud ready');
-        this.widget.setVolume(80);
-        resolve();
-      });
-
-      this.widget.bind(SC.Widget.Events.ERROR, () => {
-        console.error('❌ SoundCloud error');
-        reject(new Error('SoundCloud playback error'));
-      });
-    });
-  }
-
-  startSync() {
-    if (this.isSyncing) return;
-    this.isSyncing = true;
-    this.lastAudioTime = 0;
-    this.lastAudioUpdate = Date.now();
-    this.isAudioPlaying = false;
-
-    // 1. Audio Pulse (Sync Source)
-    this.widget.bind(SC.Widget.Events.PLAY_PROGRESS, (data) => {
-      this.lastAudioTime = data.currentPosition / 1000;
-      this.lastAudioUpdate = Date.now();
-
-      if (!this.isAudioPlaying) {
-        this.isAudioPlaying = true;
-        this.animateCursor();
-      }
-    });
-
-    this.widget.bind(SC.Widget.Events.PAUSE, () => {
-      this.isAudioPlaying = false;
-      this.alphaApi.stop();
-    });
-
-    this.widget.bind(SC.Widget.Events.PLAY, () => {
-      this.isAudioPlaying = true;
-      this.animateCursor();
-    });
-
-    this.widget.bind(SC.Widget.Events.FINISH, () => {
-      this.isAudioPlaying = false;
-      this.alphaApi.stop();
-    });
-
-    // 2. Seek Handler
-    this.container = document.getElementById('at-player-content');
-
-    console.log('🔄 SoundCloud sync started (Visual Interpolation Mode)');
-    this.animateCursor();
-  }
-
-  animateCursor() {
-    if (!this.isSyncing) return;
-
-    if (this.isAudioPlaying) {
-      const now = Date.now();
-      const timeSinceUpdate = (now - this.lastAudioUpdate) / 1000;
-      const projectedTime = this.lastAudioTime + timeSinceUpdate - this.syncOffset;
-
-      if (projectedTime >= 0) {
-        try {
-          const tick = this.alphaApi.timeToTick(projectedTime * 1000);
-          this.alphaApi.tickPosition = tick;
-        } catch (e) { }
-      }
-      requestAnimationFrame(() => this.animateCursor());
-    }
-  }
-
-  toggleSource() {
-    if (this.activeSource === 'midi') {
-      this.activeSource = 'soundcloud';
-      this.alphaApi.masterVolume = 0;
-      this.alphaApi.stop(); // Stop engine
-
-      if (this.widget) {
-        this.widget.setVolume(80);
-        this.widget.play();
-      }
-
-      if (ytSourceLabel) ytSourceLabel.innerText = 'SoundCloud';
-      console.log('🎵 Source: SoundCloud (Visual Mode)');
-    } else {
-      this.activeSource = 'midi';
-      this.alphaApi.masterVolume = 0.8;
-      this.isAudioPlaying = false; // Stop animation
-
-      if (this.widget) this.widget.pause();
-      if (ytSourceLabel) ytSourceLabel.innerText = 'MIDI';
-      console.log('🎹 Source: MIDI');
-    }
-  }
-
-  /* 
-     Legacy code removed by overwrite. 
-     The rest of the file needs to be cleaned up manually if this partial replace leaves garbage.
-     I will target a large chunk to replace everything down to tickToSeconds.
-  */
-  /* End legacy code cleanup */
-
-  adjustOffset(delta) {
-    this.syncOffset += delta;
-    if (ytOffsetDisplay) ytOffsetDisplay.innerText = this.syncOffset.toFixed(1) + 's';
-  }
-
-  play() {
-    if (this.activeSource === 'soundcloud' && this.widget) this.widget.play();
-  }
-
-  pause() {
-    if (this.widget) this.widget.pause();
-  }
-
-  stop() {
-    if (this.widget) {
-      this.widget.pause();
-      this.widget.seekTo(0);
-    }
-  }
-
-  stopSync() {
-    this.isSyncing = false;
-    this.isAudioPlaying = false;
-    this.alphaApi.stop();
-    console.log('⏹️ SoundCloud sync stopped');
-  }
-
-  ticksToSeconds(ticks) {
-    if (!this.alphaApi) return 0;
-    try {
-      return this.alphaApi.tickToTime(ticks) / 1000;
-    } catch (e) {
-      return (ticks / 960) * (60 / 120); // Fallback
-    }
-  }
-
-  destroy() {
-    this.stopSync();
-    if (this.widget) this.widget.pause();
-    const container = document.getElementById('sc-player-container');
-    if (container) container.style.display = 'none';
-  }
-}
-
-// UI Handlers for Manual Input and Controls
-if (ytLinkBtn) {
-  ytLinkBtn.onclick = async () => {
-    const url = ytUrlInput.value.trim();
-    if (!url) return;
-    try {
-      ytSyncController = new SoundCloudSyncController(alphaApi);
-      await ytSyncController.loadTrack(url);
-      ytSyncController.startSync();
-
-      ytManualInput.style.display = 'none';
-      ytSyncControls.style.display = 'flex';
-      ytSyncController.toggleSource();
-    } catch (e) {
-      showToast("Error al cargar URL", "error");
-    }
-  };
-}
-
-if (ytSourceToggle) {
-  ytSourceToggle.onclick = () => {
-    if (ytSyncController) ytSyncController.toggleSource();
-  };
-}
-
-// Sync Slider Logic
-const ytOffsetSlider = document.getElementById('yt-offset-slider');
-if (ytOffsetSlider) {
-  ytOffsetSlider.oninput = (e) => {
-    const val = parseFloat(e.target.value);
-    if (ytSyncController) {
-      ytSyncController.syncOffset = val;
-      if (ytOffsetDisplay) {
-        const sign = val >= 0 ? '+' : '';
-        ytOffsetDisplay.innerText = `${sign}${val.toFixed(1)}s`;
-        ytOffsetDisplay.style.color = val === 0 ? '#F39C12' : (val > 0 ? '#27AE60' : '#E74C3C');
-      }
-    }
-  };
-}

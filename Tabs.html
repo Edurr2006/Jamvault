@@ -543,9 +543,9 @@
 
     #customLaser {
       position: absolute;
-      background: var(--at-accent-color);
+      background: #ffffff;
       opacity: 1;
-      box-shadow: 0 0 10px var(--at-accent-color), 0 0 20px var(--at-accent-color);
+      box-shadow: 0 0 10px #ffffff, 0 0 20px rgba(255, 255, 255, 0.5);
       border-radius: 4px;
       z-index: 50;
       pointer-events: none;
@@ -685,29 +685,82 @@
       box-shadow: 0 6px 20px rgba(255, 0, 0, 0.5);
     }
 
-    /* YouTube Sync UI */
-    .youtube-audio-section {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    #yt-auto-detected,
-    #yt-manual-input,
-    #yt-sync-controls {
-      display: none;
-    }
-
-    #yt-auto-detected.visible,
-    #yt-manual-input.visible,
-    #yt-sync-controls.visible {
-      display: flex;
-    }
-
     .control-group {
       display: flex;
       align-items: center;
       gap: 15px;
+    }
+
+    /* Range Input Refinement */
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.1);
+      height: 4px;
+      border-radius: 2px;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 14px;
+      width: 14px;
+      border-radius: 50%;
+      background: var(--at-accent-color);
+      box-shadow: 0 0 10px var(--at-accent-color);
+      margin-top: -5px;
+      border: none;
+    }
+
+    /* Enhanced Slider Logic */
+    .at-slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .at-slider-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .at-slider-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .at-slider-btn:hover {
+      background: var(--at-accent-color);
+      color: #000;
+      border-color: transparent;
+      transform: scale(1.1);
+    }
+
+    .at-slider-btn:active {
+      transform: scale(0.9);
+    }
+
+    #sc-player-container.minimized {
+      height: 40px;
+      width: 180px;
+      overflow: hidden;
+    }
+
+    #sc-player-container.minimized #sc-widget {
+      display: none;
     }
   </style>
 </head>
@@ -734,7 +787,7 @@
   </header>
 
   <div class="container">
-    <h2>¡Encuentra canciones de Songsterr de manera rápida!</h2>
+    <h2>¡Explora nuestra colección de tablaturas!</h2>
     <p>Busca tus canciones favoritas y reprodúcelas directamente aquí.</p>
     <p style="color: #ff5555;">⚠️ Aviso: El sistema de sincronización de audio se encuentra en fase Beta. Es posible que
       algunas canciones requieran un ajuste manual para lograr una sincronización perfecta.</p>
@@ -837,59 +890,31 @@
         <div class="control-group">
           <button id="at-metronome" class="at-tool-btn">🔔 Metrónomo</button>
           <button id="at-count-in" class="at-tool-btn">🔢 Cuenta atrás</button>
+          <button id="at-solo-toggle" class="at-tool-btn" title="Alternar entre escuchar solo tu instrumento o toda la banda">🎧 Solo: OFF</button>
         </div>
 
         <div class="control-group">
           <div class="at-slider-group">
             <span class="at-slider-label">Velocidad: <span id="at-speed-label">100%</span></span>
-            <input type="range" id="at-speed" min="25" max="200" value="100">
+            <div class="at-slider-wrapper">
+              <button class="at-slider-btn" onclick="adjustSlider('at-speed', -5)">-</button>
+              <input type="range" id="at-speed" min="25" max="200" value="100" style="width: 100px;">
+              <button class="at-slider-btn" onclick="adjustSlider('at-speed', 5)">+</button>
+            </div>
           </div>
           <div class="at-slider-group">
             <span class="at-slider-label">Volumen</span>
-            <input type="range" id="at-volume" min="0" max="100" value="80">
-          </div>
-        </div>
-
-        <!-- YouTube Audio Sync Section -->
-        <div class="control-group youtube-audio-section">
-          <!-- Auto-detected indicator -->
-          <div id="yt-auto-detected" style="display:none; gap:10px; align-items:center;">
-            <span style="font-size:0.8rem; color:rgba(255,255,255,0.7);">🎵 Audio disponible</span>
-            <button id="yt-enable-btn" class="at-tool-btn">Activar SoundCloud</button>
-          </div>
-
-          <!-- Manual input (shown if auto-detection fails) -->
-          <div id="yt-manual-input" style="display:none; gap:10px; align-items:center;">
-            <input type="text" id="yt-url-input" placeholder="Buscar en SoundCloud..."
-              style="padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.3); color:#fff; font-size:0.85rem; min-width:200px;">
-            <button id="yt-link-btn" class="at-tool-btn">Vincular</button>
-          </div>
-
-          <!-- Active sync controls -->
-          <div id="yt-sync-controls" style="display:none; gap:15px; align-items:center;">
-            <button id="yt-source-toggle" class="at-tool-btn" style="min-width:80px;">
-              <span id="yt-source-label">MIDI</span>
-            </button>
-
-            <!-- Sync Slider Control -->
-            <div style="display:flex; flex-direction:column; gap:2px;">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:0.7rem; color:rgba(255,255,255,0.6);">Ajuste de Inicio</span>
-                <span id="yt-offset-display" style="font-size:0.75rem; color:#F39C12;">0.0s</span>
-              </div>
-              <input type="range" id="yt-offset-slider" min="-5" max="5" step="0.1" value="0"
-                style="width:140px; cursor:pointer;" title="Arrastra para ajustar el inicio del audio">
+            <div class="at-slider-wrapper">
+              <button class="at-slider-btn" onclick="adjustSlider('at-volume', -5)">-</button>
+              <input type="range" id="at-volume" min="0" max="100" step="1" value="80" 
+                style="width: 80px;" title="Control de volumen (MIDI y Audio)">
+              <button class="at-slider-btn" onclick="adjustSlider('at-volume', 5)">+</button>
             </div>
           </div>
         </div>
+
       </div>
 
-      <!-- Hidden SoundCloud Player -->
-      <div id="sc-player-container"
-        style="position:fixed; bottom:10px; right:10px; width:300px; height:166px; z-index:9999; display:none;">
-        <iframe id="sc-widget" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="">
-        </iframe>
-      </div>
     </div>
   </div>
 
