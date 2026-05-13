@@ -4,7 +4,7 @@
  * Estrictamente desacoplado, utiliza AudioEngine solo para contexto/nodos.
  */
 
-import { AudioEngine } from './AudioEngine.js';
+import { AudioEngine } from '../core/AudioEngine.js';
 
 export class ExercisePlayer {
     constructor() {

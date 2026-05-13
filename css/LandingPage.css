@@ -230,12 +230,12 @@
 }
 
 /* Imágenes de fondo */
-.ls-visual-acordes   { background-image: url('imagenes/acordes.jpg'); }
-.ls-visual-escalas   { background-image: url('imagenes/escalas.jpg'); }
-.ls-visual-tabs      { background-image: url('imagenes/acordes.jpg'); }
-.ls-visual-afinador  { background-image: url('imagenes/escalas.jpg'); }
-.ls-visual-ejercicios{ background-image: url('imagenes/ejercicios.jpg'); }
-.ls-visual-jamstudio { background-image: url('imagenes/acordes.jpg'); }
+.ls-visual-acordes   { background-image: url('../imagenes/acordes.jpg'); }
+.ls-visual-escalas   { background-image: url('../imagenes/escalas.jpg'); }
+.ls-visual-tabs      { background-image: url('../imagenes/acordes.jpg'); }
+.ls-visual-afinador  { background-image: url('../imagenes/escalas.jpg'); }
+.ls-visual-ejercicios{ background-image: url('../imagenes/ejercicios.jpg'); }
+.ls-visual-jamstudio { background-image: url('../imagenes/acordes.jpg'); }
 
 /* Borde de brillo de acento en los visuales */
 .ls-visual {

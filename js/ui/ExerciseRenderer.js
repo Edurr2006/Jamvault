@@ -1,4 +1,4 @@
-import { acordesDB } from './ChordData.js';
+import { acordesDB } from '../utils/ChordData.js';
 
 export class ExerciseRenderer {
     constructor(scaleContainerId, chordContainerId) {

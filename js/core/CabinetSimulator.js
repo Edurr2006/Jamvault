@@ -1,7 +1,7 @@
 // ========== SIMULADOR DE PANTALLA ==========
 // Simulación de pantalla y micrófono utilizando respuestas al impulso
 
-import { AudioMath } from './utils/AudioMath.js';
+import { AudioMath } from '../utils/AudioMath.js';
 
 export class CabinetSimulator {
     constructor(audioContext, irLoader) {

@@ -1,7 +1,7 @@
 import { ExerciseState } from '../core/ExerciseState.js';
 import { ExercisePlayer } from './ExercisePlayer.js';
 import { ExerciseRenderer } from './ExerciseRenderer.js';
-import { acordesDB } from './ChordData.js';
+import { acordesDB } from '../utils/ChordData.js';
 
 const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const STRING_BASES = [null, 64, 59, 55, 50, 45, 40]; // 1:E4(64), 2:B3(59), 3:G3(55), 4:D3(50), 5:A2(45), 6:E2(40)

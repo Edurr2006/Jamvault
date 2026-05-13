@@ -504,16 +504,16 @@ header > a {
 
 /* Asignación de Imágenes de Fondo */
 .card-scales {
-  background-image: url('imagenes/escalas.jpg');
+  background-image: url('../imagenes/escalas.jpg');
 }
 
 /* Fondos de marcador de posición para otras tarjetas hasta que el usuario proporcione imágenes */
 .card-chords {
-  background-image: url('imagenes/acordes.jpg'); 
+  background-image: url('../imagenes/acordes.jpg'); 
 }
 
 .card-exercises {
-  background-image: url('imagenes/ejercicios.jpg');
+  background-image: url('../imagenes/ejercicios.jpg');
 }
 
 

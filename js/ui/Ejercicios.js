@@ -7,7 +7,7 @@
 import { ExerciseState } from '../core/ExerciseState.js';
 import { ExerciseRenderer } from './ExerciseRenderer.js';
 import { ExercisePlayer } from './ExercisePlayer.js';
-import { acordesDB } from './ChordData.js';
+import { acordesDB } from '../utils/ChordData.js';
 
 // --- TEORÍA MUSICAL (Desacoplado) ---
 const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];

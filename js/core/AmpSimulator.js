@@ -1,8 +1,8 @@
 // ========== SIMULADOR DE AMPLIFICADOR ==========
 // Amplificador de guitarra virtual con preamplificador, tone stack y simulación de pantalla (cabinet)
 
-import { AudioMath } from './utils/AudioMath.js';
-import { WaveshapeGenerator } from './utils/WaveshapeGenerator.js';
+import { AudioMath } from '../utils/AudioMath.js';
+import { WaveshapeGenerator } from '../utils/WaveshapeGenerator.js';
 
 export class AmpSimulator {
     constructor(audioContext) {
