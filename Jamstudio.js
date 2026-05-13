@@ -50,6 +50,19 @@ class Jamstudio {
         // Actualización de medidores
         this.meterInterval = null;
 
+        // Gestión de proyectos en la nube
+        this.hasUnsavedChanges = false;
+        this.currentProjectName = "Mi Proyecto";
+
+        // Pilas de historia (Undo/Redo)
+        this.undoStack = [];
+        this.redoStack = [];
+        this.maxHistoryStackSize = 50;
+
+        // Flags de estado
+        this.hasPushedHistoryForDrag = false;
+        this.isRestoringHistory = false;
+
         this.init();
     }
 
@@ -72,6 +85,16 @@ class Jamstudio {
             // Enumerar dispositivos de audio
             await this.enumerateAudioDevices();
 
+            // Configurar listeners para cambios de dispositivos de audio
+            document.getElementById('audioInputDevice')?.addEventListener('change', () => this.handleAudioInputChange());
+            document.getElementById('audioOutputDevice')?.addEventListener('change', (e) => {
+                if (this.audioEngine && this.audioEngine.context.setSinkId) {
+                    this.audioEngine.context.setSinkId(e.target.value)
+                        .then(() => console.log('Salida de audio cambiada:', e.target.value))
+                        .catch(err => console.error('Error al cambiar salida de audio:', err));
+                }
+            });
+
             // Iniciar actualización de medidores
             this.updateMeters();
 
@@ -79,6 +102,11 @@ class Jamstudio {
             this.seekTo(0);
 
             console.log('JamStudio Pro initialized successfully');
+
+            // Si es un proyecto nuevo (no hay pistas), añadir una por defecto
+            if (this.tracks.length === 0) {
+                this.addEmptyTrack();
+            }
 
         } catch (error) {
             console.error('Error initializing JamStudio Pro:', error);
@@ -124,7 +152,8 @@ class Jamstudio {
         // Entrada de BPM
         const bpmInput = document.getElementById('bpmInput');
         if (bpmInput) {
-            bpmInput.addEventListener('input', (e) => {
+            bpmInput.addEventListener('change', (e) => {
+                this.pushHistory(); // Guardar historia al CAMBIAR (no en cada paso del input)
                 let value = parseInt(e.target.value);
                 value = AudioMath.clamp(value, 40, 240);
                 this.bpm = value;
@@ -210,6 +239,10 @@ class Jamstudio {
             if (e.code === 'Space' && !e.target.matches('input, textarea')) {
                 e.preventDefault();
                 if (this.isPlaying && !this.isPaused) {
+                    if (this.isRecording) {
+                        this.stop(); // En lugar de bloquear, paramos la grabación
+                        return;
+                    }
                     this.pause();
                 } else {
                     this.play();
@@ -217,6 +250,16 @@ class Jamstudio {
             } else if (e.code === 'KeyR' && e.ctrlKey) {
                 e.preventDefault();
                 this.startRecording();
+            } else if (e.code === 'KeyZ' && e.ctrlKey) {
+                e.preventDefault();
+                if (e.shiftKey) {
+                    this.redo();
+                } else {
+                    this.undo();
+                }
+            } else if (e.code === 'KeyY' && e.ctrlKey) {
+                e.preventDefault();
+                this.redo();
             }
         });
 
@@ -326,6 +369,8 @@ class Jamstudio {
         }
 
         this.timelineMouseDown = (e) => {
+            if (this.isRecording) return;
+
             // Paneo (Desplazamiento) con el botón central (Botón 1)
             if (e.button === 1) {
                 e.preventDefault();
@@ -361,7 +406,7 @@ class Jamstudio {
                 this.tracks.forEach(t => this.drawWaveform(t));
 
                 this.isDraggingTimeline = true;
-                                document.body.style.cursor = 'e-resize';
+                document.body.style.cursor = 'e-resize';
                 this.updatePlayheadPosition(e);
             }
         };
@@ -383,7 +428,7 @@ class Jamstudio {
             this.isPanning = false;
             document.body.style.cursor = '';
 
-                        if (this.scrollAnimationId) {
+            if (this.scrollAnimationId) {
                 cancelAnimationFrame(this.scrollAnimationId);
                 this.scrollAnimationId = null;
             }
@@ -581,46 +626,87 @@ class Jamstudio {
 
     async enumerateAudioDevices() {
         try {
-            // Solicitar permiso primero
-            await navigator.mediaDevices.getUserMedia({ audio: true });
+            // Solicitar permiso solo si no tenemos stream activo
+            let tempStream = null;
+            if (!this.recordingStream) {
+                tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            }
 
-            // Enumerar dispositivos
             const devices = await navigator.mediaDevices.enumerateDevices();
+
+            if (tempStream) {
+                tempStream.getTracks().forEach(track => track.stop());
+            }
 
             const inputDeviceSelect = document.getElementById('audioInputDevice');
             const outputDeviceSelect = document.getElementById('audioOutputDevice');
 
             if (inputDeviceSelect) {
-                // Limpiar opciones existentes excepto la predeterminada
-                inputDeviceSelect.innerHTML = '<option value="default">Default</option>';
+                const currentValue = inputDeviceSelect.value;
+                inputDeviceSelect.innerHTML = '';
 
-                // Añadir dispositivos de entrada de audio
                 devices.filter(device => device.kind === 'audioinput').forEach(device => {
+                    // Evitar duplicar la opción 'default' si ya existe un dispositivo con ese ID
+                    if (device.deviceId === 'default' && inputDeviceSelect.querySelector('option[value="default"]')) {
+                        return;
+                    }
+                    
                     const option = document.createElement('option');
                     option.value = device.deviceId;
-                    option.textContent = device.label || `Microphone ${inputDeviceSelect.options.length}`;
+                    option.textContent = device.label || (device.deviceId === 'default' ? 'Predeterminado del sistema' : `Entrada ${inputDeviceSelect.options.length + 1}`);
                     inputDeviceSelect.appendChild(option);
                 });
+
+                if (currentValue) inputDeviceSelect.value = currentValue;
             }
 
             if (outputDeviceSelect) {
-                // Limpiar opciones existentes excepto la predeterminada
-                outputDeviceSelect.innerHTML = '<option value="default">Default</option>';
+                const currentValue = outputDeviceSelect.value;
+                outputDeviceSelect.innerHTML = '';
 
-                // Añadir dispositivos de salida de audio
                 devices.filter(device => device.kind === 'audiooutput').forEach(device => {
                     const option = document.createElement('option');
                     option.value = device.deviceId;
-                    option.textContent = device.label || `Speaker ${outputDeviceSelect.options.length}`;
+                    option.textContent = device.label || `Salida ${outputDeviceSelect.options.length + 1}`;
                     outputDeviceSelect.appendChild(option);
                 });
+
+                if (currentValue) outputDeviceSelect.value = currentValue;
             }
 
-            console.log('Audio devices enumerated:', devices.length);
-
         } catch (error) {
-            console.warn('Could not enumerate audio devices:', error);
+            console.error('Error enumerating devices:', error);
         }
+    }
+
+    async handleAudioInputChange() {
+        console.log('Cambio de dispositivo de entrada detectado.');
+
+        // Si hay una grabación en curso, no podemos cambiar de micro de golpe sin parar.
+        // Pero para el monitoreo sí podemos reiniciarlo.
+
+        // 1. Si el stream global existe, lo cerramos para forzar uno nuevo
+        if (this.recordingStream) {
+            this.recordingStream.getTracks().forEach(t => t.stop());
+            this.recordingStream = null;
+        }
+
+        // 2. Reiniciar monitoreo en todas las pistas que lo tengan activo
+        for (const track of this.tracks) {
+            if (track.monitoring) {
+                // Forzar apagado completo (limpieza de nodos)
+                track.monitoring = false;
+                if (track.monitorNode) {
+                    track.monitorNode.disconnect();
+                    track.monitorNode = null;
+                }
+                // Volver a encender (creará stream y nodos nuevos)
+                await this.toggleTrackMonitoring(track.id);
+            }
+        }
+
+        const inputName = document.getElementById('audioInputDevice')?.selectedOptions[0]?.text || 'Desconocido';
+        showToast(`Micrófono cambiado a: ${inputName}`, 'success');
     }
 
     // ========== GRABACIÓN (RECORDING) ==========
@@ -637,44 +723,71 @@ class Jamstudio {
         }
 
         try {
-            // Construir restricciones con el dispositivo seleccionado
+            const inputDeviceId = document.getElementById('audioInputDevice')?.value || 'default';
             const constraints = {
                 audio: {
+                    deviceId: inputDeviceId !== 'default' ? { ideal: inputDeviceId } : undefined,
                     echoCancellation: false,
                     autoGainControl: false,
                     noiseSuppression: false,
-                    latency: 0
+                    latency: 0,
+                    googEchoCancellation: false,
+                    googAutoGainControl: false,
+                    googNoiseSuppression: false,
+                    googHighpassFilter: false,
+                    googTypingNoiseDetection: false,
+                    googNoiseReduction: false,
+                    channelCount: 1,
+                    sampleRate: 48000
                 }
             };
 
-            // Usar el dispositivo de entrada seleccionado si está disponible
-            if (this.selectedInputDevice && this.selectedInputDevice !== 'default') {
-                constraints.audio.deviceId = { exact: this.selectedInputDevice };
+            // REUTILIZAR STREAM: Si ya hay un stream abierto (por monitoreo), usarlo
+            if (!this.recordingStream) {
+                this.recordingStream = await navigator.mediaDevices.getUserMedia(constraints);
             }
+            
+            const stream = this.recordingStream;
 
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            this.isRecording = true;
 
-                        this.isRecording = true;
-            this.recordingStream = stream;
+            // Detener el afinador si está corriendo para liberar el micro por completo
+            if (window.stopTuner) {
+                window.stopTuner();
+            }
 
             // Iniciar la reproducción si no se está reproduciendo ya (para mover el cabezal)
             if (!this.isPlaying) {
-                this.play();
+                await this.play();
             }
 
-            // CRITICAL: Capturar tiempo exacto de inicio de grabación (currentTime) del cabezal de reproducción
-            const recordingStartTime = this.currentTime;
+            // CRITICAL: Capturar tiempo exacto de inicio de la grabación basándose en el motor de audio
+            // No confiar solo en 'this.currentTime' que depende del ciclo de animación de la UI
+            const recordingStartTime = this.isPlaying && !this.isPaused
+                ? (this.audioEngine.getCurrentTime() - this.startTime)
+                : this.pauseTime;
 
             for (const track of armedTracks) {
                 track.recordedChunks = [];
                 track.recordingStartTime = recordingStartTime;
+                track.lastDrawTime = recordingStartTime; // Asegurar que el dibujo empiece en el punto exacto
+
+                // Limpiar el canvas de la pista antes de empezar a dibujar la nueva grabación
+                const canvas = document.getElementById(`waveform-${track.id}`);
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    // Si hay clips previos, redibujarlos (esto despeja las líneas "fantasma" de grabaciones fallidas)
+                    this.drawWaveform(track);
+                }
+
                 track.mediaRecorder = new MediaRecorder(stream);
 
-                // Configurar visualización en tiempo real
+                // Configurar visualización en tiempo real (Meters/Waveform)
                 if (track.analyserNode) {
                     track.recordingSource = this.audioEngine.createMediaStreamSource(stream);
                     track.recordingSource.connect(track.analyserNode);
-                    track.lastDrawTime = this.currentTime;
                 }
 
                 track.mediaRecorder.ondataavailable = (e) => {
@@ -713,8 +826,15 @@ class Jamstudio {
                 track.mediaRecorder.start();
             }
 
-                        document.getElementById('recordBtn')?.classList.add('recording');
+            document.getElementById('recordBtn')?.classList.add('recording');
             document.getElementById('recordingIndicator')?.classList.remove('hidden');
+
+            // Deshabilitar Pausa durante la grabación (causaría desync)
+            const pauseBtn = document.getElementById('pauseBtn');
+            if (pauseBtn) {
+                pauseBtn.disabled = true;
+                pauseBtn.title = 'No se puede pausar durante la grabación';
+            }
 
         } catch (error) {
             console.error('Error:', error);
@@ -724,6 +844,7 @@ class Jamstudio {
 
     stopRecording() {
         if (!this.isRecording) return;
+        this.pushHistory();
 
         // Detener los grabadores de todas las pistas armadas
         const armedTracks = this.tracks.filter(t => t.armed);
@@ -733,17 +854,25 @@ class Jamstudio {
             }
         });
 
-        // Detener el flujo de grabación
-        if (this.recordingStream) {
+        this.isRecording = false;
+
+        // Limpiar el stream global SOLO si nadie más lo está usando para monitoreo
+        const isAnyTrackMonitoring = this.tracks.some(t => t.monitoring);
+        if (!isAnyTrackMonitoring && this.recordingStream) {
             this.recordingStream.getTracks().forEach(t => t.stop());
             this.recordingStream = null;
         }
 
-        this.isRecording = false;
-
         // Actualizar UI
         document.getElementById('recordBtn')?.classList.remove('recording');
         document.getElementById('recordingIndicator')?.classList.add('hidden');
+
+        // Rehabilitar el botón de Pausa
+        const pauseBtnStop = document.getElementById('pauseBtn');
+        if (pauseBtnStop) {
+            pauseBtnStop.disabled = false;
+            pauseBtnStop.title = '';
+        }
 
         console.log('Recording stopped');
     }
@@ -836,42 +965,42 @@ class Jamstudio {
     }
 
     pause() {
-        if (!this.isPlaying || this.isPaused) return;
+        if (!this.isPlaying || this.isPaused || this.isRecording) return;
 
         this.isPlaying = false;
         this.isPaused = true;
         this.pauseTime = this.audioEngine.getCurrentTime() - this.startTime;
 
-                // Parar todas las fuentes de audio (buffers) en reproducción
+        // Parar todas las fuentes de audio (buffers) en reproducción
         this.tracks.forEach(track => {
             if (track.sources) {
                 track.sources.forEach(source => {
                     try {
                         source.stop();
                     } catch (e) {
-                                                // Ignorar errores de parada si la fuente ya terminó o no existía
+                        // Ignorar errores de parada si la fuente ya terminó o no existía
                     }
                 });
                 track.sources = [];
             }
 
-                        // Desconectar efectos para silenciar colas de señal (colas de reverb/delay)
+            // Desconectar efectos para silenciar colas de señal (colas de reverb/delay)
             // if (track.signalChain) {
             //    track.signalChain.disconnect();
             // }
             // El nodo de ganancia permanece conectado ya que es un control de volumen simple
         });
 
-                // Parar metrónomo
+        // Parar metrónomo
         this.stopMetronome();
 
-                // Actualizar interfaz (UI) de transporte
+        // Actualizar interfaz (UI) de transporte
         const playBtn = document.getElementById('playBtn');
         const pauseBtn = document.getElementById('pauseBtn');
         if (playBtn) playBtn.disabled = false;
         if (pauseBtn) pauseBtn.disabled = true;
 
-                // Parar animación del playhead
+        // Parar animación del playhead
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
         }
@@ -892,22 +1021,29 @@ class Jamstudio {
         this.currentTime = 0;
         this.pauseTime = 0;
 
-                // Parar todas las pistas en activo
+        // Parar todas las pistas en activo
         this.tracks.forEach(track => {
             if (track.sources) {
                 track.sources.forEach(source => {
                     try {
                         source.stop();
                     } catch (e) {
-                                                // Ignorar errores de parada al detener todo el motor
+                        // Ignorar errores de parada al detener todo el motor
                     }
                 });
                 track.sources = [];
             }
         });
 
-                // Parar metrónomo
+        // Parar metrónomo
         this.stopMetronome();
+
+        // Limpiar stream de grabación si nadie está monitoreando
+        const isAnyTrackMonitoring = this.tracks.some(t => t.monitoring);
+        if (!isAnyTrackMonitoring && this.recordingStream) {
+            this.recordingStream.getTracks().forEach(t => t.stop());
+            this.recordingStream = null;
+        }
 
         // Actualizar UI solo si se solicita
         if (resetUI) {
@@ -934,7 +1070,7 @@ class Jamstudio {
             }
         }
 
-                // Parar animación del playhead al realizar stop completo
+        // Parar animación del playhead al realizar stop completo
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
         }
@@ -1024,6 +1160,20 @@ class Jamstudio {
             const canvas = document.getElementById(`waveform-${track.id}`);
             if (!canvas) return;
 
+            // Asegurar que el canvas tenga las dimensiones correctas antes de dibujar
+            // Esto es crítico en la primera grabación ya que el canvas puede no haber sido
+            // inicializado por drawWaveform() todavía (no hay clips todavía)
+            const maxDuration = this.getMaxDuration();
+            const contentWidth = maxDuration * this.pixelsPerSecond;
+            const containerWidth = canvas.parentElement ? canvas.parentElement.clientWidth : 300;
+            const SAFETY_MAX_WIDTH = 30000;
+            const requiredWidth = Math.min(Math.max(contentWidth, containerWidth), SAFETY_MAX_WIDTH);
+
+            if (canvas.width !== requiredWidth || canvas.height === 0) {
+                canvas.width = requiredWidth;
+                canvas.height = canvas.offsetHeight || canvas.parentElement?.clientHeight || 80;
+            }
+
             const ctx = canvas.getContext('2d');
             const analyser = track.analyserNode;
             const bufferLength = analyser.frequencyBinCount;
@@ -1034,8 +1184,6 @@ class Jamstudio {
             const startX = track.lastDrawTime * this.pixelsPerSecond;
             const endX = this.currentTime * this.pixelsPerSecond;
             const width = endX - startX;
-
-            if (width < 1) return; // No dibujar si es demasiado pequeño
 
             // Calcular amplitud media para esta franja
             let sum = 0;
@@ -1048,7 +1196,6 @@ class Jamstudio {
 
             // Dibujar bloque de forma de onda roja
             const height = canvas.height;
-            const amp = height / 2;
             const y = height / 2;
             const barHeight = Math.max(2, average * height); // Altura mínima de 2px
 
@@ -1061,13 +1208,18 @@ class Jamstudio {
 
     // ========== GESTIÓN DE PISTAS (TRACK MANAGEMENT) ==========
 
-    addEmptyTrack() {
+    addEmptyTrack(preferredId = null) {
+        if (!this.isRestoringHistory) this.pushHistory();
+        this.hasUnsavedChanges = true;
         if (this.tracks.length >= 19) {
             showToast('Has alcanzado el límite máximo de 19 pistas', 'warning');
             return;
         }
 
-        const trackId = this.nextTrackId++;
+        const trackId = preferredId || this.nextTrackId++;
+        if (preferredId && preferredId >= this.nextTrackId) {
+            this.nextTrackId = preferredId + 1;
+        }
         const track = {
             id: trackId,
             name: `Track ${trackId}`,
@@ -1075,7 +1227,7 @@ class Jamstudio {
             audioBlob: null,
             source: null,
             // signalChain: new SignalChain(this.audioEngine.audioContext, this.audioEngine.irLoader), // Removed per user request
-                        gainNode: null, // Inicializado debajo
+            gainNode: null, // Inicializado debajo
             volume: 80,
             pan: 0,
             muted: false,
@@ -1094,7 +1246,7 @@ class Jamstudio {
         // Crear analizador para el medidor VU
         track.analyserNode = this.audioEngine.createAnalyser(256);
 
-                // Volumen y Panorama por defecto (Gain y Pan)
+        // Volumen y Panorama por defecto (Gain y Pan)
         // track.signalChain.setVolume(track.volume / 100);
         // track.signalChain.setPan(track.pan / 100);
 
@@ -1173,7 +1325,7 @@ class Jamstudio {
             });
         }
 
-                // Configurar interacción con clips (arrastrar/soltar)
+        // Configurar interacción con clips (arrastrar/soltar)
         this.setupClipInteraction(track);
 
 
@@ -1192,6 +1344,8 @@ class Jamstudio {
     }
 
     deleteTrack(trackId) {
+        this.pushHistory();
+        trackId = Number(trackId);
         const index = this.tracks.findIndex(t => t.id === trackId);
         if (index === -1) return;
 
@@ -1199,7 +1353,7 @@ class Jamstudio {
 
         // Si está reproduciendo, detener todo y restablecer
         if (this.isPlaying || this.isPaused) {
-                        this.stop(); // Parar audio antes de purga total de tracks
+            this.stop(); // Parar audio antes de purga total de tracks
         }
 
         // Detener la pista si se está reproduciendo
@@ -1212,10 +1366,10 @@ class Jamstudio {
             track.signalChain.destroy();
         }
 
-                // Eliminar de la lista interna del motor y de la interfaz
+        // Eliminar de la lista interna del motor y de la interfaz
         this.tracks.splice(index, 1);
 
-                // Eliminar elemento del DOM (UI)
+        // Eliminar elemento del DOM (UI)
         document.querySelector(`.track-container[data-track-id="${trackId}"]`)?.remove();
 
         console.log('Track deleted:', trackId);
@@ -1301,7 +1455,7 @@ class Jamstudio {
 
         track.muted = !track.muted;
 
-                // Actualizar botón en el mezclador inferior (Bottom Mixer) si está activo para sincronizar UI
+        // Actualizar botón en el mezclador inferior (Bottom Mixer) si está activo para sincronizar UI
         const bottomBtn = document.querySelector('#bottomMixerPanel .bottom-mixer-controls .mute-btn');
         if (bottomBtn && document.getElementById('bottomMixerPanel').dataset.activeTrack == trackId) {
             bottomBtn.classList.toggle('active', track.muted);
@@ -1319,7 +1473,7 @@ class Jamstudio {
 
         track.solo = !track.solo;
 
-                // Actualizar estado de Solo en Bottom Mixer si aplica sincronización de UI
+        // Actualizar estado de Solo en Bottom Mixer si aplica sincronización de UI
         const bottomBtn = document.querySelector('#bottomMixerPanel .bottom-mixer-controls .solo-btn');
         if (bottomBtn && document.getElementById('bottomMixerPanel').dataset.activeTrack == trackId) {
             bottomBtn.classList.toggle('active', track.solo);
@@ -1328,7 +1482,7 @@ class Jamstudio {
         // Si se está reproduciendo, reiniciar la reproducción
         if (this.isPlaying) {
             const currentTime = this.audioEngine.getCurrentTime() - this.startTime;
-                        this.stop(); // Parar audio antes de purga total de tracks
+            this.stop(); // Parar audio antes de purga total de tracks
             this.pauseTime = currentTime;
             this.isPaused = true;
             this.play();
@@ -1346,13 +1500,13 @@ class Jamstudio {
             track.gainNode.gain.value = track.volume / 100;
         }
 
-                // Sincronizar con interfaz de mezcla en línea (Inline Mixer)
+        // Sincronizar con interfaz de mezcla en línea (Inline Mixer)
         const inlineInput = document.querySelector(`#mixer-${trackId} input[type="range"][oninput*="setTrackVolume"]`);
         const inlineDisplay = document.querySelector(`#mixer-${trackId} .mixer-row:nth-child(1) span`);
         if (inlineInput) inlineInput.value = track.volume;
         if (inlineDisplay) inlineDisplay.textContent = `${Math.round(track.volume)}%`;
 
-                // Sincronizar con mezclador inferior (Bottom Mixer) si la pista está seleccionada
+        // Sincronizar con mezclador inferior (Bottom Mixer) si la pista está seleccionada
         if (document.getElementById('bottomMixerPanel').dataset.activeTrack == trackId) {
             const bottomInput = document.querySelector('#bottomMixerPanel .mixer-slider-row:nth-child(1) input');
             const bottomDisplay = document.getElementById(`vol-display-${trackId}`);
@@ -1395,7 +1549,7 @@ class Jamstudio {
 
         track.armed = !track.armed;
 
-                // Sincronizar botones de Bottom Mixer si esta es la pista activa
+        // Sincronizar botones de Bottom Mixer si esta es la pista activa
         const bottomBtn = document.querySelector('#bottomMixerPanel .bottom-mixer-controls .arm-btn');
         if (bottomBtn && document.getElementById('bottomMixerPanel').dataset.activeTrack == trackId) {
             bottomBtn.classList.toggle('active', track.armed);
@@ -1410,7 +1564,7 @@ class Jamstudio {
 
         track.monitoring = !track.monitoring;
 
-                // Sincronizar botón de Bottom Mixer si es la activa
+        // Sincronizar botón de Bottom Mixer si es la activa
         const bottomBtn = document.querySelector('#bottomMixerPanel .bottom-mixer-controls .monitor-btn');
         if (bottomBtn && document.getElementById('bottomMixerPanel').dataset.activeTrack == trackId) {
             if (track.monitoring) bottomBtn.classList.add('active');
@@ -1419,19 +1573,30 @@ class Jamstudio {
 
         if (track.monitoring) {
             try {
-                // Obtener flujo del micrófono
-                let stream = this.recordingStream;
-                if (!stream) {
-                    stream = await navigator.mediaDevices.getUserMedia({
+                // REUTILIZAR STREAM GLOBAL si existe
+                const inputDeviceId = document.getElementById('audioInputDevice')?.value || 'default';
+
+                if (!this.recordingStream) {
+                    this.recordingStream = await navigator.mediaDevices.getUserMedia({
                         audio: {
-                            deviceId: track.inputDevice !== 'default' ? { exact: track.inputDevice } : undefined,
+                            deviceId: inputDeviceId !== 'default' ? { ideal: inputDeviceId } : undefined,
                             echoCancellation: false,
                             autoGainControl: false,
                             noiseSuppression: false,
-                            latency: 0
+                            latency: 0,
+                            googEchoCancellation: false,
+                            googAutoGainControl: false,
+                            googNoiseSuppression: false,
+                            googHighpassFilter: false,
+                            googTypingNoiseDetection: false,
+                            googNoiseReduction: false,
+                            channelCount: 1,
+                            sampleRate: 48000
                         }
                     });
                 }
+                const stream = this.recordingStream;
+                track.monitoringStream = stream; // Guardar referencia para poder detenerlo luego
 
                 // Crear nodo de fuente
                 if (!track.monitorNode) {
@@ -1443,10 +1608,10 @@ class Jamstudio {
                     track.monitorNode.connect(track.analyserNode);
                 }
 
-                // IMPORTANTE: Las líneas de abajo están comentadas para evitar bucles de retroalimentación (feedback)
-                // Si quieres oírte a ti mismo, usa auriculares y descomenta estas líneas:
-                // track.monitorNode.connect(track.signalChain.input);
-                // track.signalChain.connect(this.audioEngine.getDestination());
+                // Conectar a la cadena de audio de la pista para monitoreo en tiempo real
+                if (track.gainNode) {
+                    track.monitorNode.connect(track.gainNode);
+                }
 
                 console.log(`Monitoreo habilitado para la pista ${trackId} (Solo medidor VU - sin salida de audio)`);
 
@@ -1462,13 +1627,18 @@ class Jamstudio {
                 track.monitorNode.disconnect();
                 track.monitorNode = null;
             }
+            // DETENER EL STREAM si es privado de esta pista y no es el de grabación global
+            if (track.monitoringStream && track.monitoringStream !== this.recordingStream) {
+                track.monitoringStream.getTracks().forEach(t => t.stop());
+            }
+            track.monitoringStream = null;
             console.log(`Monitoring disabled for track ${trackId}`);
         }
     }
 
 
     setupGlobalDragListeners() {
-                document.addEventListener('mousemove', (e) => {
+        document.addEventListener('mousemove', (e) => {
             if (this.isDraggingClip && this.draggedClip) {
                 // Comprobación de umbral de movimiento inicial (5px) para evitar clics accidentales como drag
                 if (!this.hasMovedSignificantly) {
@@ -1479,16 +1649,16 @@ class Jamstudio {
 
                 const deltaPx = e.clientX - this.dragStartX;
                 const deltaTime = deltaPx / this.pixelsPerSecond;
-                                let newTime = this.dragStartObjTime + deltaTime;
+                let newTime = this.dragStartObjTime + deltaTime;
                 if (newTime < 0) newTime = 0; // No permitir clips antes del tiempo cero
 
-                                // Detectar pista bajo el puntero para cambio de pista (Track Swap)
+                // Detectar pista bajo el puntero para cambio de pista (Track Swap)
                 const unifiedContainer = document.getElementById('unifiedTracksContainer');
                 const tracksWrapper = document.getElementById('tracksWrapper');
                 const rect = unifiedContainer.getBoundingClientRect();
                 const relativeY = e.clientY - rect.top + tracksWrapper.scrollTop;
 
-                                // Identificar contenedor de pista bajo el ratón para snapping vertical
+                // Identificar contenedor de pista bajo el ratón para snapping vertical
                 let targetTrackId = this.dragSourceTrackId;
                 const elementUnderMouse = document.elementFromPoint(e.clientX, e.clientY);
                 const trackContainer = elementUnderMouse?.closest('.track-container');
@@ -1537,11 +1707,11 @@ class Jamstudio {
                 newTime = snappedTime;
                 // ----------------------
 
-                                // Calcular Desplazamiento (Delta) basado en el Clip Maestro (el que se arrastra)
+                // Calcular Desplazamiento (Delta) basado en el Clip Maestro (el que se arrastra)
                 const actualDeltaTime = newTime - this.dragStartObjTime;
                 const trackDelta = targetTrackId - this.dragSourceTrackId;
 
-                                // Aplicar movimiento Delta a TODOS los clips de la actual selección (Multi-Move)
+                // Aplicar movimiento Delta a TODOS los clips de la actual selección (Multi-Move)
                 if (this.dragSnapshot) {
                     this.dragSnapshot.forEach(snap => {
                         let updatedStartTime = snap.initialStartTime + actualDeltaTime;
@@ -1550,7 +1720,7 @@ class Jamstudio {
                         // Calcular la pista de destino para este clip específico
                         let updatedTrackId = snap.initialTrackId + trackDelta;
 
-                                                // Comprobar existencia de pista de destino para evitar "drop" al vacío o errores de ID
+                        // Comprobar existencia de pista de destino para evitar "drop" al vacío o errores de ID
                         const trackExists = this.tracks.find(t => t.id === updatedTrackId);
                         if (!trackExists) {
                             updatedTrackId = snap.initialTrackId; // revertir cambio de pista si es inválido
@@ -1563,7 +1733,7 @@ class Jamstudio {
                         }
                     });
                 } else {
-                                        // Retrocompatibilidad para movimiento individual si el snapshot falla (Safety fallback)
+                    // Retrocompatibilidad para movimiento individual si el snapshot falla (Safety fallback)
                     this.draggedClip.tempStartTime = newTime;
                     this.draggedClip.tempTrackId = targetTrackId;
                 }
@@ -1577,7 +1747,7 @@ class Jamstudio {
             if (this.isDraggingClip && this.draggedClip) {
                 try {
                     const newTime = this.draggedClip.tempStartTime !== undefined ? this.draggedClip.tempStartTime : this.draggedClip.startTime;
-                                        // Lógica de Movimiento (Move Logic) al soltar el ratón (Drop)
+                    // Lógica de Movimiento (Move Logic) al soltar el ratón (Drop)
                     // Ya sea que se cambie la pista o solo el tiempo, usamos el gestor para manejarlo (ordenación, seguridad)
                     if (this.dragSnapshot) {
                         this.dragSnapshot.forEach(snap => {
@@ -1586,7 +1756,7 @@ class Jamstudio {
                             const finalTrackId = snap.clipObj.tempTrackId !== undefined ? snap.clipObj.tempTrackId : snap.initialTrackId;
 
                             // 2. LIMPIEZA PREVIA: Eliminar propiedades temporales del objeto ANTES de que moveClip lo copie.
-                                                        // Esto evita que duplicados hereden el estado de fantasmas (ghosts) de arrastre por referencia de objeto.
+                            // Esto evita que duplicados hereden el estado de fantasmas (ghosts) de arrastre por referencia de objeto.
                             if (snap.clipObj) {
                                 delete snap.clipObj.tempStartTime;
                                 delete snap.clipObj.tempTrackId;
@@ -1594,6 +1764,11 @@ class Jamstudio {
 
                             // 3. Mover
                             if (finalTime !== snap.initialStartTime || finalTrackId !== snap.initialTrackId) {
+                                // Solo guardamos historia la primera vez que detectamos un cambio en este grupo de clips
+                                if (!this.hasPushedHistoryForDrag) {
+                                    this.pushHistory();
+                                    this.hasPushedHistoryForDrag = true;
+                                }
                                 this.timelineManager.moveClip(snap.initialTrackId, snap.clipId, finalTime, finalTrackId);
                             }
                         });
@@ -1618,7 +1793,7 @@ class Jamstudio {
                 } catch (err) {
                     console.error('Error dropping clip:', err);
                 } finally {
-                                        // Limpieza final - Asegurar que el estado "Drag" termina incluso si hay fallo interno
+                    // Limpieza final - Asegurar que el estado "Drag" termina incluso si hay fallo interno
                     if (this.dragSnapshot) {
                         this.dragSnapshot.forEach(snap => {
                             if (snap.clipObj) {
@@ -1635,13 +1810,14 @@ class Jamstudio {
                     this.isDraggingClip = false;
                     this.draggedClip = null;
                     document.body.style.cursor = 'default';
-                                        this.tracks.forEach(t => this.drawWaveform(t)); // Redibujar todo el proyecto para limpiar ghosts y aplicar drop final
+                    this.tracks.forEach(t => this.drawWaveform(t)); // Redibujar todo el proyecto para limpiar ghosts y aplicar drop final
                 }
             }
         });
     }
 
     importAudioToTrack(trackId) {
+        this.hasUnsavedChanges = true;
         const track = this.tracks.find(t => t.id === trackId);
         if (!track) return;
 
@@ -1692,7 +1868,7 @@ class Jamstudio {
         const track = this.tracks.find(t => t.id === trackId);
         if (!track) return;
 
-                const currentName = nameEl.textContent; // Obtener nombre actual antes de inyectar input de edición
+        const currentName = nameEl.textContent; // Obtener nombre actual antes de inyectar input de edición
         const input = document.createElement('input');
         input.type = 'text';
         input.value = currentName;
@@ -1700,8 +1876,11 @@ class Jamstudio {
 
         const saveName = () => {
             const newName = input.value.trim() || `Pista ${trackId}`;
-            track.name = newName;
-            nameEl.textContent = newName;
+            if (newName !== currentName) {
+                this.pushHistory();
+                track.name = newName;
+                nameEl.textContent = newName;
+            }
             input.remove();
             nameEl.style.display = 'inline';
         };
@@ -1724,8 +1903,9 @@ class Jamstudio {
     }
 
     clearAllTracks() {
+        this.hasUnsavedChanges = true;
         showConfirm('¿Estás seguro de que quieres eliminar todas las pistas?', () => {
-                        this.stop(); // Parar audio antes de purga total de tracks
+            this.stop(); // Parar audio antes de purga total de tracks
 
             // Limpiar todas las pistas
             this.tracks.forEach(track => {
@@ -1773,7 +1953,7 @@ class Jamstudio {
         const contentWidth = maxDuration * this.pixelsPerSecond;
         const containerWidth = canvas.parentElement.clientWidth;
 
-                // Límite Crítico: Los motores de renderizado de los navegadores (punto de quiebre en ~32k px)
+        // Límite Crítico: Los motores de renderizado de los navegadores (punto de quiebre en ~32k px)
         // Limitamos a 30,000px para prevenir fallos de UI (pantalla en blanco) y picos de memoria latentes.
         const SAFETY_MAX_WIDTH = 30000;
         canvas.width = Math.min(Math.max(contentWidth, containerWidth), SAFETY_MAX_WIDTH);
@@ -1814,7 +1994,7 @@ class Jamstudio {
     drawClipWaveform(ctx, clip, x, width, height) {
         if (!clip.audioBuffer) return;
 
-                const cornerRadius = 6; // Radio de bordes redondeados suave para mejor ergonomía visual (Modern rounded clips)
+        const cornerRadius = 6; // Radio de bordes redondeados suave para mejor ergonomía visual (Modern rounded clips)
 
         // Función de ayuda para dibujar un rectángulo redondeado
         const drawRoundedRect = (x, y, width, height, radius) => {
@@ -1846,7 +2026,7 @@ class Jamstudio {
             drawRoundedRect(x, 0, width, height, cornerRadius);
             ctx.stroke();
         } else {
-                        // Borde normal de visibilidad (high contrast white/glass effect boundary)
+            // Borde normal de visibilidad (high contrast white/glass effect boundary)
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
             ctx.lineWidth = 2;
             drawRoundedRect(x, 0, width, height, cornerRadius);
@@ -1911,13 +2091,13 @@ class Jamstudio {
             if (meterEl) {
                 meterEl.style.height = `${volume}%`;
 
-                                // Gradiente de color según pico de señal (VU Meter scale: Green -> Yellow -> Red)
+                // Gradiente de color según pico de señal (VU Meter scale: Green -> Yellow -> Red)
                 if (volume > 90) {
                     meterEl.style.backgroundColor = '#e74c3c'; // Red
                 } else if (volume > 70) {
                     meterEl.style.backgroundColor = '#f1c40f'; // Yellow
                 } else {
-                                        meterEl.style.backgroundColor = '#2ecc71'; // Verde (Nivel óptimo)
+                    meterEl.style.backgroundColor = '#2ecc71'; // Verde (Nivel óptimo)
                 }
             }
         });
@@ -1973,36 +2153,36 @@ class Jamstudio {
     // ========== EXPORT ==========
 
     async exportMix() {
-                if (this.tracks.length === 0) { // No exportar si no hay audio detectado en el motor DAW
+        if (this.tracks.length === 0) { // No exportar si no hay audio detectado en el motor DAW
             showToast('No hay pistas para exportar', 'warning');
             return;
         }
 
-                // 1. Mostrar Diálogo de Exportación (Download Mix Settings)
+        // 1. Mostrar Diálogo de Exportación (Download Mix Settings)
         showExportModal(async (fileName, format) => {
             try {
                 showToast('Renderizando mezcla...', 'info');
 
-                                // 2. Calcular Tiempo Total basándose en clips reales para el OfflineAudioContext
+                // 2. Calcular Tiempo Total basándose en clips reales para el OfflineAudioContext
                 const totalDuration = this.timelineManager.getTotalDuration();
                 if (totalDuration <= 0) {
                     showToast('El proyecto está vacío', 'warning');
                     return;
                 }
 
-                                // 3. Crear Entorno de Renderizado Offline (Alta Calidad / Non-Real-Time Rendering)
+                // 3. Crear Entorno de Renderizado Offline (Alta Calidad / Non-Real-Time Rendering)
                 const offlineContext = new OfflineAudioContext(2, Math.ceil(totalDuration * 44100), 44100);
 
-                                // 4. Inyectar Ganancia Maestra en el entorno offline (Apply Master Volume during mixdown)
+                // 4. Inyectar Ganancia Maestra en el entorno offline (Apply Master Volume during mixdown)
                 const masterGain = offlineContext.createGain();
                 masterGain.gain.value = this.audioEngine.getMasterVolume();
                 masterGain.connect(offlineContext.destination);
 
-                                // 5. Filtrar señales a exportar (ignorar Muted, priorizar Solos - Export Logic)
+                // 5. Filtrar señales a exportar (ignorar Muted, priorizar Solos - Export Logic)
                 const soloTracks = this.tracks.filter(t => t.solo);
                 const tracksToExport = soloTracks.length > 0 ? soloTracks : this.tracks.filter(t => !t.muted);
 
-                                // 6. Programar (Schedule) todos los buffers de audio en el OfflineAudioContext
+                // 6. Programar (Schedule) todos los buffers de audio en el OfflineAudioContext
                 tracksToExport.forEach(track => {
                     const clips = this.timelineManager.getClips(track.id);
                     clips.forEach(clip => {
@@ -2016,26 +2196,26 @@ class Jamstudio {
                             const trackPan = offlineContext.createStereoPanner();
                             trackPan.pan.value = track.pan / 100;
 
-                                                        // Configuración de procesado de señal para Exportación (Mixdown Signal Chain)
+                            // Configuración de procesado de señal para Exportación (Mixdown Signal Chain)
                             source.connect(trackGain);
                             trackGain.connect(trackPan);
                             trackPan.connect(masterGain);
 
-                                                        // Programar al tiempo exacto: source.start(inicio, desfase_buffer, duracion)
+                            // Programar al tiempo exacto: source.start(inicio, desfase_buffer, duracion)
                             source.start(clip.startTime, clip.bufferOffset || 0, clip.duration);
                         }
                     });
                 });
 
-                                // 7. Renderizar (Mixdown Execution) - Proceso asíncrono asíncrono de CPU
+                // 7. Renderizar (Mixdown Execution) - Proceso asíncrono asíncrono de CPU
                 const renderedBuffer = await offlineContext.startRendering();
 
-                                // 8. Codificar Buffer resultante y disparar Descarga (Encode & Download)
+                // 8. Codificar Buffer resultante y disparar Descarga (Encode & Download)
                 if (format === 'wav') {
                     const wav = this.audioBufferToWav(renderedBuffer);
                     this.downloadBlob(new Blob([wav], { type: 'audio/wav' }), `${fileName}.wav`);
                 } else {
-                                        // Exportación comprimida (OGG/WebM) mediante truco de MediaRecorder a tiempo real (Online Compression workaround)
+                    // Exportación comprimida (OGG/WebM) mediante truco de MediaRecorder a tiempo real (Online Compression workaround)
                     this.exportCompressed(renderedBuffer, fileName, format);
                 }
 
@@ -2058,7 +2238,7 @@ class Jamstudio {
     }
 
     async exportCompressed(audioBuffer, fileName, format) {
-                // Reproducción a alta velocidad mediante destino de stream para capturar como OGG (Codec workaround)
+        // Reproducción a alta velocidad mediante destino de stream para capturar como OGG (Codec workaround)
         const streamDest = this.audioEngine.context.createMediaStreamDestination();
         const source = this.audioEngine.context.createBufferSource();
         source.buffer = audioBuffer;
@@ -2079,7 +2259,7 @@ class Jamstudio {
 
         // We have to wait for the whole thing because MediaRecorder is real-time
         // Inform user
-                showToast(`Comprimiendo... Este proceso tardará la duración íntegra del audio (${Math.ceil(audioBuffer.duration)}s) al usar captura en tiempo real`, 'info', 5000);
+        showToast(`Comprimiendo... Este proceso tardará la duración íntegra del audio (${Math.ceil(audioBuffer.duration)}s) al usar captura en tiempo real`, 'info', 5000);
 
         source.onended = () => recorder.stop();
     }
@@ -2092,7 +2272,7 @@ class Jamstudio {
         let offset = 0;
         let pos = 0;
 
-                // Escribir cabecera WAV estándar (PCM Wave Header Builder)
+        // Escribir cabecera WAV estándar (PCM Wave Header Builder)
         const setUint16 = (data) => {
             view.setUint16(pos, data, true);
             pos += 2;
@@ -2103,9 +2283,9 @@ class Jamstudio {
         };
 
         // "RIFF" chunk descriptor
-                setUint32(0x46464952); // Descriptor RIFF ("RIFF" en hexadecimal)
+        setUint32(0x46464952); // Descriptor RIFF ("RIFF" en hexadecimal)
         setUint32(length - 8); // file length - 8
-                setUint32(0x45564157); // Identificador ("WAVE" en hexadecimal)
+        setUint32(0x45564157); // Identificador ("WAVE" en hexadecimal)
 
         // "fmt " sub-chunk
         setUint32(0x20746d66); // "fmt "
@@ -2121,7 +2301,7 @@ class Jamstudio {
         setUint32(0x61746164); // "data"
         setUint32(length - pos - 4); // subchunk2size
 
-                // Escribir datos intercalados (Interleave audio data) para PCM estéreo
+        // Escribir datos intercalados (Interleave audio data) para PCM estéreo
         for (let i = 0; i < buffer.numberOfChannels; i++) {
             channels.push(buffer.getChannelData(i));
         }
@@ -2142,12 +2322,17 @@ class Jamstudio {
     // ========== CLIP INTERACTION ==========
 
     setupClipInteraction(track) {
+        // Al empezar a interactuar seriamente, asegurar que el flag de historia del drag está limpio
+        const onDragStart = () => {
+            this.hasPushedHistoryForDrag = false;
+        };
+
         const canvas = document.getElementById(`waveform-${track.id}`);
         if (!canvas) return;
 
-                // Efecto hover para cambio de cursor contextualmente (UI feedback)
+        // Efecto hover para cambio de cursor contextualmente (UI feedback)
         canvas.addEventListener('mousemove', (e) => {
-                        if (this.isDraggingClip) return; // No cambiar cursor durante arrastre activo
+            if (this.isDraggingClip) return; // No cambiar cursor durante arrastre activo
 
             const rect = canvas.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
@@ -2171,7 +2356,7 @@ class Jamstudio {
             const clickX = e.clientX - rect.left;
             const timeAtClick = clickX / this.pixelsPerSecond;
 
-                        // Buscar clip bajo el puntero (en esta pista)
+            // Buscar clip bajo el puntero (en esta pista)
             const clips = this.timelineManager.getClips(track.id);
             const clickedClip = clips.find(c => timeAtClick >= c.startTime && timeAtClick <= c.startTime + c.duration);
 
@@ -2179,7 +2364,7 @@ class Jamstudio {
                 e.preventDefault();
                 e.stopPropagation(); // Prevent timeline seeking/deselection
 
-                                // Lógica de selección de clips (Clip selection logic)
+                // Lógica de selección de clips (Clip selection logic)
                 if (e.shiftKey) {
                     const existingIndex = this.selectedClips.findIndex(s => s.clipId === clickedClip.id);
                     if (existingIndex !== -1) {
@@ -2188,7 +2373,7 @@ class Jamstudio {
                         this.selectedClips.push({ trackId: track.id, clipId: clickedClip.id });
                     }
                 } else {
-                                        // Selección estándar (un solo clip):
+                    // Selección estándar (un solo clip):
                     // Si el clip ya está seleccionado, NO deseleccionamos otros inmediatamente (permite arrastre grupal de golpe).
                     // Solo reseteamos si clicamos un clip fuera de la actual selección grupal.
                     const isAlreadySelected = this.selectedClips.some(s => s.clipId === clickedClip.id);
@@ -2197,32 +2382,33 @@ class Jamstudio {
                     }
                 }
 
-                                this.tracks.forEach(t => this.drawWaveform(t)); // Redibujar para mostrar visualmente selección de pistas/clips
+                this.tracks.forEach(t => this.drawWaveform(t)); // Redibujar para mostrar visualmente selección de pistas/clips
 
                 // Init Dragging
                 this.isDraggingClip = true;
+                onDragStart(); // Resetear flag de historia para este nuevo drag
                 this.draggedClip = clickedClip;
                 this.dragStartX = e.clientX;
-                                this.dragStartY = e.clientY; // Almacenar Y de inicio para umbral vertical (Drag Threshold)
-                                this.hasMovedSignificantly = false; // Bandera de umbral de arrastre (Threshold check)
+                this.dragStartY = e.clientY; // Almacenar Y de inicio para umbral vertical (Drag Threshold)
+                this.hasMovedSignificantly = false; // Bandera de umbral de arrastre (Threshold check)
                 this.dragStartObjTime = clickedClip.startTime;
                 this.dragSourceTrackId = track.id;
 
-                                // SNAPSHOT para ARRASTRE MÚLTIPLE: Almacena estado inicial de TODOS los seleccionados (Group Drag state)
+                // SNAPSHOT para ARRASTRE MÚLTIPLE: Almacena estado inicial de TODOS los seleccionados (Group Drag state)
                 this.dragSnapshot = this.selectedClips.map(sel => {
                     const tId = sel.trackId;
                     const cId = sel.clipId;
-                                        // Localizar objeto de clip real para manipular durante el preview de arrastre
+                    // Localizar objeto de clip real para manipular durante el preview de arrastre
                     const clipObj = this.timelineManager.getClips(tId).find(c => c.id === cId);
                     return {
                         clipId: cId,
                         initialTrackId: tId,
                         initialStartTime: clipObj ? clipObj.startTime : 0,
-                                                clipObj: clipObj // Referencia para actualizaciones rápidas reactivas en el DOM
+                        clipObj: clipObj // Referencia para actualizaciones rápidas reactivas en el DOM
                     };
                 });
 
-                                // Pausa automática al arrastrar para facilitar sincronización sonora tras soltar (Auto-pause feature)
+                // Pausa automática al arrastrar para facilitar sincronización sonora tras soltar (Auto-pause feature)
                 if (this.isPlaying) {
                     this.pause();
                     this.wasPlayingBeforeDrag = true;
@@ -2253,7 +2439,7 @@ class Jamstudio {
 
     showClipContextMenu(track, clip, x, y) {
         // Mostrar Menú Contextual para clips (Clip Context Menu UI)
-                // Eliminar menús previos si existen (Purge old context menus)
+        // Eliminar menús previos si existen (Purge old context menus)
         const existingMenu = document.getElementById('clip-context-menu');
         if (existingMenu) existingMenu.remove();
 
@@ -2278,10 +2464,10 @@ class Jamstudio {
 
         document.body.appendChild(menu);
 
-                // Cerrar menú al hacer clic fuera (Auto-close on backdrop/outside click)
+        // Cerrar menú al hacer clic fuera (Auto-close on backdrop/outside click)
         setTimeout(() => {
             const closeMenu = (e) => {
-                                if (!menu.contains(e.target)) { // Si se clica fuera del área de opciones...
+                if (!menu.contains(e.target)) { // Si se clica fuera del área de opciones...
                     menu.remove();
                     document.removeEventListener('click', closeMenu);
                 }
@@ -2293,6 +2479,8 @@ class Jamstudio {
     // ========== CLIP EDITING ==========
 
     deleteClip(trackId, clipId) {
+        this.pushHistory();
+        trackId = Number(trackId);
         this.timelineManager.removeClip(trackId, clipId);
         const track = this.tracks.find(t => t.id === trackId);
         if (track) this.drawWaveform(track);
@@ -2301,6 +2489,8 @@ class Jamstudio {
     }
 
     splitClipAtPlayhead(trackId, clipId) {
+        this.pushHistory();
+        trackId = Number(trackId);
         // Usar pauseTime si está pausado/detenido para que coincida exactamente con el cabezal visual
         const splitTime = (this.isPaused || !this.isPlaying) ? this.pauseTime : this.currentTime;
 
@@ -2310,16 +2500,337 @@ class Jamstudio {
         const menu = document.getElementById('clip-context-menu');
         if (menu) menu.remove();
     }
+
+    /**
+     * Serializa el proyecto a JSON incluyendo el audio codificado en Base64.
+     * Es async porque la lectura de Blobs es asíncrona.
+     */
+    async serializeProject() {
+        const blobToBase64 = (blob) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result); // data:type;base64,xxxx
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+
+        const serializedTracks = await Promise.all(this.tracks.map(async t => {
+            const clips = this.timelineManager.getClips(t.id) || [];
+            const serializedClips = await Promise.all(clips.map(async c => {
+                let audioData = null;
+                let mimeType = 'audio/wav';
+                if (c.audioBlob) {
+                    try {
+                        audioData = await blobToBase64(c.audioBlob);
+                        mimeType = c.audioBlob.type || 'audio/wav';
+                    } catch (e) {
+                        console.warn('No se pudo serializar el audio del clip:', e);
+                    }
+                }
+                return {
+                    id: c.id,
+                    startTime: c.startTime,
+                    duration: c.duration,
+                    bufferOffset: c.bufferOffset || 0,
+                    audioData,   // data URL en Base64
+                    mimeType
+                };
+            }));
+            return {
+                id: t.id,
+                name: t.name,
+                volume: t.volume,
+                pan: t.pan,
+                muted: t.muted,
+                solo: t.solo,
+                clips: serializedClips
+            };
+        }));
+
+        return {
+            version: 2,
+            bpm: this.bpm,
+            pixelsPerSecond: this.pixelsPerSecond,
+            tracks: serializedTracks
+        };
+    }
+
+    /**
+     * Carga datos de proyecto desde un objeto JSON serializado.
+     * Reconstruye pistas y decodifica el audio desde Base64.
+     */
+    async loadProjectData(data) {
+        if (!data) return;
+        // Limpiar estado actual
+        this.tracks = [];
+        this.nextTrackId = 1;
+        const container = document.getElementById('unifiedTracksContainer');
+        if (container) container.innerHTML = '';
+
+        // Restaurar BPM
+        if (data.bpm) {
+            this.bpm = data.bpm;
+            const bpmInput = document.getElementById('bpmInput');
+            if (bpmInput) bpmInput.value = data.bpm;
+        }
+
+        if (!Array.isArray(data.tracks)) {
+            this.hasUnsavedChanges = false;
+            return;
+        }
+
+        const base64ToBlob = async (dataUrl, mimeType) => {
+            const res = await fetch(dataUrl);
+            return res.blob();
+        };
+
+        showToast('Cargando proyecto...', 'info', 3000);
+
+        for (const t of data.tracks) {
+            this.addEmptyTrack();
+            const track = this.tracks[this.tracks.length - 1];
+            if (!track) continue;
+
+            // Restaurar nombre
+            if (t.name) {
+                track.name = t.name;
+                const nameEl = document.querySelector(`.track-container[data-track-id="${track.id}"] .track-name`);
+                if (nameEl) nameEl.textContent = t.name;
+            }
+
+            // Restaurar volumen y pan
+            if (t.volume !== undefined) {
+                track.volume = t.volume;
+                this.setTrackVolume(track.id, t.volume);
+            }
+
+            // Restaurar clips con audio
+            if (Array.isArray(t.clips)) {
+                for (const c of t.clips) {
+                    try {
+                        let audioBuffer = null;
+                        let audioBlob = null;
+
+                        if (c.audioData) {
+                            audioBlob = await base64ToBlob(c.audioData, c.mimeType || 'audio/wav');
+                            const arrayBuffer = await audioBlob.arrayBuffer();
+                            audioBuffer = await this.audioEngine.decodeAudioData(arrayBuffer);
+                        }
+
+                        if (audioBuffer) {
+                            const clip = {
+                                id: c.id || this.timelineManager.generateClipId(),
+                                startTime: c.startTime || 0,
+                                duration: audioBuffer.duration,
+                                audioBuffer,
+                                audioBlob,
+                                bufferOffset: c.bufferOffset || 0
+                            };
+                            this.timelineManager.addClip(track.id, clip);
+                        }
+                    } catch (e) {
+                        console.error('Error restaurando clip de audio:', e);
+                    }
+                }
+                this.drawWaveform(track);
+            }
+        }
+
+        this.initializeTimeline();
+        this.hasUnsavedChanges = false;
+        showToast('¡Proyecto cargado correctamente!', 'success');
+    }
+
+    // ========== SISTEMA DE HISTORIA (UNDO/REDO) ==========
+
+    pushHistory() {
+        if (this.isRestoringHistory) return;
+        console.log('Capturando snapshot para historia...');
+        // Snapshot ligero preservando referencias a AudioBuffers
+        const snapshot = {
+            bpm: this.bpm,
+            tracks: this.tracks.map(t => ({
+                id: t.id,
+                name: t.name,
+                volume: t.volume,
+                pan: t.pan,
+                muted: t.muted,
+                solo: t.solo,
+                monitoring: t.monitoring,
+                clips: this.timelineManager.getClips(Number(t.id)).map(c => ({ ...c }))
+            }))
+        };
+
+        this.undoStack.push(snapshot);
+
+        if (this.undoStack.length > this.maxHistoryStackSize) {
+            this.undoStack.shift();
+        }
+
+        this.redoStack = [];
+        this.hasUnsavedChanges = true;
+    }
+
+    async undo() {
+        if (this.undoStack.length === 0) {
+            showToast('No hay más para deshacer', 'info');
+            return;
+        }
+
+        this.isRestoringHistory = true;
+        try {
+            const currentSnapshot = {
+                bpm: this.bpm,
+                tracks: this.tracks.map(t => ({
+                    id: t.id,
+                    name: t.name,
+                    volume: t.volume,
+                    pan: t.pan,
+                    muted: t.muted,
+                    solo: t.solo,
+                    monitoring: t.monitoring,
+                    clips: this.timelineManager.getClips(t.id).map(c => ({ ...c }))
+                }))
+            };
+            this.redoStack.push(currentSnapshot);
+
+            const previousState = this.undoStack.pop();
+            await this.applySnapshot(previousState);
+            showToast('Deshacer', 'info', 1000);
+        } finally {
+            this.isRestoringHistory = false;
+        }
+    }
+
+    async redo() {
+        if (this.redoStack.length === 0) {
+            showToast('No hay más para rehacer', 'info');
+            return;
+        }
+
+        this.isRestoringHistory = true;
+        try {
+            const currentSnapshot = {
+                bpm: this.bpm,
+                tracks: this.tracks.map(t => ({
+                    id: t.id,
+                    name: t.name,
+                    volume: t.volume,
+                    pan: t.pan,
+                    muted: t.muted,
+                    solo: t.solo,
+                    monitoring: t.monitoring,
+                    clips: this.timelineManager.getClips(t.id).map(c => ({ ...c }))
+                }))
+            };
+            this.undoStack.push(currentSnapshot);
+
+            const nextState = this.redoStack.pop();
+            await this.applySnapshot(nextState);
+            showToast('Rehacer', 'info', 1000);
+        } finally {
+            this.isRestoringHistory = false;
+        }
+    }
+
+    async applySnapshot(data) {
+        if (!data) return;
+
+        if (this.isPlaying) this.stop();
+
+        // 1. Limpiar pistas actuales (DOM y nodos)
+        this.tracks.forEach(track => {
+            if (track.gainNode) track.gainNode.disconnect();
+            if (track.analyserNode) track.analyserNode.disconnect();
+            if (track.monitorNode) track.monitorNode.disconnect();
+            if (track.recordingSource) track.recordingSource.disconnect();
+            if (track.signalChain) track.signalChain.disconnect();
+        });
+
+        this.tracks = [];
+        this.timelineManager.clips.clear();
+        const container = document.getElementById('unifiedTracksContainer');
+        if (container) container.innerHTML = '';
+
+        // 2. Restaurar BPM
+        this.bpm = data.bpm;
+        const bpmInput = document.getElementById('bpmInput');
+        if (bpmInput) bpmInput.value = data.bpm;
+
+        // Resetear nextTrackId para evitar que crezca infinitamente
+        let maxTrackId = 0;
+
+        // 3. Recrear pistas
+        for (const t of data.tracks) {
+            maxTrackId = Math.max(maxTrackId, t.id);
+            // Aseguramos que pasamos el ID original
+            this.addEmptyTrack(t.id);
+            const track = this.tracks[this.tracks.length - 1];
+
+            track.name = t.name;
+            const nameEl = document.querySelector(`.track-container[data-track-id="${track.id}"] .track-name`);
+            if (nameEl) nameEl.textContent = t.name;
+
+            track.volume = t.volume;
+            this.setTrackVolume(track.id, t.volume);
+
+            track.pan = t.pan;
+            // signalChain está desactivado, usar panNode directamente
+            if (track.panNode) {
+                this.setTrackPan(track.id, t.pan);
+            }
+
+            track.muted = t.muted;
+            if (track.muted) {
+                const muteBtn = document.querySelector(`.track-container[data-track-id="${track.id}"] .mute-btn`);
+                muteBtn?.classList.add('active');
+                track.gainNode.gain.value = 0;
+            }
+
+            // RESTAURAR MONITORIZACION
+            track.monitoring = t.monitoring;
+            if (track.monitoring) {
+                this.toggleTrackMonitoring(track.id);
+            }
+
+            if (Array.isArray(t.clips)) {
+                t.clips.forEach(c => {
+                    this.timelineManager.addClip(Number(track.id), { ...c });
+                });
+            }
+
+            this.drawWaveform(track);
+        }
+
+        // Asegurar que el contador de IDs es coherente con las pistas restauradas
+        this.nextTrackId = maxTrackId + 1;
+    }
+
 }
 
 // Inicializar al cargar la página
 // Aplazar la inicialización hasta que se haga clic en "Nuevo Proyecto" en la Landing Page
-window.initializeJamStudio = async () => {
-    if (window.dawInstance) return; // Evitar doble inicialización
+window.initializeJamStudio = async (projectData) => {
+    // Permitir reinicialización al cargar un proyecto distinto
+    if (window.dawInstance) {
+        // Limpiar instancia previa
+        window.dawInstance = null;
+        window.daw = null;
+        window._jamstudioInstance = null;
+    }
     console.log('🚀 Launching JamStudio Pro...');
     window.dawInstance = new Jamstudio();
-    // Exponer para acceso heredado (legacy)
+    // Exponer para acceso heredado (legacy) y para el controlador de vista
     window.daw = window.dawInstance;
+    window._jamstudioInstance = window.dawInstance;
+
+    // Si se pasaron datos de proyecto, cargarlos tras la inicialización del motor
+    if (projectData) {
+        setTimeout(() => {
+            if (window.dawInstance && window.dawInstance.loadProjectData) {
+                window.dawInstance.loadProjectData(projectData);
+            }
+        }, 800);
+    }
 
     // GESTOR DE INTERACCIÓN GLOBAL: Reanudar audio + Deselección Global
     document.body.addEventListener('click', async (e) => {

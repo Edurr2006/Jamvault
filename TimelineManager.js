@@ -11,6 +11,7 @@ export class TimelineManager {
     // ========== GESTIÓN DE CLIPS ==========
 
     addClip(trackId, clip, ripple = false) {
+        trackId = Number(trackId);
         if (!this.clips.has(trackId)) {
             this.clips.set(trackId, []);
         }
@@ -114,6 +115,7 @@ export class TimelineManager {
     }
 
     removeClip(trackId, clipId) {
+        trackId = Number(trackId);
         if (!this.clips.has(trackId)) return false;
 
         const clips = this.clips.get(trackId);
@@ -134,7 +136,7 @@ export class TimelineManager {
     }
 
     getClips(trackId) {
-        return this.clips.get(trackId) || [];
+        return this.clips.get(Number(trackId)) || [];
     }
 
     getAllClips(trackId) {

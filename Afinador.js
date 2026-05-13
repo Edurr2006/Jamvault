@@ -2,7 +2,7 @@ const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#",
 
 let audioContext = null;
 let analyser = null;
-let mediaStreamSource = null;
+let mediaStream = null;
 let isTunerRunning = false;
 let rafId = null;
 
@@ -24,7 +24,19 @@ async function toggleTuner() {
 async function startTuner() {
     try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+                echoCancellation: false,
+                autoGainControl: false,
+                noiseSuppression: false,
+                googEchoCancellation: false,
+                googAutoGainControl: false,
+                googNoiseSuppression: false,
+                googHighpassFilter: false,
+                latency: 0
+            }
+        });
+        mediaStream = stream; // Guardar referencia global
 
         mediaStreamSource = audioContext.createMediaStreamSource(stream);
         analyser = audioContext.createAnalyser();
@@ -49,11 +61,22 @@ function stopTuner() {
 
     if (rafId) {
         cancelAnimationFrame(rafId);
+        rafId = null;
+    }
+
+    if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        mediaStream = null;
     }
 
     if (audioContext) {
         audioContext.close();
         audioContext = null;
+    }
+
+    if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        mediaStream = null;
     }
 }
 

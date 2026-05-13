@@ -4020,3 +4020,69 @@ select option {
   font-size: 1.1rem;
   padding: 0.5rem;
 }
+
+/* ======================================================
+   JAMSTUDIO - BARRERA DE AUTENTICACIÓN
+   ====================================================== */
+
+#jamstudio-auth-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    text-align: center;
+    padding: 3rem 2rem;
+    gap: 1rem;
+    min-height: 80vh;
+}
+
+#jamstudio-auth-overlay .lock-icon {
+    font-size: 4rem;
+    color: var(--theme-accent, #FF8906);
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 0 20px rgba(255, 137, 6, 0.5));
+}
+
+#jamstudio-auth-overlay h3 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+}
+
+#jamstudio-auth-overlay p {
+    color: rgba(255, 255, 255, 0.55);
+    max-width: 420px;
+    font-size: 1rem;
+    margin: 0;
+}
+
+#jamstudio-auth-overlay .btn-login-overlay {
+    margin-top: 0.5rem;
+    padding: 0.9rem 2.5rem;
+    background: var(--theme-accent, #FF8906);
+    color: #000;
+    font-weight: 800;
+    font-size: 1rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 30px rgba(255, 137, 6, 0.4);
+}
+
+#jamstudio-auth-overlay .btn-login-overlay:hover {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 0 50px rgba(255, 137, 6, 0.7);
+}
+
+/* Wrapper relativo para posicionar el overlay sobre el landing */
+.jamstudio-wrapper {
+    position: relative;
+}

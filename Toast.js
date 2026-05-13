@@ -273,3 +273,28 @@ window.showThemeModal = (currentTheme, onSelect) => {
 
 // Opcional: Sobrescribir el alert nativo (usar con precaución, mejor reemplazar las llamadas manualmente)
 // window.alert = (msg) => window.showToast(msg, 'info');
+
+/**
+ * Modal de salida con 3 opciones para JamStudio.
+ * Aparece cuando hay cambios sin guardar al intentar salir del estudio.
+ */
+window.showExitConfirm = (message, onSave, onDiscard) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+        <div class="modal-box">
+            <div class="modal-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
+            <p class="modal-message">${message}</p>
+            <div class="modal-actions" style="flex-direction:column;gap:0.75rem;">
+                <button class="modal-btn confirm" id="exitSaveBtn" style="width:100%;">💾 Guardar y Salir</button>
+                <button class="modal-btn" id="exitDiscardBtn" style="width:100%;background:rgba(255,68,68,0.15);color:#ff6b6b;border:1px solid rgba(255,68,68,0.3);">🚪 Salir sin Guardar</button>
+                <button class="modal-btn cancel" id="exitCancelBtn" style="width:100%;">Cancelar</button>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+    const cleanup = () => { overlay.classList.add('modal-exit'); setTimeout(() => overlay.remove(), 300); };
+    overlay.querySelector('#exitSaveBtn').onclick = () => { onSave(); cleanup(); };
+    overlay.querySelector('#exitDiscardBtn').onclick = () => { onDiscard(); cleanup(); };
+    overlay.querySelector('#exitCancelBtn').onclick = cleanup;
+    requestAnimationFrame(() => overlay.classList.add('modal-active'));
+};
