@@ -252,7 +252,7 @@ const acordesDB = {
     "sus2": [
       { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
       { cuerda: 4, traste: 8, esRaiz: false, dedo: 3 },
-      { cuerda: 3, traste: 5, esRaiz: false, dedo: 1 } // Barre implied or stretch
+      { cuerda: 3, traste: 5, esRaiz: false, dedo: 1 } // Cejilla implícita o estiramiento
     ],
     "sus4": [
       { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
@@ -262,7 +262,7 @@ const acordesDB = {
     "dim": [
       { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
       { cuerda: 4, traste: 7, esRaiz: false, dedo: 2 },
-      { cuerda: 3, traste: 6, esRaiz: false, dedo: 1 } // Barre
+      { cuerda: 3, traste: 6, esRaiz: false, dedo: 1 } // Cejilla
     ]
   },
 
@@ -318,7 +318,7 @@ const acordesDB = {
       { cuerda: 6, traste: 0, esRaiz: true, dedo: 0 },
       { cuerda: 5, traste: 2, esRaiz: false, dedo: 2 },
       { cuerda: 4, traste: 1, esRaiz: false, dedo: 1 },
-      { cuerda: 3, traste: 1, esRaiz: false, dedo: 1 }, // Hard to play, usually different voicing
+      { cuerda: 3, traste: 1, esRaiz: false, dedo: 1 }, // Difícil de tocar, normalmente otra posición
       { cuerda: 2, traste: 0, esRaiz: false, dedo: 0 }
     ],
     "m7": [
@@ -404,7 +404,7 @@ const acordesDB = {
     "sus2": [
       { cuerda: 6, traste: 1, esRaiz: true, dedo: 1 },
       { cuerda: 5, traste: 3, esRaiz: false, dedo: 3 },
-      { cuerda: 4, traste: 0, esRaiz: false, dedo: 0 } // Open D string
+      { cuerda: 4, traste: 0, esRaiz: false, dedo: 0 } // Cuerda Re al aire
     ],
     "sus4": [
       { cuerda: 6, traste: 1, esRaiz: true, dedo: 1 },
@@ -451,7 +451,7 @@ const acordesDB = {
     "sus2": [
       { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
       { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
-      { cuerda: 4, traste: 1, esRaiz: false, dedo: 1 } // Stretch
+      { cuerda: 4, traste: 1, esRaiz: false, dedo: 1 } // Estiramiento
     ],
     "sus4": [
       { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
@@ -578,7 +578,7 @@ const acordesDB = {
     "sus2": [
       { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
       { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
-      { cuerda: 4, traste: 3, esRaiz: false, dedo: 1 } // Stretch
+      { cuerda: 4, traste: 3, esRaiz: false, dedo: 1 } // Estiramiento
     ],
     "sus4": [
       { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
@@ -697,7 +697,7 @@ const acordesDB = {
     "sus2": [
       { cuerda: 5, traste: 1, esRaiz: true, dedo: 1 },
       { cuerda: 4, traste: 3, esRaiz: false, dedo: 3 },
-      { cuerda: 3, traste: 0, esRaiz: false, dedo: 0 } // Open G string
+      { cuerda: 3, traste: 0, esRaiz: false, dedo: 0 } // Cuerda Sol al aire
     ],
     "sus4": [
       { cuerda: 5, traste: 1, esRaiz: true, dedo: 1 },
@@ -767,7 +767,7 @@ const acordesDB = {
     "sus2": [
       { cuerda: 5, traste: 2, esRaiz: true, dedo: 1 },
       { cuerda: 4, traste: 4, esRaiz: false, dedo: 3 },
-      { cuerda: 3, traste: 1, esRaiz: false, dedo: 1 } // Stretch
+      { cuerda: 3, traste: 1, esRaiz: false, dedo: 1 } // Estiramiento
     ],
     "sus4": [
       { cuerda: 5, traste: 2, esRaiz: true, dedo: 1 },

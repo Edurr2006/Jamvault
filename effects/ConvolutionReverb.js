@@ -1,5 +1,5 @@
-// ========== CONVOLUTION REVERB ==========
-// High-quality convolution reverb using impulse responses
+// ========== REVERB POR CONVOLUCIÓN ==========
+// Reverb de alta calidad usando respuestas al impulso (IR)
 
 import { AudioMath } from '../utils/AudioMath.js';
 
@@ -8,7 +8,7 @@ export class ConvolutionReverb {
         this.audioContext = audioContext;
         this.irLoader = irLoader;
 
-        // Create nodes
+        // Crear nodos
         this.input = audioContext.createGain();
         this.output = audioContext.createGain();
         this.convolver = audioContext.createConvolver();
@@ -18,21 +18,21 @@ export class ConvolutionReverb {
         this.lowpass = audioContext.createBiquadFilter();
         this.highpass = audioContext.createBiquadFilter();
 
-        // Configure filters
+        // Configurar filtros
         this.lowpass.type = 'lowpass';
         this.lowpass.frequency.value = 8000;
         this.highpass.type = 'highpass';
         this.highpass.frequency.value = 200;
 
-        // Parameters
+        // Parámetros
         this.mix = 0.3; // 0-1
         this.preDelayTime = 0.02; // seconds
         this.tone = 0.5; // 0-1
         this.enabled = false;
         this.currentIR = null;
 
-        // Connect: Input -> PreDelay -> Convolver -> Filters -> Wet -> Output
-        //         Input -> Dry -> Output
+        // Conexión: Entrada -> PreDelay -> Convolver -> Filtros -> Wet -> Salida
+        //         Entrada -> Dry -> Salida
         this.input.connect(this.preDelay);
         this.preDelay.connect(this.convolver);
         this.convolver.connect(this.highpass);
@@ -43,12 +43,12 @@ export class ConvolutionReverb {
         this.input.connect(this.dryGain);
         this.dryGain.connect(this.output);
 
-        // Initialize with synthetic IR
+        // Inicializar con una IR sintética
         this.loadSyntheticIR('room');
         this.updateMix();
     }
 
-    // Load IR from URL
+    // Carga IR desde una URL
     async loadIR(url, name = null) {
         try {
             const ir = await this.irLoader.loadIR(url, name);
@@ -57,12 +57,12 @@ export class ConvolutionReverb {
             console.log('Reverb IR loaded:', this.currentIR);
         } catch (error) {
             console.error('Error loading reverb IR:', error);
-            // Fallback to synthetic IR
+            // Revertir a IR sintética como fallback
             this.loadSyntheticIR('room');
         }
     }
 
-    // Load IR from file
+    // Carga IR desde un archivo
     async loadIRFromFile(file) {
         try {
             const ir = await this.irLoader.loadIRFromFile(file);
@@ -74,7 +74,7 @@ export class ConvolutionReverb {
         }
     }
 
-    // Load synthetic IR
+    // Carga IR sintética
     loadSyntheticIR(type = 'room') {
         const ir = this.irLoader.generateSyntheticIR(type, 2.0);
         this.convolver.buffer = ir;
@@ -82,7 +82,7 @@ export class ConvolutionReverb {
         console.log('Synthetic reverb IR loaded:', this.currentIR);
     }
 
-    // Set pre-delay time in seconds
+    // Ajustar tiempo de pre-delay en segundos
     setPreDelay(seconds) {
         this.preDelayTime = AudioMath.clamp(seconds, 0, 0.2);
         this.preDelay.delayTime.setTargetAtTime(
@@ -92,13 +92,13 @@ export class ConvolutionReverb {
         );
     }
 
-    // Set tone (controls high/low pass filters)
+    // Ajustar tono (controla los filtros paso alto/bajo)
     setTone(value) {
         this.tone = AudioMath.clamp(value, 0, 1);
 
-        // Map tone to filter frequencies
-        // Low tone = darker (lower lowpass, higher highpass)
-        // High tone = brighter (higher lowpass, lower highpass)
+        // Mapear tono a frecuencias de filtro
+        // Tono bajo = más oscuro (paso bajo más bajo, paso alto más alto)
+        // Tono alto = más brillante (paso bajo más alto, paso alto más bajo)
         const lowpassFreq = AudioMath.mapRange(this.tone, 0, 1, 2000, 12000);
         const highpassFreq = AudioMath.mapRange(this.tone, 0, 1, 400, 100);
 
@@ -115,13 +115,13 @@ export class ConvolutionReverb {
         );
     }
 
-    // Set wet/dry mix (0-1)
+    // Ajustar mezcla wet/dry (0-1)
     setMix(value) {
         this.mix = AudioMath.clamp(value, 0, 1);
         this.updateMix();
     }
 
-    // Update wet/dry mix
+    // Actualizar mezcla wet/dry
     updateMix() {
         this.wetGain.gain.setTargetAtTime(
             this.mix,
@@ -129,13 +129,13 @@ export class ConvolutionReverb {
             0.01
         );
         this.dryGain.gain.setTargetAtTime(
-            1.0, // Dry always at 100%, wet is added
+            1.0, // Dry siempre al 100%, wet se suma
             this.audioContext.currentTime,
             0.01
         );
     }
 
-    // Enable/disable
+    // Activar/desactivar
     setEnabled(enabled) {
         this.enabled = enabled;
         if (!enabled) {
@@ -145,7 +145,7 @@ export class ConvolutionReverb {
         }
     }
 
-    // Preset: Room (small, natural)
+    // Preset: Habitación (pequeña, natural)
     presetRoom() {
         this.loadSyntheticIR('room');
         this.setPreDelay(0.01);
@@ -153,7 +153,7 @@ export class ConvolutionReverb {
         this.setMix(0.25);
     }
 
-    // Preset: Hall (large, spacious)
+    // Preset: Sala (grande, espaciosa)
     presetHall() {
         this.loadSyntheticIR('hall');
         this.setPreDelay(0.03);
@@ -161,7 +161,7 @@ export class ConvolutionReverb {
         this.setMix(0.35);
     }
 
-    // Preset: Plate (vintage, bright)
+    // Preset: Placa (vintage, brillante)
     presetPlate() {
         this.loadSyntheticIR('plate');
         this.setPreDelay(0.02);
@@ -169,7 +169,7 @@ export class ConvolutionReverb {
         this.setMix(0.3);
     }
 
-    // Preset: Spring (guitar amp style)
+    // Preset: Muelles (estilo amplificador de guitarra)
     presetSpring() {
         this.loadSyntheticIR('spring');
         this.setPreDelay(0.005);
@@ -177,17 +177,17 @@ export class ConvolutionReverb {
         this.setMix(0.4);
     }
 
-    // Connect to next node
+    // Conectar al siguiente nodo
     connect(destination) {
         this.output.connect(destination);
     }
 
-    // Disconnect
+    // Desconectar
     disconnect() {
         this.output.disconnect();
     }
 
-    // Cleanup
+    // Limpieza
     destroy() {
         this.disconnect();
     }

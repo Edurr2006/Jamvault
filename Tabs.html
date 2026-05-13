@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>JamVault - Tablaturas</title>
   <link rel="stylesheet" href="IndexStyles.css?v=2">
+  <link rel="icon" type="image/png" href="imagenes/favicon.png">
   <script src="ThemeInit.js"></script>
   <style>
     .container {
@@ -42,7 +43,7 @@
       flex-wrap: wrap;
     }
 
-    /* UI FORCED DARK THEME */
+    /* TEMA OSCURO FORZADO DE LA IU */
     #alphaTab {
       width: 100%;
       min-height: 500px;
@@ -124,7 +125,7 @@
       fill: #ffffff !important;
     }
 
-    /* NATIVE CURSORS VISIBILITY */
+    /* VISIBILIDAD DE CURSORES NATIVOS */
     .at-cursor-bar {
       display: block !important;
       fill: rgba(255, 255, 255, 0.1) !important;
@@ -171,7 +172,7 @@
       width: 100%;
       text-align: left;
       padding: 18px 50px 18px 25px;
-      /* Extra right padding for the X */
+      /* Relleno derecho extra para la X */
       font-size: 1.1rem;
       background: rgba(0, 0, 0, 0.3);
       border: 2px solid rgba(255, 255, 255, 0.1);
@@ -190,7 +191,7 @@
       height: 26px;
       border-radius: 50%;
       display: none;
-      /* Hidden by default */
+      /* Oculto por defecto */
       align-items: center;
       justify-content: center;
       cursor: pointer;
@@ -304,7 +305,7 @@
       padding-right: 5px;
     }
 
-    /* Custom Scrollbar for top songs */
+    /* Barra de desplazamiento personalizada para el ranking */
     .top-songs-scroll::-webkit-scrollbar {
       width: 6px;
     }
@@ -381,7 +382,7 @@
       display: none !important;
     }
 
-    /* Difficulty Indicator */
+    /* Indicador de Dificultad */
     .difficulty-dots {
       display: flex;
       gap: 3px;
@@ -442,7 +443,7 @@
       font-weight: bold;
     }
 
-    /* --- PREMIUM MODAL PLAYER STYLES (OVERLAY) --- */
+    /* --- ESTILOS DEL REPRODUCTOR MODAL PREMIUM (SUPERPOSICIÓN) --- */
     .player-section[id="playerSection"] {
       display: none;
       position: fixed;
@@ -469,7 +470,7 @@
 
     .track-sidebar {
       width: 280px;
-      /* Slightly wider for track names */
+      /* Ligeramente más ancho para los nombres de las pistas */
       background: #0a0a0a;
       border-right: 1px solid rgba(255, 255, 255, 0.05);
       display: flex;
@@ -532,13 +533,13 @@
       filter: drop-shadow(0 0 5px var(--at-accent-color));
     }
 
-    /* --- ALPHATAB INTEGRATED ENGINE --- */
+    /* --- MOTOR INTEGRADO DE ALPHATAB --- */
     #at-player-content {
       flex: 1;
       overflow-y: auto;
       background: #000;
       padding: 0;
-      position: relative; /* important for laser absolute positioning */
+      position: relative; /* importante para el posicionamiento absoluto del láser */
     }
 
     #customLaser {
@@ -563,17 +564,17 @@
       width: 100%;
     }
 
-    /* Override AlphaTab Default Visuals to match JamVault Neon */
+    /* Sobrescribir los visuales por defecto de AlphaTab para que coincidan con JamVault Neon */
     :root {
       --at-background-color: #000 !important;
       --at-main-color: #ffffff !important;
       --at-accent-color: #f39c12;
-      /* Default fall-back */
+      /* Opción por defecto (fall-back) */
       --at-cursor-color: var(--at-accent-color) !important;
       --at-selection-color: rgba(255, 255, 255, 0.1) !important;
     }
 
-    /* Clean AlphaTab UI */
+    /* IU limpia de AlphaTab */
     .at-alpha-tab {
       background: #000 !important;
       border: none !important;
@@ -583,7 +584,7 @@
       width: 100%;
     }
 
-    /* Barra de Control Inferior - ESTILO PILL */
+    /* Barra de Control Inferior - ESTILO PÍLDORA */
     .at-controls-bar {
       position: fixed;
       bottom: 2rem;
@@ -713,7 +714,7 @@
       border: none;
     }
 
-    /* Enhanced Slider Logic */
+    /* Lógica de Deslizador Mejorada */
     .at-slider-group {
       display: flex;
       flex-direction: column;
@@ -861,7 +862,7 @@
       <button id="at-close" class="at-close-player">Cerrar Tablatura</button>
 
       <div class="player-layout">
-        <!-- Sidebar de Pistas -->
+        <!-- Barra Lateral de Pistas -->
         <aside class="track-sidebar" id="at-track-sidebar">
           <div class="sidebar-title">Instrumentos</div>
           <!-- JS populate items -->
@@ -876,7 +877,7 @@
         </main>
       </div>
 
-      <!-- Barra de Control Inferior (Sticky) -->
+      <!-- Barra de Control Inferior (Fija) -->
       <div class="at-controls-bar" id="atControlsBar">
         <div class="at-progress-container" id="at-progress-container">
           <div class="at-progress-bar" id="at-progress-bar"></div>
@@ -940,7 +941,7 @@
   <script src="https://cdn.jsdelivr.net/npm/vexflow/build/cjs/vexflow.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@coderline/alphatab@latest/dist/alphaTab.js"></script>
-  <!-- alphaTab is still used as a light GP parser -->
+  <!-- alphaTab se sigue usando como un analizador ligero de GP -->
   <script src="LocalStorage.js"></script>
   <script src="Toast.js"></script>
   <script src="Tabs.js?v=vexflow_tone_v1"></script>

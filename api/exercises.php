@@ -1,26 +1,26 @@
 <?php
 /**
  * JamVault - exercises.php
- * API for user-owned exercises. Requires an active session.
+ * API para ejercicios propiedad del usuario. Requiere una sesión activa.
  *
- * GET  ?action=list           → returns all exercises for the logged-in user
- * POST ?action=save           → insert or update an exercise (body: JSON exercise object)
- * POST ?action=delete         → delete an exercise by id (body: { id })
+ * GET  ?action=list           → devuelve todos los ejercicios del usuario logueado
+ * POST ?action=save           → inserta o actualiza un ejercicio (cuerpo: objeto JSON del ejercicio)
+ * POST ?action=delete         → elimina un ejercicio por id (cuerpo: { id })
  */
 
 header('Content-Type: application/json; charset=utf-8');
 session_start();
 
-// ── Auth check ──────────────────────────────────────────────────────────────
+// ── Comprobación de autenticación ───────────────────────────────────────────
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
+    echo json_encode(['error' => 'No autorizado']);
     exit;
 }
 
 $userId = (int) $_SESSION['user_id'];
 
-// ── DB connection ────────────────────────────────────────────────────────────
+// ── Conexión a la BD ─────────────────────────────────────────────────────────
 $host   = 'localhost';
 $dbname = 'jamvault';
 $user   = 'root';
@@ -32,13 +32,13 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 } catch (PDOException $e) {
-    echo json_encode(['error' => 'Database connection failed']);
+    echo json_encode(['error' => 'Error de conexión a la base de datos']);
     exit;
 }
 
 $action = $_GET['action'] ?? '';
 
-// ── GET: list ────────────────────────────────────────────────────────────────
+// ── GET: list (listar) ───────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'list') {
     $stmt = $pdo->prepare("SELECT id, title, content, created_at FROM user_exercises WHERE user_id = ? ORDER BY created_at DESC");
     $stmt->execute([$userId]);
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'list') {
 
     $exercises = array_map(function ($row) {
         $ex = json_decode($row['content'], true);
-        // Store the DB row id so we can reference it for updates/deletes
+        // Almacenar el id de la fila de la BD para poder referenciarlo en actualizaciones/eliminaciones
         $ex['_db_id'] = (int) $row['id'];
         return $ex;
     }, $rows);
@@ -55,15 +55,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'list') {
     exit;
 }
 
-// ── POST actions ─────────────────────────────────────────────────────────────
+// ── Acciones POST ────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $body = json_decode(file_get_contents('php://input'), true);
     if (!$body) {
-        echo json_encode(['error' => 'Invalid JSON body']);
+        echo json_encode(['error' => 'Cuerpo JSON inválido']);
         exit;
     }
 
-    // ── save (insert or update) ──────────────────────────────────────────────
+    // ── save (guardar: insertar o actualizar) ──────────────────────────────────
     if ($action === 'save') {
         $title   = trim($body['name'] ?? 'Ejercicio sin nombre');
         $content = json_encode($body);
@@ -71,27 +71,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         try {
             if ($dbId > 0) {
-                // Update — verify ownership
+                // Actualizar — verificar propiedad
                 $stmt = $pdo->prepare("UPDATE user_exercises SET title = ?, content = ? WHERE id = ? AND user_id = ?");
                 $stmt->execute([$title, $content, $dbId, $userId]);
                 echo json_encode(['success' => true, 'db_id' => $dbId]);
             } else {
-                // Insert
+                // Insertar
                 $stmt = $pdo->prepare("INSERT INTO user_exercises (user_id, title, content) VALUES (?, ?, ?)");
                 $stmt->execute([$userId, $title, $content]);
                 echo json_encode(['success' => true, 'db_id' => (int) $pdo->lastInsertId()]);
             }
         } catch (PDOException $e) {
-            echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
+            echo json_encode(['error' => 'Error de base de datos: ' . $e->getMessage()]);
         }
         exit;
     }
 
-    // ── delete ───────────────────────────────────────────────────────────────
+    // ── delete (eliminar) ────────────────────────────────────────────────────
     if ($action === 'delete') {
         $dbId = (int) ($body['db_id'] ?? 0);
         if (!$dbId) {
-            echo json_encode(['error' => 'Missing db_id']);
+            echo json_encode(['error' => 'Falta db_id']);
             exit;
         }
         $stmt = $pdo->prepare("DELETE FROM user_exercises WHERE id = ? AND user_id = ?");
@@ -101,4 +101,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-echo json_encode(['error' => 'Invalid action']);
+echo json_encode(['error' => 'Acción inválida']);

@@ -1,5 +1,5 @@
-// ========== BPM-SYNCED DELAY ==========
-// Professional delay with BPM synchronization and musical subdivisions
+// ========== DELAY SINCRONIZADO POR BPM ==========
+// Delay profesional con sincronización por BPM y subdivisiones musicales
 
 import { AudioMath } from '../utils/AudioMath.js';
 
@@ -7,7 +7,7 @@ export class BPMDelay {
     constructor(audioContext) {
         this.audioContext = audioContext;
 
-        // Create nodes
+        // Crear nodos
         this.input = audioContext.createGain();
         this.delayNode = audioContext.createDelay(5.0);
         this.feedbackGain = audioContext.createGain();
@@ -18,27 +18,27 @@ export class BPMDelay {
         this.dryGain = audioContext.createGain();
         this.output = audioContext.createGain();
 
-        // Stereo ping-pong nodes
+        // Nodos para ping-pong estéreo
         this.leftDelay = audioContext.createDelay(5.0);
         this.rightDelay = audioContext.createDelay(5.0);
         this.leftGain = audioContext.createGain();
         this.rightGain = audioContext.createGain();
         this.merger = audioContext.createChannelMerger(2);
 
-        // Parameters
+        // Parámetros
         this.bpm = 120;
-        this.subdivision = '1/4'; // Musical subdivision
+        this.subdivision = '1/4'; // Subdivisión musical
         this.feedback = 0.3; // 0-1
         this.tone = 0.7; // 0-1
         this.mix = 0.3; // 0-1
         this.pingPong = false;
         this.enabled = false;
-        this.manualTime = 0.25; // seconds (when not synced to BPM)
+        this.manualTime = 0.25; // segundos (cuando no está sincronizado al BPM)
         this.syncToBPM = true;
 
-        // Connect mono delay chain:
-        // Input -> Delay -> Tone -> Feedback -> Delay
-        //       -> Wet -> Output
+        // Conectar cadena de delay mono:
+        // Entrada -> Delay -> Tono -> Feedback -> Delay
+        //       -> Wet -> Salida
         this.input.connect(this.delayNode);
         this.delayNode.connect(this.toneFilter);
         this.toneFilter.connect(this.feedbackGain);
@@ -46,18 +46,18 @@ export class BPMDelay {
         this.toneFilter.connect(this.wetGain);
         this.wetGain.connect(this.output);
 
-        // Dry signal
+        // Señal Dry (seca)
         this.input.connect(this.dryGain);
         this.dryGain.connect(this.output);
 
-        // Initialize
+        // Inicializar
         this.updateDelayTime();
         this.updateMix();
         this.setFeedback(this.feedback);
         this.setTone(this.tone);
     }
 
-    // Set BPM
+    // Ajustar BPM
     setBPM(bpm) {
         this.bpm = AudioMath.clamp(bpm, 40, 240);
         if (this.syncToBPM) {
@@ -65,7 +65,7 @@ export class BPMDelay {
         }
     }
 
-    // Set subdivision
+    // Ajustar subdivisión
     setSubdivision(subdivision) {
         this.subdivision = subdivision;
         if (this.syncToBPM) {
@@ -73,7 +73,7 @@ export class BPMDelay {
         }
     }
 
-    // Set manual delay time (when not synced to BPM)
+    // Ajustar tiempo de delay manual (cuando no está sincronizado al BPM)
     setManualTime(seconds) {
         this.manualTime = AudioMath.clamp(seconds, 0.001, 2.0);
         if (!this.syncToBPM) {
@@ -81,13 +81,13 @@ export class BPMDelay {
         }
     }
 
-    // Toggle BPM sync
+    // Alternar sincronización por BPM
     setSyncToBPM(sync) {
         this.syncToBPM = sync;
         this.updateDelayTime();
     }
 
-    // Update delay time based on BPM or manual setting
+    // Actualizar tiempo de delay basado en BPM o ajuste manual
     updateDelayTime() {
         let delayTime;
 
@@ -97,7 +97,7 @@ export class BPMDelay {
             delayTime = this.manualTime;
         }
 
-        // Clamp to valid range
+        // Limitar al rango válido
         delayTime = AudioMath.clamp(delayTime, 0.001, 2.0);
 
         this.delayNode.delayTime.setTargetAtTime(
@@ -120,9 +120,9 @@ export class BPMDelay {
         }
     }
 
-    // Set feedback amount (0-1)
+    // Ajustar cantidad de feedback (0-1)
     setFeedback(value) {
-        this.feedback = AudioMath.clamp(value, 0, 0.95); // Max 95% to avoid runaway
+        this.feedback = AudioMath.clamp(value, 0, 0.95); // Máximo 95% para evitar realimentación infinita
         this.feedbackGain.gain.setTargetAtTime(
             this.feedback,
             this.audioContext.currentTime,
@@ -130,10 +130,10 @@ export class BPMDelay {
         );
     }
 
-    // Set tone (controls filter in feedback loop)
+    // Ajustar tono (controla el filtro en el bucle de feedback)
     setTone(value) {
         this.tone = AudioMath.clamp(value, 0, 1);
-        // Map 0-1 to 500Hz-8000Hz
+        // Mapear 0-1 a 500Hz-8000Hz
         const freq = AudioMath.mapRange(this.tone, 0, 1, 500, 8000);
         this.toneFilter.frequency.setTargetAtTime(
             freq,
@@ -142,13 +142,13 @@ export class BPMDelay {
         );
     }
 
-    // Set wet/dry mix (0-1)
+    // Ajustar mezcla wet/dry (0-1)
     setMix(value) {
         this.mix = AudioMath.clamp(value, 0, 1);
         this.updateMix();
     }
 
-    // Update wet/dry mix
+    // Actualizar mezcla wet/dry
     updateMix() {
         this.wetGain.gain.setTargetAtTime(
             this.mix,
@@ -156,20 +156,20 @@ export class BPMDelay {
             0.01
         );
         this.dryGain.gain.setTargetAtTime(
-            1.0, // Dry always at 100%, wet is added
+            1.0, // Dry siempre al 100%, wet se suma
             this.audioContext.currentTime,
             0.01
         );
     }
 
-    // Enable/disable ping-pong mode
+    // Activar/desactivar modo ping-pong
     setPingPong(enabled) {
         this.pingPong = enabled;
-        // TODO: Implement stereo ping-pong routing
-        // This would require disconnecting mono chain and using stereo delays
+        // TODO: Implementar enrutamiento ping-pong estéreo
+        // Esto requeriría desconectar la cadena mono y usar delays estéreo
     }
 
-    // Enable/disable
+    // Activar/desactivar
     setEnabled(enabled) {
         this.enabled = enabled;
         if (!enabled) {
@@ -179,7 +179,7 @@ export class BPMDelay {
         }
     }
 
-    // Preset: Slapback (short, single repeat)
+    // Preset: Slapback (corto, repetición única)
     presetSlapback() {
         this.setSyncToBPM(false);
         this.setManualTime(0.12);
@@ -188,7 +188,7 @@ export class BPMDelay {
         this.setMix(0.3);
     }
 
-    // Preset: Quarter Note (rhythmic)
+    // Preset: Negra (rítmico)
     presetQuarterNote() {
         this.setSyncToBPM(true);
         this.setSubdivision('1/4');
@@ -197,7 +197,7 @@ export class BPMDelay {
         this.setMix(0.35);
     }
 
-    // Preset: Dotted Eighth (U2 style)
+    // Preset: Corchea con puntillo (estilo U2)
     presetDottedEighth() {
         this.setSyncToBPM(true);
         this.setSubdivision('1/8D');
@@ -206,17 +206,17 @@ export class BPMDelay {
         this.setMix(0.4);
     }
 
-    // Connect to next node
+    // Conectar al siguiente nodo
     connect(destination) {
         this.output.connect(destination);
     }
 
-    // Disconnect
+    // Desconectar
     disconnect() {
         this.output.disconnect();
     }
 
-    // Cleanup
+    // Limpieza
     destroy() {
         this.disconnect();
     }

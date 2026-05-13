@@ -15,10 +15,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await player.init();
 
-    // Initialize Renderer (Passing string ID as required by constructor)
+    // Inicializar el Renderizador (Pasando el ID de la cadena como requiere el constructor)
     const renderer = new ExerciseRenderer(null, 'practicarChordDiagram');
 
-    // Params
+    // Parámetros
     const urlParams = new URLSearchParams(window.location.search);
     const exId = urlParams.get('id');
 
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Auth sync before loading
+    // Sincronización de autenticación antes de cargar
     let initialized = false;
     window.addEventListener('jamvault:auth_changed', async () => {
         if (initialized) return;
@@ -48,15 +48,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('exType').textContent = ex.type === 'scale' ? 'Escala' : 'Progresión';
     document.getElementById('exLevel').textContent = ex.level;
 
-    // Set Layout Mode (using classList to avoid clearing the theme)
+    // Establecer el Modo de Diseño (usando classList para evitar borrar el tema)
     document.body.classList.remove('scale-mode', 'chord-mode');
     document.body.classList.add(ex.type === 'scale' ? 'scale-mode' : 'chord-mode');
 
-    // Initial render
+    // Renderizado inicial
     renderTimeline();
     drawFretboard();
 
-    // Initial chord render for progressions
+    // Renderizado inicial de acordes para progresiones
     if (ex.type !== 'scale' && ex.steps.length > 0) {
         const firstStep = ex.steps[0];
         if (firstStep.kind === 'chord') {
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // UI Elements
+    // Elementos de la UI
     const playPauseBtn = document.getElementById('playPauseBtn');
     const stopBtn = document.getElementById('stopBtn');
     const speedSlider = document.getElementById('speedSlider');
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const volSlider = document.getElementById('volSlider');
     const volVal = document.getElementById('volVal');
     const metronomeBtn = document.getElementById('metronomeToggle');
-    const synthBtn = document.getElementById('synthToggle'); // NEW
+    const synthBtn = document.getElementById('synthToggle'); // NUEVO
     const countdownBtn = document.getElementById('countdownToggle');
     const progressBar = document.getElementById('progressBar');
     const countdownOverlay = document.getElementById('countdownOverlay');
@@ -87,19 +87,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentBPM = ex.bpm || 120;
     let playerBPM = currentBPM;
 
-    // Initialize UI values
+    // Inicializar valores de la UI
     speedSlider.value = playerBPM;
     speedBpmInput.value = playerBPM;
     volSlider.value = 80;
     volVal.textContent = '80%';
 
-    // Sync initial state
+    // Sincronizar estado inicial
     player.isMetronomeOn = ex.metronomeEnabled;
     metronomeBtn.classList.toggle('active', player.isMetronomeOn);
     player.isSynthEnabled = true;
     synthBtn.classList.add('active');
 
-    // --- HELPER FUNCTIONS (Hoisted) ---
+    // --- FUNCIONES DE AYUDA (Declaradas previamente) ---
     function drawFretboard() {
         const layer = document.getElementById('notesLayer');
         if (!layer) return;
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const uniquePositions = new Set();
 
-        // 1. If it's a scale exercise, show scale context (all notes of that scale)
+        // 1. Si es un ejercicio de escalas, mostrar el contexto de la escala (todas las notas de esa escala)
         if (ex.type === 'scale') {
             const scaleNotes = new Set();
             ex.steps.forEach(s => {
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
         }
-        // 2. If it's a chord exercise (progression), pre-render all notes for all variations in the exercise
+        // 2. Si es un ejercicio de acordes (progresión), renderizar previamente todas las notas de todas las variaciones del ejercicio
         else {
             ex.steps.forEach(step => {
                 if (step.kind === 'chord') {
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // 3. Ensure all explicit notes actually in the sequence are drawn
+        // 3. Asegurar que se dibujen todas las notas explícitas que están realmente en la secuencia
         ex.steps.forEach(step => {
             if (step.kind === 'note') {
                 const key = `${step.data.string}-${step.data.fret}`;
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // 4. If scale mode, ensure we loop through all frets (up to 24)
+        // 4. Si es modo escala, asegurar que recorremos todos los trastes (hasta el 24)
         if (ex.type === 'scale') {
             const scaleNotes = new Set();
             ex.steps.forEach(s => {
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             c.setAttribute('r', '22');
         }
         highlightTimelineStep(stepIndex);
-        // Clear chord diagram for scale exercises if needed
+        // Limpiar el diagrama de acordes para ejercicios de escalas si es necesario
         const chordContainer = document.getElementById('practicarChordDiagram');
         if (chordContainer) chordContainer.innerHTML = '';
     }
@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // Calculate offset
+        // Calcular desplazamiento (offset)
         let maxFret = 0;
         let minFret = 20;
         fingers.forEach(f => {
@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function highlightChord(chordData, stepIndex) {
         renderer.renderChordDiagram(chordData);
-        // Highlight ONLY the notes of the specific chord position
+        // Resaltar SOLO las notas de la posición específica del acorde
         resetFretboardHighlights();
 
         const chordInfo = acordesDB[chordData.root]?.[chordData.type];
@@ -348,7 +348,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 c.setAttribute('fill', f.esRaiz ? 'url(#note-grad)' : '#fff');
                 c.setAttribute('filter', 'url(#glow)');
                 target.querySelector('text').setAttribute('fill', '#000');
-                c.setAttribute('r', '20'); // Balanced size
+                c.setAttribute('r', '20'); // Tamaño equilibrado
             }
         });
 
@@ -357,20 +357,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function resetFretboardHighlights() {
         document.querySelectorAll('.note-pos').forEach(n => {
-            n.setAttribute('opacity', '0.6'); // Match base visibility
+            n.setAttribute('opacity', '0.6'); // Coincidir con la visibilidad base
             const c = n.querySelector('circle');
             c.setAttribute('fill', 'rgba(255,255,255,0.1)');
             c.setAttribute('filter', 'none');
-            c.setAttribute('r', '16'); // Reset radius!
+            c.setAttribute('r', '16'); // ¡Restablecer radio!
             n.querySelector('text').setAttribute('fill', '#888');
         });
     }
 
     function highlightTimelineStep(stepIndex) {
-        // Reset Timeline
+        // Restablecer Línea de Tiempo
         document.querySelectorAll('.timeline-step').forEach(s => s.classList.remove('active'));
 
-        // Highlight Timeline Step
+        // Resaltar Paso de la Línea de Tiempo
         const tStep = document.getElementById(`tstep-${stepIndex}`);
         if (tStep) {
             tStep.classList.add('active');
@@ -382,17 +382,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!isCountdownActive) return;
         countdownOverlay.style.display = 'flex';
         const beats = [4, 3, 2, 1];
-        const countdownBPM = 80; // Fixed slower tempo for preparation
+        const countdownBPM = 80; // Tempo fijo más lento para la preparación
         const msPerBeat = (60 / countdownBPM) * 1000;
 
         for (const b of beats) {
             countdownText.textContent = b;
-            // Force animation restart
+            // Forzar el reinicio de la animación
             countdownText.style.animation = 'none';
-            void countdownText.offsetWidth; // Trigger reflow
+            void countdownText.offsetWidth; // Disparar el reflujo (reflow)
             countdownText.style.animation = 'pulse 1s ease infinite';
 
-            player.playMetronomeTick(null, b === 4); // Sound for each beat, accent on 1
+            player.playMetronomeTick(null, b === 4); // Sonido para cada pulso, acento en el 1
             await new Promise(r => setTimeout(r, msPerBeat));
         }
         countdownOverlay.style.display = 'none';
@@ -420,7 +420,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     highlightChord(step.data, stepIndex);
                 }
             }, () => {
-                // On Loop
+                // Al repetir (Loop)
                 if (isSpeedTrainerActive) {
                     playerBPM = Math.min(playerBPM + 5, 360);
                     player.setBpm(playerBPM);
@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // --- EVENTS ---
+    // --- EVENTOS ---
     playPauseBtn.onclick = togglePlay;
     stopBtn.onclick = () => {
         player.stop();
@@ -471,7 +471,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     metronomeBtn.onclick = () => {
         player.isMetronomeOn = !player.isMetronomeOn;
-        // Mutual exclusion: if both off, turn on synth
+        // Exclusión mutua: si ambos están apagados, encender sintetizador (synth)
         if (!player.isMetronomeOn && !player.isSynthEnabled) {
             player.isSynthEnabled = true;
             synthBtn.classList.add('active');
@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     synthBtn.onclick = () => {
         player.isSynthEnabled = !player.isSynthEnabled;
-        // Mutual exclusion: if both off, turn on metronome
+        // Exclusión mutua: si ambos están apagados, encender metrónomo
         if (!player.isSynthEnabled && !player.isMetronomeOn) {
             player.isMetronomeOn = true;
             metronomeBtn.classList.add('active');
@@ -495,16 +495,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         countdownBtn.classList.toggle('active', isCountdownActive);
     };
 
-    // Theme integration (Redraw fretboard colors when theme changes)
+    // Integración de temas (Redibujar los colores del diapasón cuando cambia el tema)
     const updateTheme = () => {
         const theme = localStorage.getItem('theme') || 'JamVault';
         const currentLayout = document.body.classList.contains('scale-mode') ? 'scale-mode' : 'chord-mode';
 
-        // Remove all possible themes
+        // Eliminar todos los temas posibles
         const allThemes = ["JamVault", "natural", "galactic", "retro", "vintage", "redblack"];
         document.body.classList.remove(...allThemes);
 
-        // Add current theme and preserve layout
+        // Añadir el tema actual y preservar el diseño
         document.body.classList.add(theme);
         document.body.classList.add(currentLayout);
 
@@ -521,7 +521,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     updateTheme();
 
-    // Metronome initial state
+    // Estado inicial del metrónomo
     metronomeBtn.classList.toggle('active', ex.metronomeEnabled);
     } // End initializePractice()
 });

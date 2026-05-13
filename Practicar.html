@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="IndexStyles.css?v=2">
     <script src="ThemeInit.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="icon" href="data:,">
+    <link rel="icon" type="image/png" href="imagenes/favicon.png">
     <style>
         body {
             background-color: #0c0c0e;
@@ -27,7 +27,7 @@
             overflow: hidden;
         }
 
-        /* THEME VARIABLES */
+        /* VARIABLES DE TEMA */
         body.JamVault {
             --accent-theme: #FF8906;
             --accent-glow: rgba(255, 137, 6, 0.4);
@@ -69,12 +69,12 @@
             overflow: hidden;
         }
 
-        /* TIMELINE DISPLAY */
+        /* VISUALIZACIÓN DE LA LÍNEA DE TIEMPO */
         .timeline-container {
             width: 95%;
             max-width: 1200px;
             min-height: 70px;
-            /* even smaller */
+            /* incluso más pequeño */
             margin: 0.2rem auto;
             display: flex;
             justify-content: flex-start;
@@ -113,7 +113,7 @@
         .step-note {
             font-weight: 800;
             font-size: 0.95rem;
-            /* Smaller text */
+            /* Texto más pequeño */
         }
 
         .step-info {
@@ -141,11 +141,11 @@
             margin: 0;
         }
 
-        /* FRETBOARD STYLES */
+        /* ESTILOS DEL DIAPASÓN */
         #fretboardContainer {
             width: 95%;
             max-width: 1500px;
-            /* Increased */
+            /* Incrementado */
             filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.5));
         }
 
@@ -159,11 +159,11 @@
             gap: 20px;
             padding: 0 1%;
             margin: 5px auto 80px;
-            /* Reduced bottom margin */
+            /* Margen inferior reducido */
             flex: 1;
         }
 
-        /* ADAPTIVE LAYOUTS */
+        /* DISEÑOS ADAPTATIVOS */
         body.scale-mode #practicarChordDiagram {
             display: none !important;
         }
@@ -182,7 +182,7 @@
 
         body.chord-mode #practicarChordDiagram {
             flex: 0 1 350px;
-            /* Don't grow too much */
+            /* No crecer demasiado */
             min-width: 280px;
             max-width: 400px;
             display: flex;
@@ -194,11 +194,11 @@
             min-width: 500px;
         }
 
-        /* BOTTOM PLAYER BAR (PILL STYLE) */
+        /* BARRA DE REPRODUCCIÓN INFERIOR (ESTILO PÍLDORA) */
         .player-bar {
             position: fixed;
             bottom: 1rem;
-            /* Slightly higher */
+            /* Ligeramente más alto */
             left: 50%;
             transform: translateX(-50%);
             width: 85%;
@@ -208,7 +208,7 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 20px;
             padding: 10px 30px;
-            /* More compact */
+            /* Más compacto */
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -331,7 +331,7 @@
             box-shadow: 0 0 10px var(--accent-glow);
         }
 
-        /* COUNTDOWN OVERLAY */
+        /* SUPERPOSICIÓN DE CUENTA ATRÁS */
         #countdownOverlay {
             position: fixed;
             top: 0;
@@ -423,13 +423,13 @@
         </div>
 
         <div class="main-content">
-            <!-- LEFT: CHORD DIAGRAM -->
+            <!-- IZQUIERDA: DIAGRAMA DE ACORDE -->
             <div id="practicarChordDiagram"
                 style="transition: all 0.3s ease; filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));">
-                <!-- SVG injected by JS -->
+                <!-- SVG inyectado por JS -->
             </div>
 
-            <!-- RIGHT: FRETBOARD -->
+            <!-- DERECHA: DIAPASÓN -->
             <div id="fretboardContainer"
                 style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                 <svg id="fretboard" viewBox="-30 -30 1310 305" xmlns="http://www.w3.org/2000/svg"
@@ -452,22 +452,22 @@
                         </filter>
                     </defs>
 
-                    <!-- Neck Background -->
+                    <!-- Fondo del Mástil -->
                     <rect x="0" y="0" width="1250" height="240" fill="#111" rx="4" />
 
-                    <!-- Inlays -->
+                    <!-- Incrustaciones (Inlays) -->
                     <g fill="#222">
                         <circle cx="275.5" cy="120" r="10" /> <!-- 3 -->
                         <circle cx="446.5" cy="120" r="10" /> <!-- 5 -->
                         <circle cx="601.5" cy="120" r="10" /> <!-- 7 -->
                         <circle cx="741.5" cy="120" r="10" /> <!-- 9 -->
-                        <circle cx="928" cy="70" r="10" /> <!-- 12 top -->
-                        <circle cx="928" cy="170" r="10" /> <!-- 12 bottom -->
+                        <circle cx="928" cy="70" r="10" /> <!-- 12 arriba -->
+                        <circle cx="928" cy="170" r="10" /> <!-- 12 abajo -->
                         <circle cx="1084" cy="120" r="10" /> <!-- 15 -->
                         <circle cx="1177.5" cy="120" r="10" /> <!-- 17 -->
                     </g>
 
-                    <!-- Strings -->
+                    <!-- Cuerdas -->
                     <g stroke="#fff" stroke-opacity="0.3">
                         <line x1="24" y1="20" x2="1209" y2="20" stroke-width="1.0" />
                         <line x1="24" y1="60" x2="1209" y2="60" stroke-width="1.2" />
@@ -477,10 +477,10 @@
                         <line x1="24" y1="220" x2="1209" y2="220" stroke-width="2.0" />
                     </g>
 
-                    <!-- Nut -->
+                    <!-- Cejuela -->
                     <line x1="23.99" y1="20" x2="23.99" y2="220" stroke="white" stroke-width="5" opacity="0.9" />
 
-                    <!-- Frets -->
+                    <!-- Trastes -->
                     <g stroke="#fff" stroke-width="2" opacity="0.4">
                         <line x1="138" y1="20" x2="138" y2="220" />
                         <line x1="231" y1="20" x2="231" y2="220" />
@@ -506,7 +506,7 @@
             </div>
         </div>
 
-        <!-- PLAYER BAR -->
+        <!-- BARRA DEL REPRODUCTOR -->
         <div class="player-bar">
             <div class="progress-indicator">
                 <div id="progressBar"></div>

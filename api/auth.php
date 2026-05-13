@@ -14,7 +14,7 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ]);
 } catch (PDOException $e) {
-    echo json_encode(['error' => 'Database connection failed']);
+    echo json_encode(['error' => 'Error de conexión a la base de datos']);
     exit;
 }
 
@@ -33,11 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Check if exists
+        // Comprobar si ya existe
         $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
         $stmt->execute([$username, $email]);
         if ($stmt->fetch()) {
-            echo json_encode(['error' => 'Username or email already exists']);
+            echo json_encode(['error' => 'El nombre de usuario o email ya existe']);
             exit;
         }
 
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['username'] = $username;
             echo json_encode(['success' => true, 'user' => ['id' => $userId, 'username' => $username, 'email' => $email]]);
         } else {
-            echo json_encode(['error' => 'Registration failed']);
+            echo json_encode(['error' => 'Error en el registro']);
         }
         exit;
     }
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['username'] = $user['username'];
             echo json_encode(['success' => true, 'user' => ['id' => $user['id'], 'username' => $user['username'], 'email' => $user['email']]]);
         } else {
-            echo json_encode(['error' => 'Invalid credentials']);
+            echo json_encode(['error' => 'Credenciales inválidas']);
         }
         exit;
     }
@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'update_profile') {
         if (!isset($_SESSION['user_id'])) {
-            echo json_encode(['error' => 'Not authenticated']);
+            echo json_encode(['error' => 'No autenticado']);
             exit;
         }
 
@@ -94,11 +94,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Check conflicts
+        // Comprobar conflictos
         $stmt = $pdo->prepare("SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ?");
         $stmt->execute([$newUsername, $newEmail, $userId]);
         if ($stmt->fetch()) {
-            echo json_encode(['error' => 'Username or email already in use']);
+            echo json_encode(['error' => 'El nombre de usuario o email ya está en uso']);
             exit;
         }
 
@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['username'] = $newUsername;
             echo json_encode(['success' => true, 'user' => ['id' => $userId, 'username' => $newUsername, 'email' => $newEmail]]);
         } else {
-            echo json_encode(['error' => 'Failed to update profile']);
+            echo json_encode(['error' => 'Error al actualizar el perfil']);
         }
         exit;
     }
@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($action === 'me') {
         if (isset($_SESSION['user_id'])) {
-            // Verify user actually exists in DB to prevent zombie sessions after DB resets
+            // Verificar que el usuario realmente existe en la BD para evitar sesiones "zombi" tras reinicios de la BD
             $stmt = $pdo->prepare("SELECT id, email FROM users WHERE id = ?");
             $stmt->execute([$_SESSION['user_id']]);
             $user = $stmt->fetch();
@@ -141,4 +141,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 }
 
-echo json_encode(['error' => 'Invalid action']);
+echo json_encode(['error' => 'Acción inválida']);

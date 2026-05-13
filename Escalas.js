@@ -19,7 +19,7 @@ function mostrarEscala() {
     blues: [0, 3, 5, 6, 7, 10],
     dorian: [0, 2, 3, 5, 7, 9, 10],
     mixolydian: [0, 2, 4, 5, 7, 9, 10],
-    // Nueva: cromática → todas las 12 notas
+    // Nueva: cromática -> todas las 12 notas
     chromatic: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
   };
 
@@ -43,7 +43,7 @@ function mostrarEscala() {
     return notas[(rootIndex + intervalo) % 12];
   });
 
-  // Cache elements if not already done (Optimization)
+  // Cachear elementos si no se ha hecho ya (Optimización)
   if (!window.notesCache) {
     window.notesCache = new Map();
     document.querySelectorAll("#fretboard g.note").forEach(n => {
@@ -55,51 +55,51 @@ function mostrarEscala() {
     });
   }
 
-  // Create a Set of scale notes for O(1) lookup
+  // Crear un Set de notas de la escala para búsqueda O(1)
   var scaleSet = new Set(escala);
 
-  // Optimized rendering loop: Single pass through all note types
-  // We iterate through our cache to determine what to show/hide
-  // This preserves "musical order" animation if we iterate the 'escala' array,
-  // OR we can iterate the cache keys. To keep the requested "fluidez" and animation style:
+  // Bucle de renderizado optimizado: Una sola pasada por todos los tipos de notas
+  // Iteramos a través de nuestro caché para determinar qué mostrar/ocultar
+  // Esto preserva la animación de "orden musical" si iteramos el array 'escala',
+  // O podemos iterar las claves del caché. Para mantener la "fluidez" solicitada y el estilo de animación:
 
-  // 1. Hide all notes first (efficiently)
+  // 1. Ocultar todas las notas primero (eficientemente)
   window.notesCache.forEach(notes => {
     notes.forEach(n => {
       n.style.display = "none";
       n.classList.remove('scale-note-appear');
       n.classList.remove('root-note');
-      n.style.opacity = ""; // Reset inline opacity
+      n.style.opacity = ""; // Restablecer opacidad inline
     });
   });
 
-  // 2. Show only scale notes with staggered animation
+  // 2. Mostrar solo las notas de la escala con animación escalonada
   let animationDelay = 0;
 
-  // Iterate strictly in the order of the scale (musical order)
+  // Iterar estrictamente en el orden de la escala (orden musical)
   escala.forEach(noteName => {
     const notes = window.notesCache.get(noteName);
     if (notes) {
       notes.forEach(n => {
         n.style.display = "block";
-        n.style.opacity = "0"; // Start invisible
+        n.style.opacity = "0"; // Empezar invisible
 
         if (noteName === root) {
           n.classList.add('root-note');
         }
 
-        // Use requestAnimationFrame for smoother start
+        // Usar requestAnimationFrame para un inicio más suave
         requestAnimationFrame(() => {
           setTimeout(() => {
             n.classList.add('scale-note-appear');
-            // Cleanup opacity after animation
+            // Limpiar opacidad después de la animación
             setTimeout(() => {
               n.style.opacity = "1";
             }, 400);
           }, animationDelay);
         });
       });
-      animationDelay += 20; // Stagger per note type
+      animationDelay += 20; // Escalonamiento por tipo de nota
     }
   });
 }

@@ -1,5 +1,5 @@
-// ========== SIGNAL CHAIN ==========
-// Professional signal chain: Input → Noise Gate → Compressor → Amp → Effects → EQ → Output
+// ========== CADENA DE SEÑAL ==========
+// Cadena de señal profesional: Entrada → Puerta de Ruido → Compresor → Amplificador → Efectos → EQ → Salida
 
 import { NoiseGate } from './effects/NoiseGate.js';
 import { Compressor } from './effects/Compressor.js';
@@ -19,17 +19,17 @@ export class SignalChain {
         this.audioContext = audioContext;
         this.irLoader = irLoader;
 
-        // Create input and output nodes
+        // Crear nodos de entrada y salida
         this.input = audioContext.createGain();
         this.output = audioContext.createGain();
 
-        // Create all effects in order
+        // Crear todos los efectos en orden
         this.noiseGate = new NoiseGate(audioContext);
         this.compressor = new Compressor(audioContext);
         this.ampSimulator = new AmpSimulator(audioContext);
         this.cabinetSimulator = new CabinetSimulator(audioContext, irLoader);
 
-        // Post-amp effects
+        // Efectos post-amplificador
         this.distortion = new AnalogDistortion(audioContext);
         this.chorus = new Chorus(audioContext);
         this.flanger = new Flanger(audioContext);
@@ -38,40 +38,40 @@ export class SignalChain {
         this.delay = new BPMDelay(audioContext);
         this.reverb = new ConvolutionReverb(audioContext, irLoader);
 
-        // Final EQ
+        // EQ final
         this.eq = new ParametricEQ(audioContext);
 
-        // Track gain and pan
+        // Ganancia y panorama de la pista
         this.trackGain = audioContext.createGain();
         this.trackPan = audioContext.createStereoPanner();
 
-        // Default routing (all effects in series)
+        // Enrutamiento predeterminado (todos los efectos en serie)
         this.connectChain();
     }
 
-    // Connect the full signal chain
+    // Conectar la cadena de señal completa
     connectChain() {
-        // Disconnect everything first
+        // Desconectar todo primero
         this.disconnectAll();
 
-        // Build the chain: Input → Effects → Track Controls → Output
+        // Construir la cadena: Entrada → Efectos → Controles de Pista → Salida
         let currentNode = this.input;
 
-        // Pre-amp processing
+        // Procesamiento pre-amplificador
         currentNode.connect(this.noiseGate.input);
         currentNode = this.noiseGate.output;
 
         currentNode.connect(this.compressor.input);
         currentNode = this.compressor.output;
 
-        // Amp simulation
+        // Simulación de amplificador
         currentNode.connect(this.ampSimulator.input);
         currentNode = this.ampSimulator.output;
 
         currentNode.connect(this.cabinetSimulator.input);
         currentNode = this.cabinetSimulator.output;
 
-        // Post-amp effects (modulation, time-based)
+        // Efectos post-amplificador (modulación, basados en tiempo)
         currentNode.connect(this.distortion.input);
         currentNode = this.distortion.output;
 
@@ -93,17 +93,17 @@ export class SignalChain {
         currentNode.connect(this.reverb.input);
         currentNode = this.reverb.output;
 
-        // Final EQ
+        // EQ final
         currentNode.connect(this.eq.input);
         currentNode = this.eq.output;
 
-        // Track controls
+        // Controles de pista
         currentNode.connect(this.trackGain);
         this.trackGain.connect(this.trackPan);
         this.trackPan.connect(this.output);
     }
 
-    // Disconnect all effects
+    // Desconectar todos los efectos
     disconnectAll() {
         try {
             this.noiseGate.disconnect();
@@ -121,11 +121,11 @@ export class SignalChain {
             this.trackGain.disconnect();
             this.trackPan.disconnect();
         } catch (e) {
-            // Ignore disconnect errors
+            // Ignorar errores de desconexión
         }
     }
 
-    // Set track volume (0-1)
+    // Establecer el volumen de la pista (0-1)
     setVolume(value) {
         this.trackGain.gain.setTargetAtTime(
             value,
@@ -134,7 +134,7 @@ export class SignalChain {
         );
     }
 
-    // Set track pan (-1 to 1)
+    // Establecer el panorama de la pista (-1 a 1)
     setPan(value) {
         this.trackPan.pan.setTargetAtTime(
             value,
@@ -143,7 +143,7 @@ export class SignalChain {
         );
     }
 
-    // Get effect by name
+    // Obtener efecto por nombre
     getEffect(name) {
         const effects = {
             'noiseGate': this.noiseGate,
@@ -162,22 +162,22 @@ export class SignalChain {
         return effects[name];
     }
 
-    // Connect to destination (master bus)
+    // Conectar a destino (bus maestro)
     connect(destination) {
         this.output.connect(destination);
     }
 
-    // Disconnect from destination
+    // Desconectar de destino
     disconnect() {
         this.output.disconnect();
     }
 
-    // Cleanup
+    // Limpieza
     destroy() {
         this.disconnectAll();
         this.disconnect();
 
-        // Destroy all effects
+        // Destruir todos los efectos
         this.noiseGate.destroy();
         this.compressor.destroy();
         this.ampSimulator.destroy();

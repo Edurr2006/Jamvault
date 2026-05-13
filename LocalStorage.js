@@ -4,9 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let savedTheme = localStorage.getItem("theme");
   let currentTheme = themes.includes(savedTheme) ? savedTheme : "JamVault";
 
-  // Global function to apply a specific theme
+  // Función global para aplicar un tema específico
   window.applyTheme = function (newTheme) {
-    // Apply to both HTML (for speed/CSS) and Body (for compatibility/JS)
+    // Aplicar tanto a HTML (para velocidad/CSS) como a Body (para compatibilidad/JS)
     document.documentElement.className = newTheme;
 
     document.body.classList.remove(...themes);
@@ -20,12 +20,12 @@ document.addEventListener("DOMContentLoaded", () => {
       button.title = "Cambiar Tema (" + newTheme + ")";
     }
 
-    // Sync other components
+    // Sincronizar otros componentes
     window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
     console.log(`Theme switched to: ${newTheme}`);
   };
 
-  // Initial application
+  // Aplicación inicial
   window.applyTheme(currentTheme);
 
   const button = document.getElementById("toggleTheme");
@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (typeof window.showThemeModal === 'function') {
         window.showThemeModal(currentTheme, window.applyTheme);
       } else {
-        // Fallback if Toast.js isn't loaded (unlikely)
+        // Fallback si Toast.js no está cargado (poco probable)
         let index = themes.indexOf(currentTheme);
         let next = themes[index + 1] || themes[0];
         window.applyTheme(next);

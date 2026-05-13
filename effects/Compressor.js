@@ -1,5 +1,5 @@
-// ========== COMPRESSOR ==========
-// Professional dynamics compressor for guitar
+// ========== COMPRESOR ==========
+// Compresor de dinámica profesional para guitarra
 
 import { AudioMath } from '../utils/AudioMath.js';
 
@@ -7,13 +7,13 @@ export class Compressor {
     constructor(audioContext) {
         this.audioContext = audioContext;
 
-        // Create nodes
+        // Crear nodos
         this.input = audioContext.createGain();
         this.compressor = audioContext.createDynamicsCompressor();
         this.makeupGain = audioContext.createGain();
         this.output = audioContext.createGain();
 
-        // Default parameters (guitar-friendly)
+        // Parámetros por defecto (orientados a guitarra)
         this.compressor.threshold.value = -24;
         this.compressor.knee.value = 10;
         this.compressor.ratio.value = 4;
@@ -23,13 +23,13 @@ export class Compressor {
 
         this.enabled = false;
 
-        // Connect: Input -> Compressor -> Makeup Gain -> Output
+        // Conexión: Entrada -> Compresor -> Makeup Gain -> Salida
         this.input.connect(this.compressor);
         this.compressor.connect(this.makeupGain);
         this.makeupGain.connect(this.output);
     }
 
-    // Set threshold in dB
+    // Ajustar umbral (threshold) en dB
     setThreshold(dB) {
         const value = AudioMath.clamp(dB, -60, 0);
         this.compressor.threshold.setTargetAtTime(
@@ -39,7 +39,7 @@ export class Compressor {
         );
     }
 
-    // Set ratio (1:1 to 20:1)
+    // Ajustar ratio (1:1 a 20:1)
     setRatio(ratio) {
         const value = AudioMath.clamp(ratio, 1, 20);
         this.compressor.ratio.setTargetAtTime(
@@ -49,7 +49,7 @@ export class Compressor {
         );
     }
 
-    // Set attack time in seconds
+    // Ajustar tiempo de ataque en segundos
     setAttack(seconds) {
         const value = AudioMath.clamp(seconds, 0.0001, 0.1);
         this.compressor.attack.setTargetAtTime(
@@ -59,7 +59,7 @@ export class Compressor {
         );
     }
 
-    // Set release time in seconds
+    // Ajustar tiempo de liberación (release) en segundos
     setRelease(seconds) {
         const value = AudioMath.clamp(seconds, 0.01, 2.0);
         this.compressor.release.setTargetAtTime(
@@ -69,7 +69,7 @@ export class Compressor {
         );
     }
 
-    // Set knee (hard/soft)
+    // Ajustar knee (duro/suave)
     setKnee(dB) {
         const value = AudioMath.clamp(dB, 0, 40);
         this.compressor.knee.setTargetAtTime(
@@ -79,7 +79,7 @@ export class Compressor {
         );
     }
 
-    // Set makeup gain in dB
+    // Ajustar ganancia de compensación (makeup gain) en dB
     setMakeupGain(dB) {
         const gain = AudioMath.dBToGain(AudioMath.clamp(dB, 0, 24));
         this.makeupGain.gain.setTargetAtTime(
@@ -89,22 +89,22 @@ export class Compressor {
         );
     }
 
-    // Enable/disable
+    // Activar/desactivar
     setEnabled(enabled) {
         this.enabled = enabled;
-        // Compressor is always in the chain, but we can bypass it
-        // by setting ratio to 1:1
+        // El compresor siempre está en la cadena, pero podemos omitirlo
+        // configurando el ratio a 1:1
         if (!enabled) {
             this.compressor.ratio.setTargetAtTime(1, this.audioContext.currentTime, 0.01);
         }
     }
 
-    // Get reduction amount (for metering)
+    // Obtener cantidad de reducción (para vúmetros)
     getReduction() {
         return this.compressor.reduction;
     }
 
-    // Preset: Gentle (subtle leveling)
+    // Preset: Suave (nivelación sutil)
     presetGentle() {
         this.setThreshold(-30);
         this.setRatio(2);
@@ -114,7 +114,7 @@ export class Compressor {
         this.setMakeupGain(3);
     }
 
-    // Preset: Medium (balanced compression)
+    // Preset: Medio (compresión equilibrada)
     presetMedium() {
         this.setThreshold(-24);
         this.setRatio(4);
@@ -124,7 +124,7 @@ export class Compressor {
         this.setMakeupGain(6);
     }
 
-    // Preset: Heavy (aggressive squashing)
+    // Preset: Pesado (compresión agresiva)
     presetHeavy() {
         this.setThreshold(-18);
         this.setRatio(8);
@@ -134,7 +134,7 @@ export class Compressor {
         this.setMakeupGain(12);
     }
 
-    // Preset: Limiter (prevent clipping)
+    // Preset: Limitador (evitar recortes)
     presetLimiter() {
         this.setThreshold(-3);
         this.setRatio(20);
@@ -144,17 +144,17 @@ export class Compressor {
         this.setMakeupGain(0);
     }
 
-    // Connect to next node
+    // Conectar al siguiente nodo
     connect(destination) {
         this.output.connect(destination);
     }
 
-    // Disconnect
+    // Desconectar
     disconnect() {
         this.output.disconnect();
     }
 
-    // Cleanup
+    // Limpieza
     destroy() {
         this.disconnect();
     }

@@ -1,13 +1,13 @@
 /* ============================================================
-   LANDING PAGE — SCROLL REVEAL SECTIONS
+   PÁGINA DE INICIO — SECCIONES CON REVELACIÓN AL DESPLAZARSE
    ============================================================ */
 
-/* Enough bottom padding on the cards so the first section doesn't peek */
+/* Suficiente relleno inferior en las tarjetas para que la primera sección no asome */
 .menus {
   padding-bottom: 2rem;
 }
 
-/* ---------- Scroll hint divider ---------- */
+/* ---------- Divisor de pista de desplazamiento ---------- */
 
 .ls-scroll-hint {
   display: flex;
@@ -38,7 +38,7 @@
   50%       { opacity: 1;    transform: scaleY(1)    translateY(0); }
 }
 
-/* ---------- Scroll-reveal animation states ---------- */
+/* ---------- Estados de animación de revelación al desplazarse ---------- */
 
 .reveal {
   opacity: 0;
@@ -56,14 +56,14 @@
   transform: translateX(0);
 }
 
-/* Stagger child elements inside visible sections */
+/* Escalonar elementos secundarios dentro de las secciones visibles */
 .reveal.visible .ls-tag   { transition-delay: 0.05s; }
 .reveal.visible .ls-title { transition-delay: 0.12s; }
 .reveal.visible .ls-desc  { transition-delay: 0.20s; }
 .reveal.visible .ls-btn   { transition-delay: 0.28s; }
 .reveal.visible .ls-visual { transition-delay: 0.15s; }
 
-/* Exit — scroll back up */
+/* Salida — desplazarse hacia arriba */
 .reveal.hidden {
   opacity: 0;
   transform: translateX(-60px);
@@ -72,7 +72,7 @@
   transform: translateX(60px);
 }
 
-/* ---------- Section layout ---------- */
+/* ---------- Diseño de sección ---------- */
 
 .landing-section {
   width: 100%;
@@ -82,7 +82,7 @@
   overflow: hidden;
 }
 
-/* Subtle divider line between sections */
+/* Línea divisoria sutil entre secciones */
 .landing-section + .landing-section {
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -108,7 +108,7 @@
   gap: 1rem;
 }
 
-/* ---------- Text elements ---------- */
+/* ---------- Elementos de texto ---------- */
 
 .ls-tag {
   display: inline-block;
@@ -153,7 +153,7 @@
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
-/* Once parent is visible, animate children in */
+/* Una vez que el padre es visible, animar a los hijos */
 .reveal.visible .ls-tag,
 .reveal.visible .ls-title,
 .reveal.visible .ls-desc,
@@ -162,13 +162,13 @@
   transform: translateY(0);
 }
 
-/* Right-aligned sections: desc should not overflow awkwardly */
+/* Secciones alineadas a la derecha: la descripción no debe desbordarse de forma extraña */
 .ls-content-reverse .ls-desc {
   max-width: 480px;
   margin-left: auto;
 }
 
-/* ---------- Visual panel (icon ring) ---------- */
+/* ---------- Panel visual (anillo de iconos) ---------- */
 
 .ls-visual {
   flex: 0 0 300px;
@@ -192,7 +192,7 @@
   transform: scale(1);
 }
 
-/* Dark overlay on visuals */
+/* Superposición oscura en los visuales */
 .ls-visual::before {
   content: '';
   position: absolute;
@@ -229,7 +229,7 @@
   transform: scale(1.1) rotate(5deg);
 }
 
-/* Background images */
+/* Imágenes de fondo */
 .ls-visual-acordes   { background-image: url('imagenes/acordes.jpg'); }
 .ls-visual-escalas   { background-image: url('imagenes/escalas.jpg'); }
 .ls-visual-tabs      { background-image: url('imagenes/acordes.jpg'); }
@@ -237,12 +237,12 @@
 .ls-visual-ejercicios{ background-image: url('imagenes/ejercicios.jpg'); }
 .ls-visual-jamstudio { background-image: url('imagenes/acordes.jpg'); }
 
-/* Accent glow border on visuals */
+/* Borde de brillo de acento en los visuales */
 .ls-visual {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Accent ring on hover driven by theme */
+/* Anillo de acento al pasar el ratón impulsado por el tema */
 .ls-visual:hover {
   border-color: var(--theme-accent, #FF9F1C);
   box-shadow: 0 0 0 2px var(--theme-accent-glow, rgba(255,159,28,0.3)),
@@ -250,7 +250,7 @@
   transition: border-color 0.3s ease, box-shadow 0.3s ease, opacity 0.6s ease, transform 0.6s ease;
 }
 
-/* ---------- Responsive ---------- */
+/* ---------- Adaptativo ---------- */
 @media (max-width: 768px) {
   .ls-content,
   .ls-content-reverse {

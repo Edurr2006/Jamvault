@@ -1,5 +1,5 @@
-// ========== ANALOG DISTORTION ==========
-// Realistic analog-style distortion with multiple clipping modes
+// ========== DISTORSIÓN ANALÓGICA ==========
+// Distorsión realista de estilo analógico con múltiples modos de recorte
 
 import { AudioMath } from '../utils/AudioMath.js';
 import { WaveshapeGenerator } from '../utils/WaveshapeGenerator.js';
@@ -8,11 +8,11 @@ export class AnalogDistortion {
     constructor(audioContext) {
         this.audioContext = audioContext;
 
-        // Create nodes
+        // Crear nodos
         this.input = audioContext.createGain();
         this.preGain = audioContext.createGain();
         this.waveshaper = audioContext.createWaveShaper();
-        this.waveshaper.oversample = '4x'; // Reduce aliasing
+        this.waveshaper.oversample = '4x'; // Reducir aliasing
         this.toneFilter = audioContext.createBiquadFilter();
         this.toneFilter.type = 'lowpass';
         this.toneFilter.frequency.value = 3000;
@@ -22,16 +22,8 @@ export class AnalogDistortion {
         this.dryGain = audioContext.createGain();
         this.output = audioContext.createGain();
 
-        // Parameters
-        this.drive = 0.5; // 0-1
-        this.tone = 0.5; // 0-1
-        this.level = 0.8; // 0-1
-        this.mix = 1.0; // 0-1 (wet/dry)
-        this.mode = 'tube'; // tube, diode, fuzz
-        this.enabled = false;
-
-        // Connect: Input -> PreGain -> Waveshaper -> Tone -> PostGain -> WetGain -> Output
-        //                  -> DryGain -> Output
+        // Conexión: Entrada -> PreGain -> Waveshaper -> Tono -> PostGain -> WetGain -> Salida
+        //                  -> DryGain -> Salida
         this.input.connect(this.preGain);
         this.preGain.connect(this.waveshaper);
         this.waveshaper.connect(this.toneFilter);
@@ -42,21 +34,21 @@ export class AnalogDistortion {
         this.input.connect(this.dryGain);
         this.dryGain.connect(this.output);
 
-        // Initialize
+        // Inicializar
         this.updateWaveshaper();
         this.updateMix();
     }
 
-    // Set drive amount (0-1)
+    // Ajusta la cantidad de drive (0-1)
     setDrive(value) {
         this.drive = AudioMath.clamp(value, 0, 1);
         this.updateWaveshaper();
     }
 
-    // Set tone (0-1, controls low-pass filter)
+    // Ajusta el tono (0-1, controla el filtro paso bajo)
     setTone(value) {
         this.tone = AudioMath.clamp(value, 0, 1);
-        // Map 0-1 to 200Hz-8000Hz
+        // Mapear 0-1 a 200Hz-8000Hz
         const freq = AudioMath.mapRange(this.tone, 0, 1, 200, 8000);
         this.toneFilter.frequency.setTargetAtTime(
             freq,
@@ -65,7 +57,7 @@ export class AnalogDistortion {
         );
     }
 
-    // Set output level (0-1)
+    // Ajusta el nivel de salida (0-1)
     setLevel(value) {
         this.level = AudioMath.clamp(value, 0, 1);
         this.postGain.gain.setTargetAtTime(
@@ -75,21 +67,21 @@ export class AnalogDistortion {
         );
     }
 
-    // Set wet/dry mix (0-1)
+    // Ajusta la mezcla wet/dry (0-1)
     setMix(value) {
         this.mix = AudioMath.clamp(value, 0, 1);
         this.updateMix();
     }
 
-    // Set distortion mode
+    // Ajusta el modo de distorsión
     setMode(mode) {
         this.mode = mode;
         this.updateWaveshaper();
     }
 
-    // Update waveshaper curve based on mode and drive
+    // Actualiza la curva del Waveshaper basada en el modo y el drive
     updateWaveshaper() {
-        const amount = 1 + this.drive * 9; // Map 0-1 to 1-10
+        const amount = 1 + this.drive * 9; // Mapear 0-1 a 1-10
 
         switch (this.mode) {
             case 'tube':
@@ -118,7 +110,7 @@ export class AnalogDistortion {
         }
     }
 
-    // Update wet/dry mix
+    // Actualiza la mezcla wet/dry
     updateMix() {
         this.wetGain.gain.setTargetAtTime(
             this.mix,
@@ -132,17 +124,17 @@ export class AnalogDistortion {
         );
     }
 
-    // Enable/disable
+    // Activar/desactivar
     setEnabled(enabled) {
         this.enabled = enabled;
         if (!enabled) {
-            this.setMix(0); // Full dry when disabled
+            this.setMix(0); // Totalmente dry cuando está desactivado
         } else {
             this.setMix(this.mix);
         }
     }
 
-    // Preset: Blues (warm, subtle overdrive)
+    // Preset: Blues (overdrive cálido y sutil)
     presetBlues() {
         this.setMode('tube');
         this.setDrive(0.3);
@@ -151,7 +143,7 @@ export class AnalogDistortion {
         this.setMix(1.0);
     }
 
-    // Preset: Rock (classic crunch)
+    // Preset: Rock (crunch clásico)
     presetRock() {
         this.setMode('diode');
         this.setDrive(0.5);
@@ -160,7 +152,7 @@ export class AnalogDistortion {
         this.setMix(1.0);
     }
 
-    // Preset: Metal (heavy saturation)
+    // Preset: Metal (saturación pesada)
     presetMetal() {
         this.setMode('fuzz');
         this.setDrive(0.8);
@@ -169,17 +161,17 @@ export class AnalogDistortion {
         this.setMix(1.0);
     }
 
-    // Connect to next node
+    // Conectar al siguiente nodo
     connect(destination) {
         this.output.connect(destination);
     }
 
-    // Disconnect
+    // Desconectar
     disconnect() {
         this.output.disconnect();
     }
 
-    // Cleanup
+    // Limpieza
     destroy() {
         this.disconnect();
     }

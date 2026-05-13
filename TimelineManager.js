@@ -1,14 +1,14 @@
-// ========== TIMELINE MANAGER ==========
-// Manages clips, playhead position, and timeline operations
+// ========== GESTOR DE LÍNEA DE TIEMPO ==========
+// Gestiona clips, posición del cabezal de reproducción y operaciones de la línea de tiempo
 
 export class TimelineManager {
     constructor() {
         this.clips = new Map(); // trackId -> clips[]
-        this.playheadPosition = 0; // seconds
+        this.playheadPosition = 0; // segundos
         this.selectedClip = null;
     }
 
-    // ========== CLIP MANAGEMENT ==========
+    // ========== GESTIÓN DE CLIPS ==========
 
     addClip(trackId, clip, ripple = false) {
         if (!this.clips.has(trackId)) {
@@ -19,24 +19,24 @@ export class TimelineManager {
         const newStart = clip.startTime;
         const newEnd = clip.startTime + clip.duration;
 
-        // If NOT ripple (Punch-in/Overwrite mode - default for recording)
+        // Si NO es ripple (Modo Punch-in/Sobrescribir - predeterminado para grabación)
         if (!ripple) {
-            // Check for overlaps and handle replacement non-destructively
+            // Comprobar solapamientos y manejar el reemplazo de forma no destructiva
             const overlapping = this.getOverlappingClips(trackId, newStart, newEnd);
 
             overlapping.forEach(existingClip => {
                 const existingStart = existingClip.startTime;
                 const existingEnd = existingClip.startTime + existingClip.duration;
 
-                // Case 1: New clip completely covers existing clip
+                // Caso 1: El nuevo clip cubre completamente al clip existente
                 if (newStart <= existingStart && newEnd >= existingEnd) {
                     this.removeClip(trackId, existingClip.id);
                 }
-                // Case 2: New clip is strictly inside existing clip (Split)
+                // Caso 2: El nuevo clip está estrictamente dentro del clip existente (Dividir)
                 else if (newStart > existingStart && newEnd < existingEnd) {
-                    // Split existing clip into two parts: before and after the new clip
+                    // Dividir el clip existente en dos partes: antes y después del nuevo clip
 
-                    // Part 1: Before new clip
+                    // Parte 1: Antes del nuevo clip
                     const firstDuration = newStart - existingStart;
                     const firstClip = {
                         id: this.generateClipId(),
@@ -47,7 +47,7 @@ export class TimelineManager {
                         bufferOffset: existingClip.bufferOffset || 0
                     };
 
-                    // Part 2: After new clip
+                    // Parte 2: Después del nuevo clip
                     const secondDuration = existingEnd - newEnd;
                     const secondClip = {
                         id: this.generateClipId(),
@@ -62,14 +62,14 @@ export class TimelineManager {
                     clips.push(firstClip);
                     clips.push(secondClip);
                 }
-                // Case 3: Tail Overlap (New clip starts during existing clip)
+                // Caso 3: Solapamiento al final (El nuevo clip comienza durante el clip existente)
                 else if (newStart > existingStart && newStart < existingEnd) {
-                    // Trim end of existing clip
+                    // Recortar el final del clip existente
                     existingClip.duration = newStart - existingStart;
                 }
-                // Case 4: Head Overlap (New clip ends during existing clip)
+                // Caso 4: Solapamiento al inicio (El nuevo clip termina durante el clip existente)
                 else if (newEnd > existingStart && newEnd < existingEnd) {
-                    // Trim start of existing clip
+                    // Recortar el inicio del clip existente
                     const trimAmount = newEnd - existingStart;
                     existingClip.startTime = newEnd;
                     existingClip.duration -= trimAmount;
@@ -80,15 +80,15 @@ export class TimelineManager {
 
         clips.push(clip);
 
-        // Sort by startTime
+        // Ordenar por startTime
         clips.sort((a, b) => a.startTime - b.startTime);
 
-        // If Ripple mode, resolve overlaps by pushing
+        // Si es modo Ripple, resolver solapamientos empujando
         if (ripple) {
             this.resolveOverlaps(trackId);
         }
 
-        console.log(`Clip added to track ${trackId} (Ripple: ${ripple})`, clip);
+        console.log(`Clip añadido a la pista ${trackId} (Ripple: ${ripple})`, clip);
         return clip;
     }
 
@@ -96,7 +96,7 @@ export class TimelineManager {
         if (!this.clips.has(trackId)) return;
         const clips = this.clips.get(trackId);
 
-        // Sort clips by start time
+        // Ordenar clips por tiempo de inicio
         clips.sort((a, b) => a.startTime - b.startTime);
 
         for (let i = 0; i < clips.length - 1; i++) {
@@ -105,10 +105,10 @@ export class TimelineManager {
             const currentEnd = current.startTime + current.duration;
 
             if (currentEnd > next.startTime) {
-                // Overlap detected! Push 'next' clip forward
+                // ¡Solapamiento detectado! Empujar el 'siguiente' clip hacia adelante
                 const shiftAmount = currentEnd - next.startTime;
                 next.startTime += shiftAmount;
-                // Continue loop, this shift might cause overlap with the *next* next clip
+                // Continuar el bucle, este desplazamiento podría causar solapamiento con el *siguiente* clip
             }
         }
     }
@@ -121,7 +121,7 @@ export class TimelineManager {
 
         if (index !== -1) {
             clips.splice(index, 1);
-            console.log(`Clip ${clipId} removed from track ${trackId}`);
+            console.log(`Clip ${clipId} eliminado de la pista ${trackId}`);
             return true;
         }
 
@@ -141,14 +141,14 @@ export class TimelineManager {
         return this.getClips(trackId);
     }
 
-    // ========== CLIP QUERIES ==========
+    // ========== CONSULTAS DE CLIPS ==========
 
     getClipsInRange(trackId, startTime, endTime) {
         const clips = this.getClips(trackId);
         return clips.filter(clip => {
             const clipEnd = clip.startTime + clip.duration;
-            // Clip overlaps with range if:
-            // clip starts before range ends AND clip ends after range starts
+            // El clip se solapa con el rango si:
+            // el clip comienza antes de que termine el rango Y el clip termina después de que comience el rango
             return clip.startTime < endTime && clipEnd > startTime;
         });
     }
@@ -170,28 +170,28 @@ export class TimelineManager {
         return clips[0] || null;
     }
 
-    // ========== CLIP EDITING ==========
+    // ========== EDICIÓN DE CLIPS ==========
 
     splitClip(trackId, clipId, splitTime) {
         const clip = this.getClip(trackId, clipId);
         if (!clip) return null;
 
-        // Validate split time is within clip
+        // Validar que el tiempo de división esté dentro del clip
         if (splitTime <= clip.startTime || splitTime >= clip.startTime + clip.duration) {
-            console.warn('Split time outside clip bounds');
+            console.warn('Tiempo de división fuera de los límites del clip');
             return null;
         }
 
-        // Calculate durations
+        // Calcular duraciones
         const firstDuration = splitTime - clip.startTime;
         const secondDuration = clip.duration - firstDuration;
 
-        // Create two new clips
+        // Crear dos nuevos clips
         const firstClip = {
             id: this.generateClipId(),
             startTime: clip.startTime,
             duration: firstDuration,
-            audioBuffer: clip.audioBuffer, // Same buffer, different playback range
+            audioBuffer: clip.audioBuffer, // Mismo buffer, diferente rango de reproducción
             audioBlob: clip.audioBlob,
             bufferOffset: clip.bufferOffset || 0
         };
@@ -205,14 +205,14 @@ export class TimelineManager {
             bufferOffset: (clip.bufferOffset || 0) + firstDuration
         };
 
-        // Remove original clip
+        // Eliminar clip original
         this.removeClip(trackId, clipId);
 
-        // Add new clips
+        // Añadir nuevos clips
         this.addClip(trackId, firstClip);
         this.addClip(trackId, secondClip);
 
-        console.log(`Clip ${clipId} split at ${splitTime}s`);
+        console.log(`Clip ${clipId} dividido en ${splitTime}s`);
         return { firstClip, secondClip };
     }
 
@@ -220,19 +220,19 @@ export class TimelineManager {
         const clip = this.getClip(trackId, clipId);
         if (!clip) return false;
 
-        // Validate new bounds
+        // Validar nuevos límites
         if (newDuration <= 0) {
-            console.warn('Invalid clip duration');
+            console.warn('Duración del clip inválida');
             return false;
         }
 
-        // Update clip
+        // Actualizar clip
         const offsetChange = newStartTime - clip.startTime;
         clip.bufferOffset = (clip.bufferOffset || 0) + offsetChange;
         clip.startTime = newStartTime;
         clip.duration = newDuration;
 
-        console.log(`Clip ${clipId} trimmed to [${newStartTime}, ${newStartTime + newDuration}]`);
+        console.log(`Clip ${clipId} recortado a [${newStartTime}, ${newStartTime + newDuration}]`);
         return true;
     }
 
@@ -240,39 +240,39 @@ export class TimelineManager {
         const clip = this.getClip(trackId, clipId);
         if (!clip) return false;
 
-        // Create a copy of the clip with new properties to ensure clean state
+        // Crear una copia del clip con nuevas propiedades para asegurar un estado limpio
         const newClip = { ...clip, startTime: newStartTime };
 
-        // If moving to a different track
+        // Si se mueve a una pista diferente
         if (targetTrackId && targetTrackId !== trackId) {
-            // Remove from old track FIRST
+            // Eliminar de la pista vieja PRIMERO
             this.removeClip(trackId, clipId);
 
-            // Add to new track (this handles overlaps in the new track)
-            // We use the same ID to preserve identity if possible, or let addClip handle it
-            // Ideally we want to keep the ID unless it conflicts
+            // Añadir a la nueva pista (esto maneja solapamientos en la nueva pista)
+            // Usamos el mismo ID para preservar la identidad si es posible, o dejamos que addClip lo maneje
+            // Idealmente queremos mantener el ID a menos que haya conflicto
             this.addClip(targetTrackId, newClip, true);
 
-            console.log(`Clip ${clipId} moved from track ${trackId} to ${targetTrackId} at ${newStartTime}s`);
+            console.log(`Clip ${clipId} movido de la pista ${trackId} a ${targetTrackId} en ${newStartTime}s`);
         } else {
-            // Moving within same track
+            // Mover dentro de la misma pista
             this.removeClip(trackId, clipId);
             this.addClip(trackId, newClip, true);
 
-            console.log(`Clip ${clipId} moved to ${newStartTime}s in track ${trackId}`);
+            console.log(`Clip ${clipId} movido a ${newStartTime}s en la pista ${trackId}`);
         }
 
         return true;
     }
 
-    // ========== SELECTION ==========
+    // ========== SELECCIÓN ==========
 
     selectClip(trackId, clipId) {
         const clip = this.getClip(trackId, clipId);
         if (!clip) return false;
 
         this.selectedClip = { trackId, clipId, clip };
-        console.log('Clip selected:', this.selectedClip);
+        console.log('Clip seleccionado:', this.selectedClip);
         return true;
     }
 
@@ -284,7 +284,7 @@ export class TimelineManager {
         return this.selectedClip;
     }
 
-    // ========== PLAYHEAD ==========
+    // ========== CABEZAL DE REPRODUCCIÓN ==========
 
     setPlayheadPosition(time) {
         this.playheadPosition = Math.max(0, time);
@@ -294,7 +294,7 @@ export class TimelineManager {
         return this.playheadPosition;
     }
 
-    // ========== UTILITIES ==========
+    // ========== UTILIDADES ==========
 
     generateClipId() {
         return `clip_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -302,7 +302,7 @@ export class TimelineManager {
 
     clearTrack(trackId) {
         this.clips.set(trackId, []);
-        console.log(`Track ${trackId} cleared`);
+        console.log(`Pista ${trackId} limpiada`);
     }
 
     getTrackDuration(trackId) {
@@ -324,7 +324,7 @@ export class TimelineManager {
         return maxDuration;
     }
 
-    // ========== DEBUG ==========
+    // ========== DEPURACIÓN ==========
 
     getState() {
         const state = {

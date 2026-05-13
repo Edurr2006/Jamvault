@@ -1,26 +1,26 @@
 /**
  * JamVault - Perfil.js
- * Handles editing user profile via dedicated Perfil.html interface.
+ * Gestiona la edición del perfil de usuario a través de la interfaz dedicada Perfil.html.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
     const profForm = document.getElementById('perfilForm');
     const msgDiv = document.getElementById('perfilResponseMsg');
     
-    // Listen to Auth changes to redirect if logged out, or populate if logged in
+    // Escuchar cambios de autenticación para redirigir si se cierra sesión, o rellenar si se inicia sesión
     window.addEventListener('jamvault:auth_changed', (e) => {
         const user = e.detail;
         if (!user) {
-            // Redirect to home if logged out
+            // Redirigir a inicio si se cierra sesión
             window.location.href = 'index.html';
         } else {
-            // Populate form
+            // Rellenar formulario
             document.getElementById('perfilUsername').value = user.username || '';
             document.getElementById('perfilEmail').value = user.email || '';
         }
     });
 
-    // Submitting form
+    // Envío del formulario
     if (profForm) {
         profForm.onsubmit = async (e) => {
             e.preventDefault();
@@ -52,12 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     msgDiv.style.border = '1px solid rgba(16, 217, 106, 0.3)';
                     msgDiv.style.display = 'block';
                     
-                    // Clear password field
+                    // Limpiar campo de contraseña
                     document.getElementById('perfilPassword').value = '';
 
-                    // Update global state
+                    // Actualizar estado global
                     window.jamvaultUser = data.user;
-                    // Fire event so Auth.js syncs #userMenu inside Header
+                    // Disparar evento para que Auth.js sincronice #userMenu dentro del Header
                     window.dispatchEvent(new CustomEvent('jamvault:auth_changed', { detail: data.user }));
                     
                     if (typeof showToast === 'function') {

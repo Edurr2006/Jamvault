@@ -1,8 +1,8 @@
-// ========== WAVESHAPE GENERATOR ==========
-// Generate waveshaping curves for analog-style distortion and saturation
+// ========== GENERADOR DE FORMA DE ONDA (WAVESHAPE) ==========
+// Genera curvas de distorsión y saturación de estilo analógico
 
 export class WaveshapeGenerator {
-    // Generate soft clipping curve (tube-style)
+    // Genera una curva de recorte suave (tipo válvulas)
     static softClip(amount = 1) {
         const samples = 1024;
         const curve = new Float32Array(samples);
@@ -17,7 +17,7 @@ export class WaveshapeGenerator {
         return curve;
     }
 
-    // Generate hard clipping curve (transistor-style)
+    // Genera una curva de recorte duro (tipo transistores)
     static hardClip(threshold = 0.7) {
         const samples = 1024;
         const curve = new Float32Array(samples);
@@ -36,7 +36,7 @@ export class WaveshapeGenerator {
         return curve;
     }
 
-    // Generate asymmetric clipping curve (diode-style)
+    // Genera una curva de recorte asimétrico (tipo diodo)
     static asymmetricClip(amount = 1) {
         const samples = 1024;
         const curve = new Float32Array(samples);
@@ -45,10 +45,10 @@ export class WaveshapeGenerator {
             const x = (i * 2) / samples - 1;
 
             if (x > 0) {
-                // Positive half - harder clipping
+                // Mitad positiva - recorte más duro
                 curve[i] = Math.tanh(x * amount * 2);
             } else {
-                // Negative half - softer clipping
+                // Mitad negativa - recorte más suave
                 curve[i] = Math.tanh(x * amount);
             }
         }
@@ -56,7 +56,7 @@ export class WaveshapeGenerator {
         return curve;
     }
 
-    // Generate exponential curve (fuzz-style)
+    // Genera una curva exponencial (tipo fuzz)
     static exponentialClip(amount = 2) {
         const samples = 1024;
         const curve = new Float32Array(samples);
@@ -70,7 +70,7 @@ export class WaveshapeGenerator {
         return curve;
     }
 
-    // Generate tube saturation curve (warm, musical)
+    // Genera una curva de saturación de válvulas (cálida y musical)
     static tubeSaturation(drive = 1) {
         const samples = 1024;
         const curve = new Float32Array(samples);
@@ -79,7 +79,7 @@ export class WaveshapeGenerator {
             const x = (i * 2) / samples - 1;
             const k = drive * 10;
 
-            // Tube-like transfer function
+            // Función de transferencia tipo válvula
             if (Math.abs(x) < 0.33) {
                 curve[i] = x * 2;
             } else if (Math.abs(x) < 0.66) {
@@ -90,14 +90,14 @@ export class WaveshapeGenerator {
                 curve[i] = sign;
             }
 
-            // Apply drive
+            // Aplicar drive
             curve[i] = Math.tanh(curve[i] * k) / Math.tanh(k);
         }
 
         return curve;
     }
 
-    // Generate custom curve using hyperbolic tangent
+    // Genera una curva personalizada usando tangente hiperbólica
     static tanhClip(drive = 1) {
         const samples = 1024;
         const curve = new Float32Array(samples);
@@ -110,7 +110,7 @@ export class WaveshapeGenerator {
         return curve;
     }
 
-    // Generate sigmoid curve (smooth saturation)
+    // Genera una curva sigmoide (saturación suave)
     static sigmoidClip(drive = 5) {
         const samples = 1024;
         const curve = new Float32Array(samples);
@@ -123,7 +123,7 @@ export class WaveshapeGenerator {
         return curve;
     }
 
-    // Generate bit crusher curve (digital distortion)
+    // Genera una curva de bit crusher (distorsión digital)
     static bitCrush(bits = 8) {
         const samples = 1024;
         const curve = new Float32Array(samples);
@@ -137,7 +137,7 @@ export class WaveshapeGenerator {
         return curve;
     }
 
-    // Get curve by name and parameters
+    // Obtiene una curva por nombre y parámetros
     static getCurve(type, amount = 1) {
         switch (type) {
             case 'soft':

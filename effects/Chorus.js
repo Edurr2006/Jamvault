@@ -1,5 +1,5 @@
 // ========== CHORUS ==========
-// Boss CE-2 style chorus with warm, lush modulation
+// Chorus estilo Boss CE-2 con modulación cálida y densa
 
 import { AudioMath } from '../utils/AudioMath.js';
 
@@ -7,13 +7,13 @@ export class Chorus {
     constructor(audioContext) {
         this.audioContext = audioContext;
 
-        // Create nodes
+        // Crear nodos
         this.input = audioContext.createGain();
         this.output = audioContext.createGain();
         this.wetGain = audioContext.createGain();
         this.dryGain = audioContext.createGain();
 
-        // Create multiple voices for richer chorus
+        // Crear múltiples voces para un chorus más rico
         this.voices = [];
         this.numVoices = 2;
 
@@ -25,27 +25,27 @@ export class Chorus {
                 gain: audioContext.createGain()
             };
 
-            // Connect LFO to modulate delay time
+            // Conectar LFO para modular el tiempo de delay
             voice.lfo.connect(voice.lfoGain);
             voice.lfoGain.connect(voice.delay.delayTime);
 
-            // Connect delay to output
+            // Conectar delay a la salida
             voice.delay.connect(voice.gain);
             voice.gain.connect(this.wetGain);
 
-            // Start LFO
+            // Iniciar LFO
             voice.lfo.start();
 
             this.voices.push(voice);
         }
 
-        // Parameters
+        // Parámetros
         this.rate = 0.8; // Hz
         this.depth = 0.5; // 0-1
         this.mix = 0.5; // 0-1
         this.enabled = false;
 
-        // Connect
+        // Conectar
         this.input.connect(this.dryGain);
         this.dryGain.connect(this.output);
 
@@ -55,23 +55,23 @@ export class Chorus {
 
         this.wetGain.connect(this.output);
 
-        // Initialize
+        // Inicializar
         this.updateChorus();
     }
 
-    // Set rate (LFO frequency) in Hz
+    // Ajustar velocidad (frecuencia LFO) en Hz
     setRate(hz) {
         this.rate = AudioMath.clamp(hz, 0.1, 10);
         this.updateChorus();
     }
 
-    // Set depth (0-1)
+    // Ajustar profundidad (0-1)
     setDepth(value) {
         this.depth = AudioMath.clamp(value, 0, 1);
         this.updateChorus();
     }
 
-    // Set wet/dry mix (0-1)
+    // Ajustar mezcla wet/dry (0-1)
     setMix(value) {
         this.mix = AudioMath.clamp(value, 0, 1);
         this.wetGain.gain.setTargetAtTime(
@@ -80,16 +80,16 @@ export class Chorus {
             0.01
         );
         this.dryGain.gain.setTargetAtTime(
-            1.0, // Keep dry at 100%, wet is added
+            1.0, // Mantener dry al 100%, wet se suma
             this.audioContext.currentTime,
             0.01
         );
     }
 
-    // Set number of voices (1-4)
+    // Ajustar número de voces (1-4)
     setVoices(num) {
-        // This would require recreating the voice array
-        // For simplicity, we'll just adjust the gain of existing voices
+        // Esto requeriría recrear el array de voces
+        // Por simplicidad, solo ajustamos la ganancia de las voces existentes
         const activeVoices = Math.min(num, this.voices.length);
         for (let i = 0; i < this.voices.length; i++) {
             if (i < activeVoices) {
@@ -100,13 +100,13 @@ export class Chorus {
         }
     }
 
-    // Update chorus parameters
+    // Actualizar parámetros del chorus
     updateChorus() {
-        const baseDelay = 0.020; // 20ms base delay
-        const maxModulation = 0.005; // 5ms modulation depth
+        const baseDelay = 0.020; // 20ms delay base
+        const maxModulation = 0.005; // 5ms profundidad de modulación
 
         this.voices.forEach((voice, index) => {
-            // Set LFO frequency with slight detuning between voices
+            // Ajustar frecuencia LFO con un ligero desafine entre voces
             const detune = 1 + (index * 0.1);
             voice.lfo.frequency.setTargetAtTime(
                 this.rate * detune,
@@ -114,14 +114,14 @@ export class Chorus {
                 0.01
             );
 
-            // Set LFO depth (amount of delay time modulation)
+            // Ajustar profundidad LFO (cantidad de modulación del tiempo de delay)
             voice.lfoGain.gain.setTargetAtTime(
                 maxModulation * this.depth,
                 this.audioContext.currentTime,
                 0.01
             );
 
-            // Set base delay time (slightly different for each voice)
+            // Ajustar tiempo de delay base (ligeramente diferente para cada voz)
             const voiceDelay = baseDelay + (index * 0.002);
             voice.delay.delayTime.setTargetAtTime(
                 voiceDelay,
@@ -129,12 +129,12 @@ export class Chorus {
                 0.01
             );
 
-            // Set voice gain
+            // Ajustar ganancia de la voz
             voice.gain.gain.value = 1.0 / this.numVoices;
         });
     }
 
-    // Enable/disable
+    // Activar/desactivar
     setEnabled(enabled) {
         this.enabled = enabled;
         if (!enabled) {
@@ -144,38 +144,38 @@ export class Chorus {
         }
     }
 
-    // Preset: Subtle (gentle movement)
+    // Preset: Sutil (movimiento suave)
     presetSubtle() {
         this.setRate(0.5);
         this.setDepth(0.3);
         this.setMix(0.3);
     }
 
-    // Preset: Classic (CE-2 style)
+    // Preset: Clásico (estilo CE-2)
     presetClassic() {
         this.setRate(0.8);
         this.setDepth(0.5);
         this.setMix(0.5);
     }
 
-    // Preset: Lush (thick, wide)
+    // Preset: Lush (denso y ancho)
     presetLush() {
         this.setRate(1.2);
         this.setDepth(0.7);
         this.setMix(0.6);
     }
 
-    // Connect to next node
+    // Conectar al siguiente nodo
     connect(destination) {
         this.output.connect(destination);
     }
 
-    // Disconnect
+    // Desconectar
     disconnect() {
         this.output.disconnect();
     }
 
-    // Cleanup
+    // Limpieza
     destroy() {
         this.voices.forEach(voice => {
             voice.lfo.stop();

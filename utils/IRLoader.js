@@ -1,5 +1,5 @@
-// ========== IMPULSE RESPONSE LOADER ==========
-// Load and manage cabinet impulse responses
+// ========== CARGADOR DE RESPUESTAS AL IMPULSO (IR) ==========
+// Carga y gestiona respuestas al impulso de recintos (cabinets)
 
 export class IRLoader {
     constructor(audioContext) {
@@ -7,9 +7,9 @@ export class IRLoader {
         this.irCache = new Map();
     }
 
-    // Load IR from URL
+    // Carga IR desde una URL
     async loadIR(url, name = null) {
-        // Check cache first
+        // Comprobar primero la caché
         const cacheName = name || url;
         if (this.irCache.has(cacheName)) {
             console.log(`IR "${cacheName}" loaded from cache`);
@@ -27,12 +27,12 @@ export class IRLoader {
             const arrayBuffer = await response.arrayBuffer();
             const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
 
-            // Validate IR
+            // Validar IR
             if (!this.validateIR(audioBuffer)) {
                 throw new Error('Invalid IR file');
             }
 
-            // Cache the IR
+            // Cachear la IR
             this.irCache.set(cacheName, audioBuffer);
 
             console.log(`IR "${cacheName}" loaded successfully:`, {
@@ -49,7 +49,7 @@ export class IRLoader {
         }
     }
 
-    // Load IR from file input
+    // Carga IR desde un input de archivo
     async loadIRFromFile(file) {
         try {
             const arrayBuffer = await file.arrayBuffer();
@@ -59,7 +59,7 @@ export class IRLoader {
                 throw new Error('Invalid IR file');
             }
 
-            // Cache with filename
+            // Cachear con el nombre del archivo
             this.irCache.set(file.name, audioBuffer);
 
             console.log(`IR "${file.name}" loaded from file:`, {
@@ -76,16 +76,16 @@ export class IRLoader {
         }
     }
 
-    // Validate IR format
+    // Valida el formato de la IR
     validateIR(audioBuffer) {
         if (!audioBuffer) return false;
 
-        // Check duration (IRs are typically 0.1s to 10s)
+        // Comprobar duración (las IR suelen ser de 0.1s a 10s)
         if (audioBuffer.duration < 0.01 || audioBuffer.duration > 20) {
             console.warn('IR duration outside typical range:', audioBuffer.duration);
         }
 
-        // Check channels (mono or stereo)
+        // Comprobar canales (mono o estéreo)
         if (audioBuffer.numberOfChannels > 2) {
             console.warn('IR has more than 2 channels:', audioBuffer.numberOfChannels);
         }
@@ -93,28 +93,28 @@ export class IRLoader {
         return true;
     }
 
-    // Get cached IR
+    // Obtiene una IR de la caché
     getIR(name) {
         return this.irCache.get(name);
     }
 
-    // Check if IR is cached
+    // Comprueba si una IR está en caché
     hasIR(name) {
         return this.irCache.has(name);
     }
 
-    // Clear cache
+    // Limpia la caché
     clearCache() {
         this.irCache.clear();
         console.log('IR cache cleared');
     }
 
-    // Get all cached IR names
+    // Obtiene los nombres de todas las IR en caché
     getCachedIRNames() {
         return Array.from(this.irCache.keys());
     }
 
-    // Generate simple synthetic IR (for testing/fallback)
+    // Genera una IR sintética simple (para pruebas/fallback)
     generateSyntheticIR(type = 'room', duration = 1.0) {
         const sampleRate = this.audioContext.sampleRate;
         const length = Math.floor(duration * sampleRate);
@@ -125,7 +125,7 @@ export class IRLoader {
 
             switch (type) {
                 case 'room':
-                    // Small room - short decay
+                    // Habitación pequeña - decaimiento corto
                     for (let i = 0; i < length; i++) {
                         const decay = Math.exp(-i / (sampleRate * 0.2));
                         data[i] = (Math.random() * 2 - 1) * decay * 0.3;
@@ -133,7 +133,7 @@ export class IRLoader {
                     break;
 
                 case 'hall':
-                    // Large hall - long decay
+                    // Sala grande - decaimiento largo
                     for (let i = 0; i < length; i++) {
                         const decay = Math.exp(-i / (sampleRate * 0.8));
                         data[i] = (Math.random() * 2 - 1) * decay * 0.5;
@@ -141,7 +141,7 @@ export class IRLoader {
                     break;
 
                 case 'plate':
-                    // Plate reverb - bright, dense
+                    // Reverb de placa - brillante, densa
                     for (let i = 0; i < length; i++) {
                         const decay = Math.exp(-i / (sampleRate * 0.4));
                         const brightness = 1 + Math.sin(i / 100) * 0.3;
@@ -150,7 +150,7 @@ export class IRLoader {
                     break;
 
                 case 'spring':
-                    // Spring reverb - boingy, metallic
+                    // Reverb de muelles - metálica, elástica
                     for (let i = 0; i < length; i++) {
                         const decay = Math.exp(-i / (sampleRate * 0.15));
                         const spring = Math.sin(i / 50) * Math.sin(i / 200);
@@ -159,7 +159,7 @@ export class IRLoader {
                     break;
 
                 default:
-                    // Simple exponential decay
+                    // Decaimiento exponencial simple
                     for (let i = 0; i < length; i++) {
                         const decay = Math.exp(-i / (sampleRate * 0.3));
                         data[i] = (Math.random() * 2 - 1) * decay * 0.3;

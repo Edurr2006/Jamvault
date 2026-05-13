@@ -1,6 +1,6 @@
 /**
  * ChordData.js
- * Extracted chord database for use in ES modules.
+ * Base de datos de acordes extraída para su uso en módulos ES.
  */
 
 export const acordesDB = {

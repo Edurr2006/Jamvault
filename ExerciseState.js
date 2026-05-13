@@ -1,31 +1,31 @@
 /**
  * ExerciseState.js
- * Manages the data model and persistence for exercises.
- * Refactored for a unified 'Step' model to support Scales and Chords interchangeably.
+ * Gestiona el modelo de datos y la persistencia de los ejercicios.
+ * Refactorizado para un modelo de 'Paso' (Step) unificado para soportar Escalas y Acordes de forma intercambiable.
  */
 
 export class ExerciseState {
     constructor() {
         this.STORAGE_KEY = 'jamvault_custom_exercises';
         this.currentExercise = null;
-        this.cloudExercises = null; // null means not loaded/not logged in
+        this.cloudExercises = null; // null significa no cargado/sesión no iniciada
     }
 
     /**
-     * Creates a new normalized exercise object.
+     * Crea un nuevo objeto de ejercicio normalizado.
      */
     createNew(name, type, level, bpm) {
         this.currentExercise = {
             id: Date.now(),
             name: name || "Nuevo Ejercicio",
-            type: type || 'scale', // 'scale' or 'chord'
+            type: type || 'scale', // 'scale' (escala) o 'chord' (acorde)
             level: level || 'Principiante',
             bpm: bpm || 120,
             metronomeEnabled: true,
             createdAt: new Date().toISOString(),
-            steps: [] // Unified array of { kind, data, duration, id }
+            steps: [] // Array unificado de { kind, data, duration, id }
         };
-        // If scale, we might want to store context
+        // Si es una escala, podríamos querer almacenar el contexto
         if (type === 'scale') {
             this.currentExercise.scaleRoot = "";
             this.currentExercise.scaleType = "";
@@ -33,7 +33,7 @@ export class ExerciseState {
         return this.currentExercise;
     }
 
-    // --- MANIPULATION ---
+    // --- MANIPULACIÓN ---
 
     setBpm(bpm) {
         if (this.currentExercise) this.currentExercise.bpm = bpm;
@@ -55,7 +55,7 @@ export class ExerciseState {
     }
 
     /**
-     * Adds a note step to the current exercise.
+     * Añade un paso de nota al ejercicio actual.
      */
     addNoteStep(noteData, duration = 1) {
         if (!this.currentExercise) return;
@@ -75,8 +75,8 @@ export class ExerciseState {
     }
 
     /**
-     * Toggles a note step. If the exact note exists, removes the last occurrence.
-     * Otherwise adds it.
+     * Alterna un paso de nota. Si la nota exacta existe, elimina la última ocurrencia.
+     * De lo contrario, la añade.
      */
     toggleNoteStep(noteData, duration = 1) {
         if (!this.currentExercise) return;
@@ -88,17 +88,17 @@ export class ExerciseState {
         );
 
         if (existingIndex !== -1) {
-            // Adjust index because we reversed the search
+            // Ajustar el índice porque invertimos la búsqueda
             const realIndex = (this.currentExercise.steps.length - 1) - existingIndex;
             this.removeStep(realIndex);
-            return null; // Indicates removal
+            return null; // Indica eliminación
         } else {
             return this.addNoteStep(noteData, duration);
         }
     }
 
     /**
-     * Adds a chord step to the current exercise.
+     * Añade un paso de acorde al ejercicio actual.
      */
     addChordStep(chordData, duration = 4) {
         if (!this.currentExercise) return;
@@ -137,7 +137,7 @@ export class ExerciseState {
         steps.splice(toIndex, 0, element);
     }
 
-    // --- PERSISTENCE ---
+    // --- PERSISTENCIA ---
 
     async save() {
         if (!this.currentExercise) return;
@@ -155,7 +155,7 @@ export class ExerciseState {
                     this.currentExercise._db_id = data.db_id;
                 }
             } catch(e) {
-                console.error("Error saving to cloud", e);
+                console.error("Error al guardar en la nube", e);
             }
         }
 
@@ -169,10 +169,10 @@ export class ExerciseState {
         }
 
         if (this.cloudExercises !== null) {
-            // Update local cloud cache
+            // Actualizar el caché local de la nube
             this.cloudExercises = exercises;
         } else {
-            // Fallback to localStorage for guests
+            // Fallback a localStorage para invitados
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(exercises));
         }
     }
@@ -182,7 +182,7 @@ export class ExerciseState {
         const found = exercises.find(ex => ex.id === id);
         if (found) {
             this.currentExercise = found;
-            // Migration check: if old structure, normalize
+            // Comprobación de migración: si es la estructura antigua, normalizar
             if (!this.currentExercise.steps) {
                 this.currentExercise.steps = [];
                 if (this.currentExercise.sequence) {
@@ -222,7 +222,7 @@ export class ExerciseState {
                     body: JSON.stringify({ db_id: target._db_id })
                 });
             } catch(e) {
-                console.error("Error deleting from cloud", e);
+                console.error("Error al eliminar de la nube", e);
             }
         }
 
@@ -234,7 +234,7 @@ export class ExerciseState {
         }
     }
 
-    // New sync function to call on login/load
+    // Nueva función de sincronización para llamar al iniciar sesión/cargar
     async fetchCloudExercises() {
         if (!window.jamvaultUser) {
             this.cloudExercises = null;
@@ -247,7 +247,7 @@ export class ExerciseState {
                 this.cloudExercises = data.exercises;
             }
         } catch(e) {
-            console.error("Error fetching cloud exercises", e);
+            console.error("Error al obtener los ejercicios de la nube", e);
         }
     }
 }

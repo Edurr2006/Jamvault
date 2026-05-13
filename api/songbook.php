@@ -1,27 +1,27 @@
 <?php
 /**
  * JamVault - songbook.php
- * API for user-owned songbook (Kanban). Requires an active session.
+ * API para el cancionero del usuario (Kanban). Requiere una sesión activa.
  *
- * GET  ?action=list           → returns all songs in the logged-in user's songbook
- * POST ?action=add            → { tab_id, category } → insert or update a song entry
- * POST ?action=move           → { tab_id, category } → move song to a different column
- * POST ?action=remove         → { tab_id } → remove a song from the songbook
+ * GET  ?action=list           → devuelve todas las canciones en el cancionero del usuario logueado
+ * POST ?action=add            → { tab_id, category } → inserta o actualiza una entrada de canción
+ * POST ?action=move           → { tab_id, category } → mueve una canción a una columna diferente
+ * POST ?action=remove         → { tab_id } → elimina una canción del cancionero
  */
 
 header('Content-Type: application/json; charset=utf-8');
 session_start();
 
-// ── Auth check ──────────────────────────────────────────────────────────────
+// ── Comprobación de autenticación ───────────────────────────────────────────
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
+    echo json_encode(['error' => 'No autorizado']);
     exit;
 }
 
 $userId = (int) $_SESSION['user_id'];
 
-// ── DB connection ────────────────────────────────────────────────────────────
+// ── Conexión a la BD ─────────────────────────────────────────────────────────
 $host   = 'localhost';
 $dbname = 'jamvault';
 $user   = 'root';
@@ -33,13 +33,13 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 } catch (PDOException $e) {
-    echo json_encode(['error' => 'Database connection failed']);
+    echo json_encode(['error' => 'Error de conexión a la base de datos']);
     exit;
 }
 
 $action = $_GET['action'] ?? '';
 
-// ── GET: list ────────────────────────────────────────────────────────────────
+// ── GET: list (listar) ───────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'list') {
     $stmt = $pdo->prepare("
         SELECT us.tab_id AS id, t.title, t.artist, us.category
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'list') {
     $stmt->execute([$userId]);
     $rows = $stmt->fetchAll();
 
-    // Group by category
+    // Agrupar por categoría
     $result = ['want' => [], 'progress' => [], 'done' => []];
     foreach ($rows as $row) {
         $cat = $row['category'];
@@ -68,26 +68,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'list') {
     exit;
 }
 
-// ── POST actions ─────────────────────────────────────────────────────────────
+// ── Acciones POST ────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $body = json_decode(file_get_contents('php://input'), true);
     if (!$body) {
-        echo json_encode(['error' => 'Invalid JSON body']);
+        echo json_encode(['error' => 'Cuerpo JSON inválido']);
         exit;
     }
 
-    // ── add / move (upsert) ──────────────────────────────────────────────────
+    // ── add / move (upsert: insertar o actualizar) ─────────────────────────────
     if ($action === 'add' || $action === 'move') {
         $tabId    = (int) ($body['tab_id'] ?? 0);
         $category = $body['category'] ?? '';
 
         if (!$tabId || !in_array($category, ['want', 'progress', 'done'])) {
-            echo json_encode(['error' => 'Invalid tab_id or category']);
+            echo json_encode(['error' => 'tab_id o categoría inválidos']);
             exit;
         }
 
         try {
-            // INSERT ... ON DUPLICATE KEY UPDATE handles both add and move
+            // INSERT ... ON DUPLICATE KEY UPDATE maneja tanto añadir como mover
             $stmt = $pdo->prepare("
                 INSERT INTO user_songbook (user_id, tab_id, category)
                 VALUES (?, ?, ?)
@@ -96,16 +96,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$userId, $tabId, $category]);
             echo json_encode(['success' => true]);
         } catch (PDOException $e) {
-            echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
+            echo json_encode(['error' => 'Error de base de datos: ' . $e->getMessage()]);
         }
         exit;
     }
 
-    // ── remove ───────────────────────────────────────────────────────────────
+    // ── remove (eliminar) ────────────────────────────────────────────────────
     if ($action === 'remove') {
         $tabId = (int) ($body['tab_id'] ?? 0);
         if (!$tabId) {
-            echo json_encode(['error' => 'Missing tab_id']);
+            echo json_encode(['error' => 'Falta tab_id']);
             exit;
         }
         $stmt = $pdo->prepare("DELETE FROM user_songbook WHERE user_id = ? AND tab_id = ?");
@@ -115,4 +115,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-echo json_encode(['error' => 'Invalid action']);
+echo json_encode(['error' => 'Acción inválida']);

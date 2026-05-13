@@ -1,7 +1,7 @@
 /**
  * Ejercicios.js
- * Comprehensive Controller for the Customizable Exercise System.
- * Refactored for Drag & Drop and Instant Note Addition.
+ * Controlador integral para el Sistema de Ejercicios Personalizables.
+ * Refactorizado para arrastrar y soltar (Drag & Drop) y adición instantánea de notas.
  */
 
 import { ExerciseState } from './ExerciseState.js';
@@ -9,20 +9,20 @@ import { ExerciseRenderer } from './ExerciseRenderer.js';
 import { ExercisePlayer } from './ExercisePlayer.js';
 import { acordesDB } from './ChordData.js';
 
-// --- MUSIC THEORY (Decoupled) ---
+// --- TEORÍA MUSICAL (Desacoplado) ---
 const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const SCALES = {
     major: [0, 2, 4, 5, 7, 9, 11],
     natural_minor: [0, 2, 3, 5, 7, 8, 10],
     pentatonic_minor: [0, 3, 5, 7, 10],
     blues: [0, 3, 5, 6, 7, 10],
-    // GREEK MODES
+    // MODOS GRIEGOS
     dorian: [0, 2, 3, 5, 7, 9, 10],
     phrygian: [0, 1, 3, 5, 7, 8, 10],
     lydian: [0, 2, 4, 6, 7, 9, 11],
     mixolydian: [0, 2, 4, 5, 7, 9, 10],
     locrian: [0, 1, 3, 5, 6, 8, 10],
-    // OTHER SCALES
+    // OTRAS ESCALAS
     harmonic_minor: [0, 2, 3, 5, 7, 8, 11],
     melodic_minor: [0, 2, 3, 5, 7, 9, 11]
 };
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await player.init();
 
-    // --- AUTH OVERLAY HELPERS ---
+    // --- AYUDAS DE SUPERPOSICIÓN DE AUTENTICACIÓN (AUTH OVERLAY) ---
     let wasEverLoggedInEx = false;
     const authOverlayEx = document.getElementById('exercises-auth-overlay');
 
@@ -45,13 +45,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (authOverlayEx) authOverlayEx.style.display = 'none';
     }
 
-    // --- DOM ELEMENTS: CREATION WORKFLOW ---
+    // --- ELEMENTOS DEL DOM: FLUJO DE TRABAJO DE CREACIÓN ---
     const addExerciseBtn = document.getElementById('addExerciseBtn');
     const creationModal = document.getElementById('creationModal');
     const confirmCreationBtn = document.getElementById('confirmCreationBtn');
     const cancelCreationBtn = document.getElementById('cancelCreationBtn');
 
-    // --- DOM ELEMENTS: EDITOR ---
+    // --- ELEMENTOS DEL DOM: EDITOR ---
     const editorModal = document.getElementById('exerciseEditor');
     const closeEditorBtn = document.getElementById('closeEditorBtn');
     const playBtn = document.getElementById('editorPlayBtn');
@@ -72,13 +72,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const scaleCanvasContainer = document.getElementById('scaleCanvasContainer');
     const chordCanvasContainer = document.getElementById('chordCanvasContainer');
 
-    // --- STATE ---
+    // --- ESTADO ---
     let currentScaleContextNotes = [];
     let draggedItemIndex = null;
 
     renderMainList();
 
-    // --- PLAYER CALLBACKS (Visual Sync) ---
+    // --- CALLBACKS DEL REPRODUCTOR (Sincronización visual) ---
     player.setCallbacks(
         (index) => {
             const step = state.currentExercise.steps[index];
@@ -86,11 +86,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (step.kind === 'note') {
                     renderer.highlightStep(step, index);
                 } else {
-                    // Re-render progression with specific highlight
+                    // Volver a renderizar la progresión con resaltado específico
                     renderer.renderChordProgression(state.currentExercise.steps, index);
                 }
             }
-            // Highlight in list
+            // Resaltar en la lista
             document.querySelectorAll('.step-item').forEach(el => el.classList.remove('active-playing'));
             const activeEl = document.querySelector(`.step-item[data-index="${index}"]`);
             if (activeEl) {
@@ -100,14 +100,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
         () => {
             document.querySelectorAll('.step-item').forEach(el => el.classList.remove('active-playing'));
-            // Reset progression highlights
+            // Restablecer resaltados de progresión
             if (state.currentExercise.type === 'progression') {
                 renderer.renderChordProgression(state.currentExercise.steps);
             }
         }
     );
 
-    // --- 1. CREATION WORKFLOW EVENTS ---
+    // --- 1. EVENTOS DEL FLUJO DE TRABAJO DE CREACIÓN ---
 
     addExerciseBtn.onclick = () => {
         if (!window.jamvaultUser) {
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         openEditor();
     };
 
-    // --- 2. EDITOR NAVIGATION ---
+    // --- 2. NAVEGACIÓN DEL EDITOR ---
 
     function openEditor(isEdit = false) {
         editorModal.style.display = 'flex';
@@ -146,18 +146,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const editorExName = document.getElementById('editorExName');
         editorExName.value = ex.name;
 
-        // Handle Rename in Editor
+        // Manejar Renombrado en el Editor
         editorExName.oninput = () => {
             state.updateName(editorExName.value);
         };
-        // Visual feedback on focus
+        // Feedback visual al enfocar
         editorExName.onfocus = () => editorExName.style.borderColor = 'var(--accent-theme)';
         editorExName.onblur = () => editorExName.style.borderColor = 'transparent';
 
         bpmInput.value = ex.bpm;
         metronomeCheck.checked = ex.metronomeEnabled;
 
-        // Visual mode setup
+        // Configuración del modo visual
         if (ex.type === 'scale') {
             scaleSelectors.style.display = 'flex';
             scaleCanvasContainer.style.display = 'block';
@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 scaleTypeSel.value = ex.scaleType;
                 loadScaleNotes();
             } else {
-                // Clear state for new exercise
+                // Limpiar estado para nuevo ejercicio
                 scaleRootSel.value = "";
                 scaleTypeSel.value = "";
                 currentScaleContextNotes = [];
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             chordSelectors.style.display = 'block';
             chordCanvasContainer.style.display = 'flex';
 
-            // For chords, we also want to start clean
+            // Para los acordes, también queremos empezar de cero
             chordRootSel.value = "C";
             chordTypeSel.value = "Mayor";
             updateChordPositionSelector();
@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderMainList();
     };
 
-    // --- 3. EDITOR ACTIONS ---
+    // --- 3. ACCIONES DEL EDITOR ---
 
     playBtn.onclick = () => {
         if (!state.currentExercise || state.currentExercise.steps.length === 0) return showToast("Añade algunos pasos primero", "info");
@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         showToast("¡Ejercicio guardado correctamente!", "success");
     };
 
-    // SCALE LOGIC
+    // LÓGICA DE ESCALAS
     loadScaleBtn.onclick = loadScaleNotes;
 
     const onNoteSelect = (note) => {
@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function showDeletionMenu(indices, x, y) {
-        // Remove existing menu if any
+        // Eliminar menú existente si lo hay
         const existing = document.getElementById('noteContextMenu');
         if (existing) existing.remove();
 
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         document.body.appendChild(menu);
 
-        // Close menu on click outside
+        // Cerrar menú al hacer clic fuera
         const closeMenu = (e) => {
             if (!menu.contains(e.target)) {
                 menu.remove();
@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => document.addEventListener('mousedown', closeMenu), 10);
     }
 
-    // CHORD LOGIC
+    // LÓGICA DE ACORDES
     chordRootSel.onchange = updateChordPositionSelector;
     chordTypeSel.onchange = updateChordPositionSelector;
     chordPosSel.onchange = previewSelectedChord;
@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // --- 4. STEP UI LOGIC (WITH DRAG & DROP) ---
+    // --- 4. LÓGICA DE LA INTERFAZ DE PASOS (CON ARRASTRAR Y SOLTAR) ---
 
     function updateSequenceUI() {
         sequenceList.innerHTML = '';
@@ -368,7 +368,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const div = document.createElement('div');
             div.className = 'step-item';
             div.dataset.index = index;
-            div.draggable = true; // IMPORTANT for DnD
+            div.draggable = true; // IMPORTANTE para DnD
 
             div.style.background = '#222';
             div.style.border = '1px solid #333';
@@ -411,7 +411,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
             `;
 
-            // --- DRAG & DROP HANDLERS ---
+            // --- MANEJADORES DE ARRASTRAR Y SOLTAR (DRAG & DROP) ---
             div.ondragstart = (e) => {
                 draggedItemIndex = index;
                 div.style.opacity = '0.3';
@@ -453,7 +453,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 draggedItemIndex = null;
             };
 
-            // Event Binding for controls
+            // Vinculación de eventos para los controles
             div.querySelector('.step-duration').onchange = (e) => {
                 state.updateStepDuration(index, e.target.value);
             };
@@ -476,7 +476,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // --- 5. HELPERS ---
+    // --- 5. AYUDAS (HELPERS) ---
 
     function resetCreationForm() {
         document.getElementById('createExName').value = '';
@@ -490,8 +490,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const allowed = pattern.map(i => (rootIdx + i) % 12);
         const res = [];
 
-        // Scientific pitch base for open strings: 
-        // 6:E2(40), 5:A2(45), 4:D3(50), 3:G3(55), 2:B3(59), 1:E4(64)
+        // Base de tono científico para cuerdas al aire: 
+        // 6:Mi2(40), 5:La2(45), 4:Re3(50), 3:Sol3(55), 2:Si3(59), 1:Mi4(64)
         const stringBases = {
             6: { idx: 4, oct: 2 },
             5: { idx: 9, oct: 2 },
@@ -553,15 +553,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
             `;
 
-            // Card click toggles expansion
+            // El clic en la tarjeta alterna la expansión
             card.onclick = (e) => {
-                // Ignore if clicking delete or action buttons
+                // Ignorar si se hace clic en borrar o en los botones de acción
                 if (e.target.closest('.delete-ex-btn') || e.target.closest('.action-btn')) return;
 
                 const wasActive = card.classList.contains('active');
-                // Close others
+                // Cerrar otros
                 document.querySelectorAll('.exercise-card').forEach(c => c.classList.remove('active'));
-                // Toggle this one
+                // Alternar este
                 if (!wasActive) card.classList.add('active');
             };
 
@@ -590,7 +590,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 window.location.href = `Practicar.html?id=${ex.id}`;
             };
 
-            // Delete click handles removal
+            // El clic en borrar gestiona la eliminación
             card.querySelector('.delete-ex-btn').onclick = (e) => {
                 e.stopPropagation();
                 showConfirm(`¿Estás seguro de que quieres borrar "${ex.name}"?`, async () => {
@@ -604,28 +604,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // --- 6. AUTH INTEGRATION ---
+    // --- 6. INTEGRACIÓN DE AUTENTICACIÓN (AUTH) ---
 
     window.addEventListener('jamvault:auth_changed', async (e) => {
         if (e.detail) {
-            // User logged in
+            // El usuario inició sesión
             wasEverLoggedInEx = true;
             hideExOverlay();
             await state.fetchCloudExercises();
             renderMainList();
         } else if (wasEverLoggedInEx) {
-            // Real logout: had a session, now gone
-            wasEverLoggedInEx = false; // Reset
+            // Cierre de sesión real: tenía una sesión, ahora no
+            wasEverLoggedInEx = false; // Restablecer
             await state.fetchCloudExercises();
             showExOverlay();
             renderMainList();
         } else {
-            // First load with no session: show overlay silently (no toast)
+            // Primera carga sin sesión: mostrar superposición silenciosamente (sin toast)
             showExOverlay();
         }
     });
 
-    // Check on initial load if user is already established
+    // Comprobar en la carga inicial si el usuario ya está establecido
     setTimeout(async () => {
         if (window.jamvaultUser) {
             wasEverLoggedInEx = true;
@@ -635,5 +635,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             showExOverlay();
         }
-    }, 500); // Give Auth.js time to checkSession
+    }, 500); // Dar tiempo a Auth.js para checkSession
 });

@@ -1,5 +1,5 @@
 // ========== FLANGER ==========
-// MXR-style flanger with jet-plane swoosh
+// Flanger estilo MXR con efecto de "avión a reacción"
 
 import { AudioMath } from '../utils/AudioMath.js';
 
@@ -7,7 +7,7 @@ export class Flanger {
     constructor(audioContext) {
         this.audioContext = audioContext;
 
-        // Create nodes
+        // Crear nodos
         this.input = audioContext.createGain();
         this.output = audioContext.createGain();
         this.delay = audioContext.createDelay(0.1);
@@ -17,36 +17,36 @@ export class Flanger {
         this.wetGain = audioContext.createGain();
         this.dryGain = audioContext.createGain();
 
-        // Parameters
+        // Parámetros
         this.rate = 0.5; // Hz
         this.depth = 0.5; // 0-1
         this.feedbackAmount = 0.5; // 0-1
-        this.manual = 0.5; // 0-1 (delay time offset)
+        this.manual = 0.5; // 0-1 (desfase de tiempo de delay)
         this.mix = 0.5; // 0-1
         this.enabled = false;
 
-        // Connect: Input -> Delay -> Feedback -> Delay (feedback loop)
-        //                -> Wet -> Output
-        //         Input -> Dry -> Output
+        // Conexión: Entrada -> Delay -> Feedback -> Delay (bucle de feedback)
+        //                -> Wet -> Salida
+        //         Entrada -> Dry -> Salida
         this.input.connect(this.delay);
         this.delay.connect(this.feedback);
-        this.feedback.connect(this.delay); // Feedback loop
+        this.feedback.connect(this.delay); // Bucle de feedback
         this.delay.connect(this.wetGain);
         this.wetGain.connect(this.output);
 
         this.input.connect(this.dryGain);
         this.dryGain.connect(this.output);
 
-        // LFO modulates delay time
+        // El LFO modula el tiempo de delay
         this.lfo.connect(this.lfoGain);
         this.lfoGain.connect(this.delay.delayTime);
         this.lfo.start();
 
-        // Initialize
+        // Inicializar
         this.updateFlanger();
     }
 
-    // Set rate (LFO frequency) in Hz
+    // Ajustar velocidad (frecuencia LFO) en Hz
     setRate(hz) {
         this.rate = AudioMath.clamp(hz, 0.05, 10);
         this.lfo.frequency.setTargetAtTime(
@@ -56,30 +56,30 @@ export class Flanger {
         );
     }
 
-    // Set depth (0-1)
+    // Ajustar profundidad (0-1)
     setDepth(value) {
         this.depth = AudioMath.clamp(value, 0, 1);
         this.updateFlanger();
     }
 
-    // Set feedback amount (0-1)
+    // Ajustar cantidad de feedback (0-1)
     setFeedback(value) {
         this.feedbackAmount = AudioMath.clamp(value, 0, 0.95);
-        // Negative feedback for more metallic sound
+        // Feedback negativo para un sonido más metálico
         this.feedback.gain.setTargetAtTime(
-            this.feedbackAmount * 0.7, // Scale down to prevent runaway
+            this.feedbackAmount * 0.7, // Escalar para prevenir realimentación infinita
             this.audioContext.currentTime,
             0.01
         );
     }
 
-    // Set manual delay offset (0-1)
+    // Ajustar desfase de delay manual (0-1)
     setManual(value) {
         this.manual = AudioMath.clamp(value, 0, 1);
         this.updateFlanger();
     }
 
-    // Set wet/dry mix (0-1)
+    // Ajustar mezcla wet/dry (0-1)
     setMix(value) {
         this.mix = AudioMath.clamp(value, 0, 1);
         this.wetGain.gain.setTargetAtTime(
@@ -94,16 +94,16 @@ export class Flanger {
         );
     }
 
-    // Update flanger parameters
+    // Actualizar parámetros del flanger
     updateFlanger() {
-        // Flanger uses very short delays (0.5ms to 10ms)
+        // El flanger usa delays muy cortos (0.5ms a 10ms)
         const minDelay = 0.0005; // 0.5ms
         const maxDelay = 0.010; // 10ms
 
-        // Base delay time controlled by manual
+        // Tiempo de delay base controlado por manual
         const baseDelay = AudioMath.mapRange(this.manual, 0, 1, minDelay, maxDelay);
 
-        // LFO modulation depth
+        // Profundidad de modulación del LFO
         const modDepth = (maxDelay - minDelay) * this.depth * 0.5;
 
         this.delay.delayTime.setTargetAtTime(
@@ -119,7 +119,7 @@ export class Flanger {
         );
     }
 
-    // Enable/disable
+    // Activar/desactivar
     setEnabled(enabled) {
         this.enabled = enabled;
         if (!enabled) {
@@ -129,7 +129,7 @@ export class Flanger {
         }
     }
 
-    // Preset: Subtle (gentle sweep)
+    // Preset: Sutil (barrido sutil)
     presetSubtle() {
         this.setRate(0.3);
         this.setDepth(0.3);
@@ -138,7 +138,7 @@ export class Flanger {
         this.setMix(0.4);
     }
 
-    // Preset: Jet (classic jet-plane sound)
+    // Preset: Jet (sonido clásico de avión a reacción)
     presetJet() {
         this.setRate(0.5);
         this.setDepth(0.7);
@@ -147,7 +147,7 @@ export class Flanger {
         this.setMix(0.5);
     }
 
-    // Preset: Extreme (intense swoosh)
+    // Preset: Extremo (barrido intenso)
     presetExtreme() {
         this.setRate(1.0);
         this.setDepth(0.9);
@@ -156,17 +156,17 @@ export class Flanger {
         this.setMix(0.6);
     }
 
-    // Connect to next node
+    // Conectar al siguiente nodo
     connect(destination) {
         this.output.connect(destination);
     }
 
-    // Disconnect
+    // Desconectar
     disconnect() {
         this.output.disconnect();
     }
 
-    // Cleanup
+    // Limpieza
     destroy() {
         this.lfo.stop();
         this.disconnect();

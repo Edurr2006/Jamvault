@@ -1,7 +1,7 @@
 /**
  * ExercisePlayer.js
- * Optimized Sequencer for Unified Steps.
- * Strictly decoupled, uses AudioEngine only for context/nodes.
+ * Secuenciador optimizado para pasos unificados.
+ * Estrictamente desacoplado, utiliza AudioEngine solo para contexto/nodos.
  */
 
 import { AudioEngine } from './AudioEngine.js';
@@ -23,10 +23,10 @@ export class ExercisePlayer {
         this.steps = [];
         this.stepIndex = 0;
 
-        this.onStepHighlight = null; // Callback for visual sync
+        this.onStepHighlight = null; // Callback para sincronización visual
         this.onPlaybackEnd = null;
 
-        // Note frequencies mapping
+        // Mapeo de frecuencias de notas
         this.NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         this.CHORD_INTERVALS = {
             'Mayor': [0, 4, 7],
@@ -107,7 +107,7 @@ export class ExercisePlayer {
         const duration = step ? step.duration : 1;
         const secondsPerBeat = 60.0 / this.bpm;
 
-        // 1. Visual Sync & Step Highlight
+        // 1. Sincronización visual y resaltado de pasos
         if (step) {
             const delay = (time - this.audioEngine.getCurrentTime()) * 1000;
             setTimeout(() => {
@@ -116,7 +116,7 @@ export class ExercisePlayer {
                 }
             }, Math.max(0, delay));
 
-            // 2. MIDI Synthesis (Content) - Only once at start of step
+            // 2. Síntesis MIDI (Contenido) - Solo una vez al inicio del paso
             if (this.isSynthEnabled) {
                 if (step.kind === 'note') {
                     this.synthNote(step.data, time, step.duration);
@@ -126,7 +126,7 @@ export class ExercisePlayer {
             }
         }
 
-        // 3. Metronome Ticks - Every beat of the duration
+        // 3. Ticks del metrónomo - Cada pulso de la duración
         if (this.isMetronomeOn) {
             for (let b = 0; b < duration; b++) {
                 const tickTime = time + (b * secondsPerBeat);
@@ -135,7 +135,7 @@ export class ExercisePlayer {
             }
         }
 
-        // Advance
+        // Avanzar
         this.nextStepTime += duration * secondsPerBeat;
         this.stepIndex++;
         if (this.stepIndex >= this.steps.length) {
@@ -144,7 +144,7 @@ export class ExercisePlayer {
         }
     }
 
-    // --- SYNTHESIS ---
+    // --- SÍNTESIS ---
 
     playMetronomeTick(time, isAccent) {
         const playTime = time || this.audioEngine.getCurrentTime();
@@ -168,12 +168,12 @@ export class ExercisePlayer {
 
     synthChord(data, time, durationBeats) {
         const intervals = this.CHORD_INTERVALS[data.type] || [0, 4, 7];
-        const rootFreq = this.getFrequency(data.root, 2); // Lower octave for fuller guitar sound
+        const rootFreq = this.getFrequency(data.root, 2); // Octava más baja para un sonido de guitarra más lleno
         const durationSeconds = (60 / this.bpm) * durationBeats;
 
         intervals.forEach((interval, i) => {
             const freq = rootFreq * Math.pow(2, interval / 12);
-            const strumDelay = i * 0.025; // Simple strumming stagger
+            const strumDelay = i * 0.025; // Escalonamiento simple de rasgueo
             this.createVoice(freq, time + strumDelay, durationSeconds, 0.15);
         });
     }

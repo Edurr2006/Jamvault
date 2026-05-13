@@ -1,4 +1,4 @@
-/* ---------- TOAST NOTIFICATIONS ---------- */
+/* ---------- NOTIFICACIONES TOAST ---------- */
 #toast-container {
   position: fixed;
   top: 1.5rem;
@@ -112,7 +112,7 @@
   transform: scale(1.1);
 }
 
-/* ---------- LOGO ---------- */
+/* ---------- LOGOTIPO ---------- */
 .logo-title {
   display: inline-flex;
   align-items: center;
@@ -156,7 +156,7 @@
   color: #fff;
 }
 
-/* ---------- PAGE TRANSITIONS ---------- */
+/* ---------- TRANSICIONES DE PÁGINA ---------- */
 @view-transition {
   navigation: auto;
 }
@@ -165,7 +165,7 @@
   from {
     opacity: 0;
     transform: translateY(10px);
-    /* Removed blur for performance */
+    /* Eliminado el desenfoque por rendimiento (Removed blur for performance) */
   }
 
   to {
@@ -180,7 +180,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', sans-serif; /* Modern font */
+  font-family: 'Inter', sans-serif; /* Fuente moderna */
   margin: 0;
   padding: 0;
   width: 100%;
@@ -190,13 +190,13 @@ body {
   text-align: center;
   animation: pageFadeIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
   background-attachment: fixed;
-  /* Sticky Footer Setup */
+  /* Configuración del Pie de Página Fijo (Sticky Footer Setup) */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* Subtle background glow for all themes to avoid "too gray" look */
+/* Brillo sutil de fondo para todos los temas para evitar un aspecto "demasiado gris" */
 body::after {
   content: '';
   position: fixed;
@@ -238,7 +238,7 @@ header {
   transform: translateY(-0.0625rem) scale(1.01);
 }
 
-/* ---------- THEMES ---------- */
+/* ---------- TEMAS ---------- */
 
 /* JamVault */
 .JamVault {
@@ -266,9 +266,9 @@ header {
 }
 
 
-/* Natural - Lush Deep Forest */
+/* Natural - Bosque Exuberante Profundo */
 .natural {
-  background: #08110b; /* Deep Obsidian Green */
+  background: #08110b; /* Verde Obsidiana Profundo */
   color: #e0eee0;
   --theme-accent: #00FF85;
   --theme-accent-hover: #33ff9d;
@@ -293,9 +293,9 @@ header {
 
 
 
-/* Galactic - Deep Space Nebula */
+/* Galáctico - Nebulosa del Espacio Profundo */
 .galactic {
-  background: #050810; /* Deep Obsidian Navy */
+  background: #050810; /* Azul Marino Obsidiana Profundo */
   color: #d1e8ff;
   --theme-accent: #00D1FF;
   --theme-accent-hover: #33daff;
@@ -320,9 +320,9 @@ header {
 
 
 
-/* Retro - Cyberpunk Neon */
+/* Retro - Cyberpunk Neón */
 .retro {
-  background: #0d0912; /* Deep Obsidian Purple */
+  background: #0d0912; /* Púrpura Obsidiana Profundo */
   color: #fce7f3;
   --theme-accent: #FF007F;
   --theme-accent-hover: #ff3399;
@@ -347,9 +347,9 @@ header {
 
 
 
-/* Vintage - Classic Rock Amp */
+/* Vintage - Amplificador de Rock Clásico */
 .vintage {
-  background: #0f0d0b; /* Deep Obsidian Charcoal */
+  background: #0f0d0b; /* Carbón Obsidiana Profundo */
   color: #f5efe6;
   --theme-accent: #E6B325;
   --theme-accent-hover: #f0c54d;
@@ -374,9 +374,9 @@ header {
 
 
 
-/* RedBlack - Blood & Shadow */
+/* Rojo y Negro - Sangre y Sombra */
 .redblack {
-  background: #050000; /* Pure Obsidian Black */
+  background: #050000; /* Negro Obsidiana Puro */
   color: #f5f5f5;
   --theme-accent: #D32F2F;
   --theme-accent-hover: #FF5252;
@@ -441,11 +441,11 @@ header > a {
   align-items: center;
 }
 
-/* ---------- TARJETAS (MEN)  ESTILO JAMVAULT ---------- */
+/* ---------- TARJETAS DE MENÚ (ESTILO JAMVAULT) ---------- */
 .menu {
   position: relative;
   display: inline-block;
-  background-color: #1e1b24; /* Base dark background */
+  background-color: #1e1b24; /* Fondo oscuro base */
   padding: 3.5rem 2.2rem;
   margin: 1.5rem;
   width: 30rem;
@@ -460,12 +460,12 @@ header > a {
   z-index: 1;
 }
 
-/* Professional Overlay Layer */
+/* Capa de Superposición Profesional */
 .menu::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.65); /* Dark enough for readability */
+  background: rgba(0, 0, 0, 0.65); /* Suficientemente oscuro para legibilidad (readability) */
   transition: background 0.4s ease, opacity 0.4s ease;
   z-index: -1;
 }
@@ -490,24 +490,24 @@ header > a {
 
 .menu:hover {
   transform: scale(1.02) translateY(-0.5rem);
-  box-shadow: 1.25rem 1.25rem 0rem rgba(0, 0, 0, 0.6); /* Restoring the Hard Relief Shadow */
+  box-shadow: 1.25rem 1.25rem 0rem rgba(0, 0, 0, 0.6); /* Restaurando la sombra de relieve duro (Hard Relief Shadow) */
 }
 
 .menu:hover::before {
-  background: rgba(0, 0, 0, 0.2); /* Much lighter on hover to "illuminate" the image */
+  background: rgba(0, 0, 0, 0.2); /* Mucho más claro al pasar el ratón para "iluminar" la imagen */
   opacity: 0.8;
 }
 
 .menu:hover h3, .menu:hover p {
-  transform: translateY(-5px); /* Subtle internal lift */
+  transform: translateY(-5px); /* Elevación interna sutil */
 }
 
-/* Background Image Assignment */
+/* Asignación de Imágenes de Fondo */
 .card-scales {
   background-image: url('imagenes/escalas.jpg');
 }
 
-/* Placeholder backgrounds for other cards until user provides images */
+/* Fondos de marcador de posición para otras tarjetas hasta que el usuario proporcione imágenes */
 .card-chords {
   background-image: url('imagenes/acordes.jpg'); 
 }
@@ -527,7 +527,7 @@ header > a {
 }
 
 
-/* Universal hover logic without color tinting - focus on illumination/clarity */
+/* Lógica de hover universal sin tintado de color - enfoque en iluminación/claridad */
 .JamVault .menu:hover,
 .natural .menu:hover,
 .galactic .menu:hover,
@@ -535,7 +535,7 @@ header > a {
 .vintage .menu:hover {
   color: #fff; 
   box-shadow: 1.25rem 1.25rem 0rem rgba(0, 0, 0, 0.85);
-  filter: brightness(1.1) contrast(1.05); /* Pro lighting effect */
+  filter: brightness(1.1) contrast(1.05); /* Efecto de iluminación profesional (Pro lighting) */
 }
 
 .redblack .menu:hover {
@@ -544,7 +544,7 @@ header > a {
 }
 
 
-/* ---------- ELEMENTOS DE DISEO ADICIONALES ---------- */
+/* ---------- ELEMENTOS DE DISEÑO ADICIONALES ---------- */
 
 .menus {
   display: flex;
@@ -623,28 +623,117 @@ a {
   margin-bottom: 2rem;
 }
 
-.note-display {
-  margin-top: 10px;
-  border: 4px solid #fff;
-  width: 220px;
-  height: 280px;
+.tuner-ui {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+  max-width: 500px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 3rem;
+  border-radius: 30px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.note-display {
+  width: 150px;
+  height: 150px;
+  display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 20px;
-  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 4px solid #fff;
+  transition: all 0.3s ease;
 }
 
 #note {
-  font-size: 6rem;
+  font-size: 5rem;
   margin: 0;
   line-height: 1;
+  font-weight: 800;
+}
+
+.gauge-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.direction-indicator {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.2;
+  transition: all 0.3s ease;
+  min-width: 60px;
+}
+
+.direction-indicator.active {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.gauge-container {
+  position: relative;
+  flex-grow: 1;
+  height: 60px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 30px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gauge-scale {
+  position: absolute;
+  width: 80%;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.scale-mark {
+  width: 2px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.scale-mark.center {
+  height: 25px;
+  width: 3px;
+  background: #fff;
+}
+
+.gauge-needle {
+  position: absolute;
+  width: 4px;
+  height: 40px;
+  background: #fff;
+  border-radius: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: left 0.1s ease-out, background-color 0.3s ease;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  z-index: 10;
+}
+
+.info-display {
+  display: flex;
+  gap: 2rem;
+  opacity: 0.8;
 }
 
 #freq, #deviation {
-  font-size: 1.2rem;
-  margin: 5px 0;
+  font-size: 1rem;
+  margin: 0;
 }
 
 .natural .note-display,
@@ -653,19 +742,27 @@ a {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
-/* JamVault Tuner */
+/* Afinador JamVault */
+.JamVault .tuner-ui {
+  border: 1px solid rgba(255, 159, 28, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
 .JamVault .note-display {
-  border: 3px solid transparent;
-  background:
-    linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) padding-box,
-    linear-gradient(135deg, #FF9F1C, #FFD700, #FF6B35, #FF9F1C) border-box;
-  background-color: rgba(0, 0, 0, 0.3);
-  color: #fff;
-  box-shadow:
-    0 0 15px rgba(255, 159, 28, 0.3),
-    0 0 30px rgba(255, 159, 28, 0.15),
-    inset 0 0 15px rgba(255, 159, 28, 0.08);
-  animation: neonPulse 3s ease-in-out infinite;
+  border: 3px solid #FF9F1C;
+  box-shadow: 0 0 20px rgba(255, 159, 28, 0.3);
+}
+
+.JamVault .gauge-needle,
+.JamVault .direction-indicator.active {
+  background: none; /* Restablecer fondo para indicadores de texto (text indicators) */
+  color: #FF9F1C;
+  text-shadow: 0 0 10px rgba(255, 159, 28, 0.8);
+}
+
+.JamVault .gauge-needle {
+  background: #FF9F1C;
+  box-shadow: 0 0 15px #FF9F1C;
 }
 
 @keyframes neonPulse {
@@ -686,19 +783,25 @@ a {
   }
 }
 
-/* Galactic Tuner - Subtle Blue Neon */
+/* Afinador Galáctico */
+.galactic .tuner-ui {
+  border: 1px solid rgba(30, 144, 255, 0.2);
+}
+
 .galactic .note-display {
-  border: 3px solid transparent;
-  background:
-    linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) padding-box,
-    linear-gradient(135deg, #1E90FF, #00BFFF, #4169E1, #1E90FF) border-box;
-  background-color: rgba(0, 0, 0, 0.3);
-  color: #fff;
-  box-shadow:
-    0 0 15px rgba(30, 144, 255, 0.3),
-    0 0 30px rgba(30, 144, 255, 0.15),
-    inset 0 0 15px rgba(30, 144, 255, 0.08);
-  animation: neonPulseBlue 3s ease-in-out infinite;
+  border: 3px solid #1E90FF;
+  box-shadow: 0 0 20px rgba(30, 144, 255, 0.3);
+}
+
+.galactic .gauge-needle,
+.galactic .direction-indicator.active {
+  color: #1E90FF;
+  text-shadow: 0 0 10px rgba(30, 144, 255, 0.8);
+}
+
+.galactic .gauge-needle {
+  background: #1E90FF;
+  box-shadow: 0 0 15px #1E90FF;
 }
 
 @keyframes neonPulseBlue {
@@ -719,19 +822,25 @@ a {
   }
 }
 
-/* Retro Tuner - Subtle Pink Neon */
+/* Afinador Retro */
+.retro .tuner-ui {
+  border: 1px solid rgba(216, 27, 96, 0.2);
+}
+
 .retro .note-display {
-  border: 3px solid transparent;
-  background:
-    linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) padding-box,
-    linear-gradient(135deg, #D81B60, #FF6090, #C2185B, #D81B60) border-box;
-  background-color: rgba(0, 0, 0, 0.3);
-  color: #fff;
-  box-shadow:
-    0 0 15px rgba(216, 27, 96, 0.3),
-    0 0 30px rgba(216, 27, 96, 0.15),
-    inset 0 0 15px rgba(216, 27, 96, 0.08);
-  animation: neonPulsePink 3s ease-in-out infinite;
+  border: 3px solid #D81B60;
+  box-shadow: 0 0 20px rgba(216, 27, 96, 0.3);
+}
+
+.retro .gauge-needle,
+.retro .direction-indicator.active {
+  color: #D81B60;
+  text-shadow: 0 0 10px rgba(216, 27, 96, 0.8);
+}
+
+.retro .gauge-needle {
+  background: #D81B60;
+  box-shadow: 0 0 15px #D81B60;
 }
 
 @keyframes neonPulsePink {
@@ -752,19 +861,25 @@ a {
   }
 }
 
-/* RedBlack Tuner - Subtle Red Neon */
+/* Afinador Rojo y Negro */
+.redblack .tuner-ui {
+  border: 1px solid rgba(232, 31, 43, 0.2);
+}
+
 .redblack .note-display {
-  border: 3px solid transparent;
-  background:
-    linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) padding-box,
-    linear-gradient(135deg, #E81F2B, #FF4444, #C62828, #E81F2B) border-box;
-  background-color: rgba(0, 0, 0, 0.3);
-  color: #fff;
-  box-shadow:
-    0 0 15px rgba(232, 31, 43, 0.3),
-    0 0 30px rgba(232, 31, 43, 0.15),
-    inset 0 0 15px rgba(232, 31, 43, 0.08);
-  animation: neonPulseRed 3s ease-in-out infinite;
+  border: 3px solid #E81F2B;
+  box-shadow: 0 0 20px rgba(232, 31, 43, 0.3);
+}
+
+.redblack .gauge-needle,
+.redblack .direction-indicator.active {
+  color: #E81F2B;
+  text-shadow: 0 0 10px rgba(232, 31, 43, 0.8);
+}
+
+.redblack .gauge-needle {
+  background: #E81F2B;
+  box-shadow: 0 0 15px #E81F2B;
 }
 
 @keyframes neonPulseRed {
@@ -785,19 +900,25 @@ a {
   }
 }
 
-/* Natural Tuner - Emerald Neon */
+/* Afinador Natural */
+.natural .tuner-ui {
+  border: 1px solid rgba(60, 179, 113, 0.2);
+}
+
 .natural .note-display {
-  border: 3px solid transparent;
-  background:
-    linear-gradient(rgba(46, 125, 50, 0.4), rgba(46, 125, 50, 0.4)) padding-box,
-    linear-gradient(135deg, #3CB371, #00FA9A, #2E8B57, #3CB371) border-box;
-  background-color: rgba(46, 125, 50, 0.4);
-  color: #E8F5E9;
-  box-shadow:
-    0 0 15px rgba(60, 179, 113, 0.35),
-    0 0 30px rgba(60, 179, 113, 0.18),
-    inset 0 0 15px rgba(60, 179, 113, 0.1);
-  animation: neonPulseGreen 3s ease-in-out infinite;
+  border: 3px solid #3CB371;
+  box-shadow: 0 0 20px rgba(60, 179, 113, 0.3);
+}
+
+.natural .gauge-needle,
+.natural .direction-indicator.active {
+  color: #3CB371;
+  text-shadow: 0 0 10px rgba(60, 179, 113, 0.8);
+}
+
+.natural .gauge-needle {
+  background: #3CB371;
+  box-shadow: 0 0 15px #3CB371;
 }
 
 @keyframes neonPulseGreen {
@@ -818,19 +939,25 @@ a {
   }
 }
 
-/* Vintage Tuner - Amber Neon */
+/* Afinador Vintage */
+.vintage .tuner-ui {
+  border: 1px solid rgba(218, 165, 32, 0.2);
+}
+
 .vintage .note-display {
-  border: 3px solid transparent;
-  background:
-    linear-gradient(rgba(139, 115, 85, 0.4), rgba(139, 115, 85, 0.4)) padding-box,
-    linear-gradient(135deg, #DAA520, #FFD700, #CD853F, #DAA520) border-box;
-  background-color: rgba(139, 115, 85, 0.4);
-  color: #FFF8DC;
-  box-shadow:
-    0 0 15px rgba(218, 165, 32, 0.35),
-    0 0 30px rgba(218, 165, 32, 0.18),
-    inset 0 0 15px rgba(218, 165, 32, 0.1);
-  animation: neonPulseGold 3s ease-in-out infinite;
+  border: 3px solid #DAA520;
+  box-shadow: 0 0 20px rgba(218, 165, 32, 0.3);
+}
+
+.vintage .gauge-needle,
+.vintage .direction-indicator.active {
+  color: #DAA520;
+  text-shadow: 0 0 10px rgba(218, 165, 32, 0.8);
+}
+
+.vintage .gauge-needle {
+  background: #DAA520;
+  box-shadow: 0 0 15px #DAA520;
 }
 
 @keyframes neonPulseGold {
@@ -967,7 +1094,7 @@ a {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Theme Awareness for Chord Positions */
+/* Adaptación al Tema para Posiciones de Acordes */
 .JamVault .chord-positions-info {
   background-color: #F39C12;
   color: #000;
@@ -1077,16 +1204,16 @@ a {
   border: 2px solid #C0392B;
 }
 
-/* ========== PREMIUM CHORD NOTES DESIGN (MODERN NEON) ========== */
+/* ========== DISEÑO DE NOTAS DE ACORDES PREMIUM (NEÓN MODERNO) ========== */
 
-/* CRITICAL FIX: Allow glow to extend outside the note box */
+/* CORRECCIÓN CRÍTICA: Permitir que el brillo se extienda fuera de la caja de la nota */
 #chordCanvas svg {
   overflow: visible !important;
   height: 350px;
   width: auto;
 }
 
-/* Base note styles */
+/* Estilos base de las notas */
 .chord-circle ellipse,
 .chord-circle rect {
   stroke: white;
@@ -1102,7 +1229,7 @@ a {
   filter: brightness(1.2);
 }
 
-/* ===== JamVault Theme (Neon Orange) ===== */
+/* ===== Tema JamVault (Naranja Neón) ===== */
 .JamVault .chord-circle ellipse,
 .JamVault .chord-circle rect {
   fill: #FF9F1C;
@@ -1115,7 +1242,7 @@ a {
   filter: drop-shadow(0 0 8px #FF9F1C);
 }
 
-/* ===== Natural Theme (Neon Green) ===== */
+/* ===== Tema Natural (Verde Neón) ===== */
 .natural .chord-circle ellipse,
 .natural .chord-circle rect {
   fill: #10D96A;
@@ -1128,7 +1255,7 @@ a {
   filter: drop-shadow(0 0 8px #10D96A);
 }
 
-/* ===== Galactic Theme (Neon Blue) ===== */
+/* ===== Tema Galáctico (Azul Neón) ===== */
 .galactic .chord-circle ellipse,
 .galactic .chord-circle rect {
   fill: #1E90FF;
@@ -1141,7 +1268,7 @@ a {
   filter: drop-shadow(0 0 8px #1E90FF);
 }
 
-/* ===== Retro Theme (Neon Pink) ===== */
+/* ===== Tema Retro (Rosa Neón) ===== */
 .retro .chord-circle ellipse,
 .retro .chord-circle rect {
   fill: #D81B60;
@@ -1154,7 +1281,7 @@ a {
   filter: drop-shadow(0 0 8px #D81B60);
 }
 
-/* ===== Vintage Theme (Neon Gold) ===== */
+/* ===== Tema Vintage (Oro Neón) ===== */
 .vintage .chord-circle ellipse,
 .vintage .chord-circle rect {
   fill: #F1C40F;
@@ -1167,7 +1294,7 @@ a {
   filter: drop-shadow(0 0 8px #F1C40F);
 }
 
-/* ===== Red & Black Theme (Neon Red) ===== */
+/* ===== Tema Rojo y Negro (Rojo Neón) ===== */
 .redblack .chord-circle ellipse,
 .redblack .chord-circle rect {
   fill: #FF3D47;
@@ -1180,7 +1307,7 @@ a {
   filter: drop-shadow(0 0 8px #FF3D47);
 }
 
-/* ========== FRET BADGE STYLES ========== */
+/* ========== ESTILOS DE INDICADOR DE TRASTE (FRET BADGE) ========== */
 .fret-badge-bg {
   fill: white;
   transition: fill 0.3s ease;
@@ -1188,12 +1315,12 @@ a {
 
 .fret-badge-text {
   fill: black;
-  /* Default text color */
+  /* Color de texto predeterminado */
   font-weight: bold;
   font-size: 16px;
 }
 
-/* Theme Awareness for Fret Badge */
+/* Adaptación al Tema para el Indicador de Traste */
 
 /* JamVault */
 .JamVault .fret-badge-bg {
@@ -1222,7 +1349,7 @@ a {
   fill: black;
 }
 
-/* Retro (Pink needs white text for contrast) */
+/* Retro (Rosa necesita texto blanco para contraste) */
 .retro .fret-badge-bg {
   fill: #D81B60;
 }
@@ -1240,7 +1367,7 @@ a {
   fill: black;
 }
 
-/* Red & Black (Dark red needs white text) */
+/* Rojo y Negro (Rojo oscuro necesita texto blanco) */
 .redblack .fret-badge-bg {
   fill: #FF3D47;
 }
@@ -1334,14 +1461,14 @@ a {
   border: 2px solid #C0392B;
 }
 
-/* ========== PREMIUM SCALE NOTES DESIGN (MODERN NEON) ========== */
+/* ========== DISEÑO DE NOTAS DE ESCALAS PREMIUM (NEÓN MODERNO) ========== */
 
-/* CRITICAL FIX: Allow glow to extend outside the note box */
+/* CORRECCIÓN CRÍTICA: Permitir que el brillo se extienda fuera de la caja de la nota */
 #fretboard g.note svg {
   overflow: visible !important;
 }
 
-/* Base note styles */
+/* Estilos base de las notas */
 #fretboard g.note ellipse {
   transition: fill 0.3s, transform 0.3s;
 }
@@ -1351,17 +1478,17 @@ a {
   filter: brightness(1.2);
 }
 
-/* Stroke lines - Clean white definition */
+/* Líneas de trazo - Definición en blanco limpio */
 #fretboard g.note path[stroke="black"] {
   stroke: white;
-  /* Clean white stroke for all themes */
+  /* Trazo blanco limpio para todos los temas */
   stroke-width: 1.5;
   transition: stroke 0.3s ease;
   vector-effect: non-scaling-stroke;
   opacity: 0.9;
 }
 
-/* ===== JamVault Theme (Neon Orange) ===== */
+/* ===== Tema JamVault (Naranja Neón) ===== */
 .JamVault #fretboard g.note ellipse {
   fill: #FF9F1C;
   filter: drop-shadow(0 0 6px rgba(255, 159, 28, 0.6));
@@ -1369,11 +1496,11 @@ a {
 
 .JamVault #fretboard g.root-note ellipse {
   fill: #FFD285;
-  /* Brighter center for root */
+  /* Centro más brillante para la tónica (root) */
   filter: drop-shadow(0 0 8px #FF9F1C);
 }
 
-/* ===== Natural Theme (Neon Green) ===== */
+/* ===== Tema Natural (Verde Neón) ===== */
 .natural #fretboard g.note ellipse {
   fill: #10D96A;
   filter: drop-shadow(0 0 6px rgba(16, 217, 106, 0.6));
@@ -1384,7 +1511,7 @@ a {
   filter: drop-shadow(0 0 8px #10D96A);
 }
 
-/* ===== Galactic Theme (Neon Blue) ===== */
+/* ===== Tema Galáctico (Azul Neón) ===== */
 .galactic #fretboard g.note ellipse {
   fill: #1E90FF;
   filter: drop-shadow(0 0 6px rgba(30, 144, 255, 0.6));
@@ -1395,7 +1522,7 @@ a {
   filter: drop-shadow(0 0 8px #1E90FF);
 }
 
-/* ===== Retro Theme (Neon Pink) ===== */
+/* ===== Tema Retro (Rosa Neón) ===== */
 .retro #fretboard g.note ellipse {
   fill: #D81B60;
   filter: drop-shadow(0 0 6px rgba(216, 27, 96, 0.6));
@@ -1406,7 +1533,7 @@ a {
   filter: drop-shadow(0 0 8px #D81B60);
 }
 
-/* ===== Vintage Theme (Neon Gold) ===== */
+/* ===== Tema Vintage (Oro Neón) ===== */
 .vintage #fretboard g.note ellipse {
   fill: #F1C40F;
   filter: drop-shadow(0 0 6px rgba(241, 196, 15, 0.6));
@@ -1417,7 +1544,7 @@ a {
   filter: drop-shadow(0 0 8px #F1C40F);
 }
 
-/* ===== Red & Black Theme (Neon Red) ===== */
+/* ===== Tema Rojo y Negro (Rojo Neón) ===== */
 .redblack #fretboard g.note ellipse {
   fill: #FF3D47;
   filter: drop-shadow(0 0 6px rgba(255, 61, 71, 0.6));
@@ -1428,7 +1555,7 @@ a {
   filter: drop-shadow(0 0 8px #FF3D47);
 }
 
-/* ---------- SONGBOOK ---------- */
+/* ---------- CANCIONERO (SONGBOOK) ---------- */
 .songbook-container {
   display: flex;
   justify-content: center;
@@ -1449,13 +1576,13 @@ a {
   flex-direction: column;
   overflow: hidden;
   transition: transform 0.3s ease;
-  background: #1e1b24; /* Solid elegant card background */
+  background: #1e1b24; /* Fondo de tarjeta elegante y sólido */
   border: 1px solid rgba(255,255,255,0.05);
 }
 
 
 
-/* ========== SITE FOOTER (GLOBAL) ========== */
+/* ========== PIE DE PÁGINA DEL SITIO (GLOBAL) ========== */
 .site-footer {
   width: 100%;
   margin-top: auto;
@@ -1555,7 +1682,7 @@ a {
   margin-top: 0.5rem;
 }
 
-/* ---------- RESPONSIVE ---------- */
+/* ---------- DISEÑO RESPONSIVO ---------- */
 @media (max-width: 900px) {
   header {
     flex-wrap: wrap;
@@ -1644,7 +1771,7 @@ a {
   }
 }
 
-/* ---------- EFFECTS SIDEBAR ---------- */
+/* ---------- BARRA LATERAL DE EFECTOS ---------- */
 .effects-sidebar {
   position: fixed;
   top: 0;
@@ -1710,14 +1837,14 @@ a {
 
 .effect-toggle input:checked~.effect-name {
   color: #FF8906;
-  /* Default accent */
+  /* Acento predeterminado (Default accent) */
 }
 
 .effect-toggle input:checked~.effect-name::before {
   content: "? ";
 }
 
-/* Activar controles cuando el checkbox est� marcado */
+/* Activar controles cuando la casilla est marcada */
 .effect-toggle input:checked+.effect-name+.effect-controls,
 .effect-toggle input:checked~.effect-controls {
   opacity: 1;
@@ -1734,7 +1861,7 @@ a {
   font-size: 1.1rem;
 }
 
-/* Temas para el sidebar */
+/* Temas para la barra lateral (Sidebar) */
 .natural .effects-sidebar {
   background: rgba(26, 31, 27, 0.95);
   border-left-color: #40916C;
@@ -1780,9 +1907,9 @@ a {
   color: #C74B50;
 }
 
-/* ========== DAW / JAMSTUDIO STYLES ========== */
+/* ========== ESTILOS DAW / JAMSTUDIO ========== */
 
-/* Transport Controls Bar */
+/* Barra de Controles de Transporte (Transport Bar) */
 .daw-transport {
   background: rgba(0, 0, 0, 0.3);
   padding: 0.5rem 1.5rem;
@@ -1793,7 +1920,7 @@ a {
   backdrop-filter: blur(5px);
   min-height: 5rem;
   user-select: none;
-  /* Prevent text selection during transport interaction */
+  /* Evitar la selección de texto durante la interacción con el transporte */
 }
 
 .main-controls-column {
@@ -1874,7 +2001,7 @@ a {
 .time-display {
   font-family: 'Courier New', monospace;
   font-size: 1.5rem;
-  font-weight: bold;
+  /* Fuente mono para alineación temporal */
   background: rgba(0, 0, 0, 0.5);
   padding: 0.5rem 1rem;
   border-radius: 5px;
@@ -1971,7 +2098,7 @@ a {
   display: flex;
   flex-direction: column;
   user-select: none;
-  /* Prevent text selection globally in the DAW area */
+  /* Evitar la selección de texto globalmente en el área DAW */
 }
 
 .tracks-wrapper {
@@ -1980,16 +2107,16 @@ a {
   overflow-y: auto;
   position: relative;
   background: #121212;
-  /* Dark uniform background for the whole DAW */
+  /* Fondo oscuro uniforme para todo el DAW */
 }
 
-/* Timeline Ruler Header */
+/* Encabezado de la Regla de la Línea de Tiempo (Timeline Ruler) */
 .timeline-ruler-container {
   display: flex;
   position: sticky;
   top: 0;
   z-index: auto;
-  /* Remove closed context to allow inter-layering of children and playhead */
+  /* Quitar contexto cerrado para permitir el inter-capado de hijos y playhead */
   border-bottom: 2px solid rgba(255, 255, 255, 0.2);
   min-width: max-content;
 }
@@ -1998,7 +2125,7 @@ a {
   width: 17.5rem;
   flex-shrink: 0;
   background: #1a1a1a;
-  /* Opaque background to hide elements behind it */
+  /* Fondo opaco para ocultar elementos detrás de él */
   border-right: 2px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
@@ -2008,7 +2135,7 @@ a {
   position: sticky;
   left: 0;
   z-index: 11000;
-  /* Top layer: masks playhead (10000) */
+  /* Capa superior: enmascara el playhead (10000) */
 }
 
 .tracks-header {
@@ -2026,9 +2153,9 @@ a {
   align-items: flex-end;
   padding-bottom: 5px;
   background: #111;
-  /* Background on the flexible content ensures it spans all width */
+  /* El fondo en el contenido flexible asegura que abarque todo el ancho */
   z-index: 9000;
-  /* Lower than playhead (9500) to show triangle */
+  /* Más bajo que el playhead (9500) para mostrar el triángulo */
   cursor: e-resize;
 }
 
@@ -2046,20 +2173,20 @@ a {
   pointer-events: none;
 }
 
-/* Unified Track Container */
+/* Contenedor de Pistas Unificado */
 .unified-tracks-container {
   display: flex;
   flex-direction: column;
   position: relative;
   z-index: 10;
-  /* Lower than playhead (5000) */
+  /* Más bajo que el playhead (5000) */
   cursor: e-resize;
 }
 
 .track-container {
   display: flex;
   height: 80px;
-  /* Slimmer height */
+  /* Altura más delgada */
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   min-width: max-content;
   position: relative;
@@ -2068,14 +2195,14 @@ a {
 
 .track-container.active-menu {
   z-index: 30000;
-  /* Elevate track when menu is open */
+  /* Elevar pista cuando el menú está abierto */
 }
 
-/* Floating Mixer Styles */
+/* Estilos del Mezclador Flotante */
 .track-mixer {
   position: absolute;
   top: 60px;
-  /* Adjusted for slimmer track */
+  /* Ajustado para pista más delgada */
   left: 20px;
   width: 16.25rem;
   background: rgba(20, 20, 20, 0.98);
@@ -2140,7 +2267,7 @@ a {
   display: flex;
   gap: 10px;
   overflow: visible;
-  /* Allow mixer to float outside */
+  /* Permitir que el mezclador flote fuera del contenedor */
 }
 
 .track-content {
@@ -2182,12 +2309,12 @@ a {
   flex-grow: 1;
   position: relative;
   z-index: 10;
-  /* Base layer for waveforms */
+  /* Capa base para las formas de onda */
 }
 
 .track-timeline-module:hover {
   background: rgba(255, 255, 255, 0.03);
-  /* Subtle highlight when hovering */
+  /* Resaltado sutil al pasar el ratón */
 }
 
 .waveform-canvas {
@@ -2195,21 +2322,21 @@ a {
   display: block;
 }
 
-/* Global Playhead */
+/* Cabezal de Reproducción Global (Playhead) */
 .playhead {
   position: absolute;
   top: 0;
   left: 280px;
-  /* Initial position at 0s (offset by spacer) */
+  /* Posición inicial a 0s (desplazado por el espaciador) */
   width: 2px;
   height: 100%;
   background: #ff0000;
   z-index: 10000;
-  /* Above ruler (9000) but below controls (11000) */
+  /* Por encima de la regla (9000) pero debajo de los controles (11000) */
   pointer-events: none;
   box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
   display: block;
-  /* Ensure it's never hidden unless by the JS logic */
+  /* Asegurar que nunca se oculte excepto por lógica JS */
 }
 
 .playhead::before {
@@ -2225,7 +2352,7 @@ a {
   pointer-events: none;
 }
 
-/* Theme-specific Playhead Colors */
+/* Colores del Playhead específicos por Tema */
 .JamVault .playhead {
   background: #F39C12;
   box-shadow: 0 0 10px rgba(255, 137, 6, 0.5);
@@ -2280,7 +2407,7 @@ a {
   border-top-color: #FF0000;
 }
 
-/* VU Meter update */
+/* Actualización del VU Meter */
 .vu-meter {
   width: 12px;
   height: 100%;
@@ -2299,7 +2426,7 @@ a {
   transition: height 0.1s ease;
 }
 
-/* Recording visuals */
+/* Visuales de grabación */
 .recording-indicator {
   position: fixed;
   top: 20px;
@@ -2328,7 +2455,7 @@ a {
   }
 }
 
-/* Responsive adjustments */
+/* Ajustes responsivos */
 @media (max-width: 900px) {
 
   .track-controls-spacer,
@@ -2381,7 +2508,7 @@ a {
   }
 }
 
-/* Theme-specific colors for DAW */
+/* Colores de DAW específicos por Tema */
 /* JamVault */
 .JamVault .track-item {
   border-left-color: #FF8906;
@@ -2412,7 +2539,7 @@ a {
   border-left-color: #C74B50;
 }
 
-/* Responsive DAW Layout */
+/* Diseño Responsivo de DAW */
 @media (max-width: 1200px) {
   .daw-transport {
     gap: 1rem;
@@ -2452,8 +2579,8 @@ a {
   }
 }
 
-/* ========== RANGE SLIDER STYLES ========== */
-/* Base styles for all range inputs */
+/* ========== ESTILOS DE CONTROL DESLIZANTE (RANGE SLIDER) ========== */
+/* Estilos base para todas las entradas de tipo rango */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -2469,7 +2596,7 @@ input[type="range"]:hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
-/* Webkit (Chrome, Safari, Edge) - Track */
+/* Webkit (Chrome, Safari, Edge) - Pista (Track) */
 input[type="range"]::-webkit-slider-track {
   width: 100%;
   height: 6px;
@@ -2477,7 +2604,7 @@ input[type="range"]::-webkit-slider-track {
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Webkit - Thumb */
+/* Webkit - Controlador (Thumb) */
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
@@ -2495,7 +2622,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: 0 3px 10px rgba(255, 137, 6, 0.5);
 }
 
-/* Firefox - Track */
+/* Firefox - Pista (Track) */
 input[type="range"]::-moz-range-track {
   width: 100%;
   height: 6px;
@@ -2503,7 +2630,7 @@ input[type="range"]::-moz-range-track {
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Firefox - Thumb */
+/* Firefox - Controlador (Thumb) */
 input[type="range"]::-moz-range-thumb {
   width: 18px;
   height: 18px;
@@ -2520,7 +2647,7 @@ input[type="range"]::-moz-range-thumb:hover {
   box-shadow: 0 3px 10px rgba(255, 137, 6, 0.5);
 }
 
-/* ========== THEME-SPECIFIC SLIDER COLORS ========== */
+/* ========== COLORES DE DESLIZADORES ESPECÍFICOS POR TEMA ========== */
 /* JamVault */
 .JamVault input[type="range"]::-webkit-slider-thumb {
   background: #F39C12;
@@ -2623,7 +2750,7 @@ input[type="range"]::-moz-range-thumb:hover {
   border-color: #C74B50;
 }
 
-/* Slider hover effects by theme */
+/* Efectos de hover en deslizadores por tema */
 .JamVault input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: 0 3px 10px rgba(255, 137, 6, 0.6);
 }
@@ -2648,7 +2775,7 @@ input[type="range"]::-moz-range-thumb:hover {
   box-shadow: 0 3px 10px rgba(199, 75, 80, 0.6);
 }
 
-/* ========== THEME-AWARE SCROLLBARS ========== */
+/* ========== BARRAS DE DESPLAZAMIENTO (SCROLLBARS) ADAPTADAS AL TEMA ========== */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -2664,7 +2791,7 @@ input[type="range"]::-moz-range-thumb:hover {
   background-clip: content-box;
 }
 
-/* Theme Overrides for Scrollbars */
+/* Sobrescritura del tema para las barras de desplazamiento */
 .JamVault ::-webkit-scrollbar-track {
   background: #0d0c14;
 }
@@ -2737,7 +2864,7 @@ input[type="range"]::-moz-range-thumb:hover {
   background-color: #C74B50;
 }
 
-/* Firefox support */
+/* Soporte para Firefox */
 * {
   scrollbar-width: thin;
 }
@@ -2766,14 +2893,14 @@ input[type="range"]::-moz-range-thumb:hover {
   scrollbar-color: #3d1414 #1A0B0B;
 }
 
-/* ========== JAMSTUDIO LAYOUT (Timeline System) ========== */
+/* ========== DISEÑO DE JAMSTUDIO (SISTEMA DE LÍNEA DE TIEMPO) ========== */
 
 .tracks-wrapper {
   overflow-x: scroll;
-  /* CRITICAL: Explicit scroll for sticky to work */
+  /* CRÍTICO: Desplazamiento explícito para que el sticky funcione */
   overflow-y: auto;
   height: calc(100vh - 160px);
-  /* Adjust based on header+transport height */
+  /* Ajustar basándose en la altura de encabezado+transporte */
   position: relative;
   background-color: #121212;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -2783,16 +2910,16 @@ input[type="range"]::-moz-range-thumb:hover {
   /* IE/Edge */
 }
 
-/* Hide scrollbar for Chrome/Safari */
+/* Ocultar barra de desplazamiento para Chrome/Safari */
 .tracks-wrapper::-webkit-scrollbar {
   display: none;
 }
 
-/* Header Row (Timeline Ruler area) */
+/* Fila del Encabezado (Área de la regla de línea de tiempo) */
 .timeline-ruler-container {
   display: grid;
   grid-template-columns: 200px 1fr;
-  /* Fixed left, flexible right */
+  /* Izquierda fija, derecha flexible */
   position: sticky;
   top: 0;
   z-index: 100;
@@ -2800,11 +2927,11 @@ input[type="range"]::-moz-range-thumb:hover {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Track Row Container */
+/* Contenedor de Fila de Pista (Track Row) */
 .track-container {
   display: grid;
   grid-template-columns: 200px 1fr;
-  /* Match ruler columns */
+  /* Coincidir con las columnas de la regla */
   min-height: 80px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   background-color: #121212;
@@ -2814,7 +2941,7 @@ input[type="range"]::-moz-range-thumb:hover {
   background-color: rgba(255, 255, 255, 0.02);
 }
 
-/* Left Column: Track Controls (Grid cell 1 - EXACTLY 200px) */
+/* Columna izquierda: Controles (Celda de cuadrícula 1 - EXACTAMENTE 200px) */
 .track-controls-spacer,
 .track-controls-module {
   width: 200px;
@@ -2832,7 +2959,7 @@ input[type="range"]::-moz-range-thumb:hover {
   background-color: rgba(255, 255, 255, 0.03);
 }
 
-/* Ensure track content takes remaining space */
+/* Asegurar que el contenido de la pista ocupe el espacio restante */
 .track-content {
   flex: 1;
   display: flex;
@@ -2841,7 +2968,7 @@ input[type="range"]::-moz-range-thumb:hover {
   /* Prevent spillover */
 }
 
-/* Header spacer cell styling - MUST be 200px exact */
+/* Estilo de la celda espaciadora del encabezado - DEBE medir 200px exactos */
 .timeline-ruler-container .track-controls-spacer {
   width: 200px;
   max-width: 200px;
@@ -2852,7 +2979,7 @@ input[type="range"]::-moz-range-thumb:hover {
   justify-content: space-between;
   padding: 0 0.5rem;
   box-sizing: border-box;
-  /* Include padding in width */
+  /* Incluir relleno en el ancho */
 }
 
 .tracks-header {
@@ -2861,7 +2988,7 @@ input[type="range"]::-moz-range-thumb:hover {
   font-size: 0.9rem;
 }
 
-/* Track Header in Module (Name + Actions) */
+/* Encabezado de Pista en el módulo (Nombre + Acciones) */
 .track-header {
   display: flex;
   justify-content: space-between;
@@ -2876,7 +3003,7 @@ input[type="range"]::-moz-range-thumb:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 120px;
-  /* Leave space for buttons */
+  /* Dejar espacio para los botones */
   font-size: 0.85rem;
 }
 
@@ -2891,7 +3018,7 @@ input[type="range"]::-moz-range-thumb:hover {
   font-size: 0.8rem;
 }
 
-/* Right Column: Timeline Content (Grid cell 2) */
+/* Columna derecha: Contenido de la línea de tiempo (Celda de cuadrícula 2) */
 .timeline-ruler {
   position: relative;
   height: 30px;
@@ -2904,7 +3031,7 @@ input[type="range"]::-moz-range-thumb:hover {
   /* IE/Edge */
 }
 
-/* Hide scrollbar for Chrome/Safari */
+/* Ocultar barra de desplazamiento para Chrome/Safari */
 .timeline-ruler::-webkit-scrollbar {
   display: none;
 }
@@ -2914,7 +3041,7 @@ input[type="range"]::-moz-range-thumb:hover {
   position: relative;
   height: auto;
   min-height: 80px;
-  /* Adapts to sidebar content */
+  /* Se adapta al contenido de la barra lateral (sidebar) */
   display: flex;
   scrollbar-width: none;
   /* Firefox */
@@ -2922,12 +3049,12 @@ input[type="range"]::-moz-range-thumb:hover {
   /* IE/Edge */
 }
 
-/* Hide scrollbar for Chrome/Safari */
+/* Ocultar barra de desplazamiento para Chrome/Safari */
 .track-timeline-module::-webkit-scrollbar {
   display: none;
 }
 
-/* Time Markers in Ruler */
+/* Marcadores de tiempo en la regla */
 .time-marker {
   position: absolute;
   top: 0;
@@ -2939,19 +3066,19 @@ input[type="range"]::-moz-range-thumb:hover {
   pointer-events: none;
 }
 
-/* Playhead z-index fix */
+/* Corrección del z-index del playhead */
 .playhead {
   position: absolute;
   top: 0;
-  /* bottom: 0; Removed for dynamic height */
+  /* bottom: 0; Eliminado por altura dinámica */
   width: 2px;
   background-color: #F39C12;
-  /* Default playback color */
+  /* Color de reproducción predeterminado */
   z-index: 200;
-  /* Above ruler (z-100) and controls */
+  /* Por encima de la regla (z-100) y controles */
   pointer-events: none;
   display: none;
-  /* Hidden by default */
+  /* Oculto por defecto */
 }
 
 .playhead::before {
@@ -2964,15 +3091,15 @@ input[type="range"]::-moz-range-thumb:hover {
   border-top: 10px solid #F39C12;
 }
 
-/* Ensure canvas takes full size */
+/* Asegurar que el lienzo (canvas) ocupe todo el tamaño */
 .waveform-canvas {
   width: 100%;
   height: 100%;
   image-rendering: pixelated;
-  /* Sharper lines */
+  /* Líneas más nítidas */
 }
 
-/* ========== JAMSTUDIO BOTTOM TRANSPORT BAR ========== */
+/* ========== BARRA DE TRANSPORTE INFERIOR DE JAMSTUDIO ========== */
 
 .jamstudio-bottom-bar {
   position: fixed;
@@ -3109,11 +3236,11 @@ input[type="range"]::-moz-range-thumb:hover {
   border-color: #4a9eff;
 }
 
-/* Track Selection Highlight - Theme Aware */
+/* Resaltado de Selección de Pista - Adaptable al Tema */
 .track-container.track-selected {
   background-color: rgba(255, 255, 255, 0.08) !important;
   border-left: 3px solid #F39C12;
-  /* Default (JamVault) */
+  /* Predeterminado (JamVault) */
 }
 
 .natural .track-container.track-selected {
@@ -3136,7 +3263,7 @@ input[type="range"]::-moz-range-thumb:hover {
   border-left-color: #C0392B;
 }
 
-/* Bottom Mixer Content Styling */
+/* Estilo del Contenido del Mezclador Inferior */
 .bottom-mixer-content {
   width: 100%;
   display: flex;
@@ -3150,7 +3277,7 @@ input[type="range"]::-moz-range-thumb:hover {
   align-items: center;
   font-size: 0.9rem;
   color: #F39C12;
-  /* Default */
+  /* Predeterminado */
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 8px;
 }
@@ -3255,7 +3382,7 @@ input[type="range"]::-moz-range-thumb:hover {
   color: white;
 }
 
-/* ========== PREMIUM INTERACTIVE MODALS ========== */
+/* ========== VENTANAS MODALES INTERACTIVAS PREMIUM ========== */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -3341,7 +3468,7 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .modal-input:focus {
-  border-color: #FF8906;
+  border-color: #FF8906; /* Acento del tema (Theme accent) */
 }
 
 .modal-actions {
@@ -3381,7 +3508,7 @@ input[type="range"]::-moz-range-thumb:hover {
   box-shadow: 0 5px 15px rgba(255, 137, 6, 0.3);
 }
 
-/* Modals themes */
+/* Temas para las ventanas modales */
 .natural .modal-btn.confirm { background: #10D96A; }
 .natural .modal-btn.confirm:hover { background: #40916C; box-shadow: 0 5px 15px rgba(16, 217, 106, 0.3); }
 
@@ -3397,7 +3524,7 @@ input[type="range"]::-moz-range-thumb:hover {
 .redblack .modal-btn.confirm { background: #E81F2B; color: white; }
 .redblack .modal-btn.confirm:hover { background: #C74B50; box-shadow: 0 5px 15px rgba(232, 31, 43, 0.3); }
 
-/* ========== THEME SELECTOR MODAL ========== */
+/* ========== VENTANA MODAL DE SELECCIÓN DE TEMA ========== */
 .theme-modal {
   max-width: 600px;
   padding: 2.5rem;
@@ -3513,7 +3640,7 @@ input[type="range"]::-moz-range-thumb:hover {
   }
 }
 
-/* Specific accent border for active cards based on data-theme */
+/* Borde de acento específico para tarjetas activas basado en data-theme */
 .theme-card[data-theme="natural"].active {
   border-color: #10D96A;
 }
@@ -3554,7 +3681,7 @@ input[type="range"]::-moz-range-thumb:hover {
   background: #E81F2B;
 }
 
-/* ---------- RESPONSIVE HAMBURGER MENU ---------- */
+/* ---------- MENÚ DE HAMBURGUESA RESPONSIVO (HAMBURGER MENU) ---------- */
 .hamburger {
   display: none;
   flex-direction: column;
@@ -3582,7 +3709,7 @@ header {
   padding: 0.5rem 1.5rem;
 }
 
-/* Home Page Specific Container Adjustment */
+/* Ajuste del Contenedor Específico de la Página de Inicio */
 .container {
   margin-top: 3rem;
   text-align: center;
@@ -3660,7 +3787,7 @@ header {
     pointer-events: all;
   }
   
-  /* Restore original theme aesthetics but formatted for a mobile dropdown */
+  /* Restaurar la estética original del tema pero formateada para un menú desplegable móvil */
   .nav-links .btn {
     font-size: 1.15rem;
     padding: 0.8rem 1rem;
@@ -3672,7 +3799,7 @@ header {
     box-sizing: border-box;
   }
   
-  /* Specific styling for the embedded theme toggle in menu */
+  /* Estilo específico para el interruptor de tema integrado en el menú */
   #toggleTheme.theme-btn-mobile {
     margin-top: 2rem;
     margin-bottom: 1rem;
@@ -3696,7 +3823,7 @@ header {
   }
 }
 
-/* ========== PREMIUM AUTH MODAL ========== */
+/* ========== VENTANA MODAL DE AUTENTICACIÓN PREMIUM ========== */
 .auth-modal-content {
   background: rgba(15, 14, 20, 0.85);
   backdrop-filter: blur(20px) saturate(150%);
@@ -3779,7 +3906,7 @@ header {
 
 .auth-input:focus {
   outline: none;
-  border-color: #FF8906; /* Fallback accent */
+  border-color: #FF8906; /* Acento de respaldo (Fallback accent) */
   background: rgba(0, 0, 0, 0.5);
   box-shadow: 0 0 0 4px rgba(255, 137, 6, 0.15);
 }
@@ -3788,7 +3915,7 @@ header {
   color: #FF8906;
 }
 
-/* App-level themes config for inputs */
+/* Configuración de temas a nivel de aplicación para entradas (inputs) */
 .natural .auth-input:focus { border-color: #10D96A; box-shadow: 0 0 0 4px rgba(16, 217, 106, 0.15); }
 .natural .auth-input:focus + i { color: #10D96A; }
 
@@ -3812,7 +3939,7 @@ header {
   font-size: 1.2rem;
   font-weight: 800;
   color: #000;
-  background: #FF8906; /* Accent default */
+  background: #FF8906; /* Acento predeterminado (Accent default) */
   cursor: pointer;
   margin-top: 1rem;
   transition: all 0.3s ease;
@@ -3825,7 +3952,7 @@ header {
   box-shadow: 0 10px 25px rgba(255, 137, 6, 0.4);
 }
 
-/* Themes for btn */
+/* Temas para el botón */
 .natural .auth-submit-btn { background: #10D96A; }
 .natural .auth-submit-btn:hover { box-shadow: 0 10px 25px rgba(16, 217, 106, 0.4); }
 
@@ -3881,12 +4008,12 @@ header {
 .vintage .auth-footer a { color: #F1C40F; }
 .redblack .auth-footer a { color: #E81F2B; }
 
-/* Force Global Scaling Scale (80%) */
+/* Forzar Escala de Ajuste Global (80%) */
 html, :root {
   font-size: 80% !important;
 }
 
-/* Fix Dropdown options inheriting bright neon colors from select.btn */
+/* Corregir que las opciones del desplegable hereden colores neón brillantes de select.btn */
 select option {
   background-color: #121218;
   color: #ffffff;

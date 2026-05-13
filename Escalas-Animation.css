@@ -1,4 +1,4 @@
-/* Scale note appearance animation */
+/* Animación de aparición de las notas de la escala */
 #fretboard .note.scale-note-appear {
     animation: scaleNoteAppear 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
@@ -13,7 +13,7 @@
     }
 }
 
-/* Root note special styling - DEPRECATED (Moved to IndexStyles.css for theming) */
+/* Estilo especial para la nota raíz - OBSOLETO (Movido a IndexStyles.css para el sistema de temas) */
 /* #fretboard .note.root-note ellipse {
     fill: #FF1F1C !important;
 } */

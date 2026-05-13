@@ -1,5 +1,5 @@
-// ========== AMP SIMULATOR ==========
-// Virtual guitar amplifier with preamp, tone stack, and cabinet simulation
+// ========== SIMULADOR DE AMPLIFICADOR ==========
+// Amplificador de guitarra virtual con preamplificador, tone stack y simulación de pantalla (cabinet)
 
 import { AudioMath } from './utils/AudioMath.js';
 import { WaveshapeGenerator } from './utils/WaveshapeGenerator.js';
@@ -8,22 +8,22 @@ export class AmpSimulator {
     constructor(audioContext) {
         this.audioContext = audioContext;
 
-        // Create nodes
+        // Crear nodos
         this.input = audioContext.createGain();
         this.output = audioContext.createGain();
 
-        // Preamp stage
+        // Etapa de preamplificación (Preamp)
         this.preampGain = audioContext.createGain();
         this.preampShaper = audioContext.createWaveShaper();
         this.preampShaper.oversample = '4x';
 
-        // Tone stack (Baxandall-style EQ)
+        // Tone stack (EQ estilo Baxandall)
         this.bassFilter = audioContext.createBiquadFilter();
         this.midFilter = audioContext.createBiquadFilter();
         this.trebleFilter = audioContext.createBiquadFilter();
         this.presenceFilter = audioContext.createBiquadFilter();
 
-        // Configure tone stack
+        // Configurar tone stack
         this.bassFilter.type = 'lowshelf';
         this.bassFilter.frequency.value = 100;
 
@@ -38,11 +38,11 @@ export class AmpSimulator {
         this.presenceFilter.frequency.value = 4500;
         this.presenceFilter.Q.value = 2;
 
-        // Output stage
+        // Etapa de salida
         this.masterGain = audioContext.createGain();
 
-        // Parameters
-        this.model = 'clean'; // clean, crunch, high-gain
+        // Parámetros
+        this.model = 'clean'; // limpio (clean), saturado (crunch), alta ganancia (high-gain)
         this.gain = 5; // 0-10
         this.bass = 5; // 0-10
         this.mid = 5; // 0-10
@@ -51,7 +51,7 @@ export class AmpSimulator {
         this.master = 0.8; // 0-1
         this.enabled = false;
 
-        // Connect: Input -> PreampGain -> Shaper -> Tone Stack -> Master -> Output
+        // Conexión: Entrada -> PreampGain -> Shaper -> Tone Stack -> Master -> Salida
         this.input.connect(this.preampGain);
         this.preampGain.connect(this.preampShaper);
         this.preampShaper.connect(this.bassFilter);
@@ -61,48 +61,48 @@ export class AmpSimulator {
         this.presenceFilter.connect(this.masterGain);
         this.masterGain.connect(this.output);
 
-        // Initialize
+        // Inicializar
         this.updatePreamp();
         this.updateToneStack();
     }
 
-    // Set amp model
+    // Seleccionar modelo de amplificador
     setModel(model) {
         this.model = model;
         this.updatePreamp();
     }
 
-    // Set gain (0-10)
+    // Ajustar ganancia (0-10)
     setGain(value) {
         this.gain = AudioMath.clamp(value, 0, 10);
         this.updatePreamp();
     }
 
-    // Set bass (0-10)
+    // Ajustar graves (0-10)
     setBass(value) {
         this.bass = AudioMath.clamp(value, 0, 10);
         this.updateToneStack();
     }
 
-    // Set mid (0-10)
+    // Ajustar medios (0-10)
     setMid(value) {
         this.mid = AudioMath.clamp(value, 0, 10);
         this.updateToneStack();
     }
 
-    // Set treble (0-10)
+    // Ajustar agudos (0-10)
     setTreble(value) {
         this.treble = AudioMath.clamp(value, 0, 10);
         this.updateToneStack();
     }
 
-    // Set presence (0-10)
+    // Ajustar presencia (0-10)
     setPresence(value) {
         this.presence = AudioMath.clamp(value, 0, 10);
         this.updateToneStack();
     }
 
-    // Set master volume (0-1)
+    // Ajustar volumen maestro (0-1)
     setMaster(value) {
         this.master = AudioMath.clamp(value, 0, 1);
         this.masterGain.gain.setTargetAtTime(
@@ -112,25 +112,25 @@ export class AmpSimulator {
         );
     }
 
-    // Update preamp based on model and gain
+    // Actualizar preamplificador basado en modelo y ganancia
     updatePreamp() {
         const gainNormalized = this.gain / 10; // 0-1
 
         switch (this.model) {
             case 'clean':
-                // Fender Twin Reverb style - subtle warmth, transparent
+                // Estilo Fender Twin Reverb - calidez sutil, transparente
                 this.preampGain.gain.value = 1 + gainNormalized * 2;
                 this.preampShaper.curve = WaveshapeGenerator.tubeSaturation(0.5 + gainNormalized * 1.5);
                 break;
 
             case 'crunch':
-                // Marshall JCM800 style - mid-range focused, classic rock
+                // Estilo Marshall JCM800 - enfocado en medios, rock clásico
                 this.preampGain.gain.value = 1 + gainNormalized * 4;
                 this.preampShaper.curve = WaveshapeGenerator.asymmetricClip(1 + gainNormalized * 3);
                 break;
 
             case 'high-gain':
-                // Mesa Boogie Dual Rectifier style - aggressive, modern metal
+                // Estilo Mesa Boogie Dual Rectifier - agresivo, metal moderno
                 this.preampGain.gain.value = 1 + gainNormalized * 6;
                 this.preampShaper.curve = WaveshapeGenerator.exponentialClip(2 + gainNormalized * 4);
                 break;
@@ -141,9 +141,9 @@ export class AmpSimulator {
         }
     }
 
-    // Update tone stack
+    // Actualizar tone stack
     updateToneStack() {
-        // Bass (0-10 maps to -12dB to +12dB)
+        // Graves (0-10 mapea a -12dB a +12dB)
         const bassGain = AudioMath.mapRange(this.bass, 0, 10, -12, 12);
         this.bassFilter.gain.setTargetAtTime(
             bassGain,
@@ -151,7 +151,7 @@ export class AmpSimulator {
             0.01
         );
 
-        // Mid (0-10 maps to -12dB to +12dB)
+        // Medios (0-10 mapea a -12dB a +12dB)
         const midGain = AudioMath.mapRange(this.mid, 0, 10, -12, 12);
         this.midFilter.gain.setTargetAtTime(
             midGain,
@@ -159,7 +159,7 @@ export class AmpSimulator {
             0.01
         );
 
-        // Treble (0-10 maps to -12dB to +12dB)
+        // Agudos (0-10 mapea a -12dB a +12dB)
         const trebleGain = AudioMath.mapRange(this.treble, 0, 10, -12, 12);
         this.trebleFilter.gain.setTargetAtTime(
             trebleGain,
@@ -167,7 +167,7 @@ export class AmpSimulator {
             0.01
         );
 
-        // Presence (0-10 maps to -6dB to +12dB, more boost than cut)
+        // Presencia (0-10 mapea a -6dB a +12dB, más realce que recorte)
         const presenceGain = AudioMath.mapRange(this.presence, 0, 10, -6, 12);
         this.presenceFilter.gain.setTargetAtTime(
             presenceGain,
@@ -176,11 +176,11 @@ export class AmpSimulator {
         );
     }
 
-    // Enable/disable
+    // Activar/desactivar
     setEnabled(enabled) {
         this.enabled = enabled;
         if (!enabled) {
-            // Bypass by setting preamp to unity gain and linear curve
+            // Bypass poniendo el previo a ganancia unitaria y curva lineal
             this.preampGain.gain.setTargetAtTime(1.0, this.audioContext.currentTime, 0.01);
             this.preampShaper.curve = null;
         } else {
@@ -188,7 +188,7 @@ export class AmpSimulator {
         }
     }
 
-    // Preset: Clean (Fender Twin)
+    // Preset: Limpio (Fender Twin)
     presetClean() {
         this.setModel('clean');
         this.setGain(3);
@@ -199,7 +199,7 @@ export class AmpSimulator {
         this.setMaster(0.8);
     }
 
-    // Preset: Blues (warm overdrive)
+    // Preset: Blues (overdrive cálido)
     presetBlues() {
         this.setModel('crunch');
         this.setGain(5);
@@ -210,7 +210,7 @@ export class AmpSimulator {
         this.setMaster(0.75);
     }
 
-    // Preset: Rock (Marshall crunch)
+    // Preset: Rock (saturación Marshall)
     presetRock() {
         this.setModel('crunch');
         this.setGain(7);
@@ -221,7 +221,7 @@ export class AmpSimulator {
         this.setMaster(0.8);
     }
 
-    // Preset: Metal (high-gain)
+    // Preset: Metal (alta ganancia)
     presetMetal() {
         this.setModel('high-gain');
         this.setGain(8);
@@ -232,7 +232,7 @@ export class AmpSimulator {
         this.setMaster(0.7);
     }
 
-    // Preset: Lead (singing sustain)
+    // Preset: Solista (Lead) (sustentación cantarina)
     presetLead() {
         this.setModel('high-gain');
         this.setGain(7);
@@ -243,17 +243,17 @@ export class AmpSimulator {
         this.setMaster(0.75);
     }
 
-    // Connect to next node
+    // Conectar al siguiente nodo
     connect(destination) {
         this.output.connect(destination);
     }
 
-    // Disconnect
+    // Desconectar
     disconnect() {
         this.output.disconnect();
     }
 
-    // Cleanup
+    // Limpieza
     destroy() {
         this.disconnect();
     }

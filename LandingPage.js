@@ -1,16 +1,16 @@
 /**
  * LandingPage.js
- * Scroll-reveal using IntersectionObserver.
- * Elements with class "reveal" animate in when entering the viewport
- * and animate back out when leaving.
- * Also updates the welcome greeting with the logged-in username.
+ * Revelado al hacer scroll mediante IntersectionObserver.
+ * Los elementos con la clase "reveal" se animan al entrar en el viewport
+ * y se desaniman al salir.
+ * También actualiza el saludo de bienvenida con el nombre del usuario logueado.
  */
 (function () {
   'use strict';
 
-  const THRESHOLD = 0.2; // 20% of section visible triggers animation
+  const THRESHOLD = 0.2; // El 20% de la sección visible activa la animación
 
-  // ---------- Scroll reveal ----------
+  // ---------- Revelado al hacer scroll ----------
 
   function initReveal() {
     const revealEls = document.querySelectorAll('.reveal');
@@ -40,7 +40,7 @@
     revealEls.forEach((el) => observer.observe(el));
   }
 
-  // ---------- Welcome greeting ----------
+  // ---------- Saludo de bienvenida ----------
 
   function setWelcomeUsername(user) {
     const el = document.getElementById('welcome-username');
@@ -49,10 +49,10 @@
   }
 
   function initWelcome() {
-    // If Auth.js already resolved before us, window.jamvaultUser is set
+    // Si Auth.js ya se resolvió antes que nosotros, window.jamvaultUser ya estará establecido
     setWelcomeUsername(window.jamvaultUser || null);
 
-    // Listen for auth state changes fired by Auth.js
+    // Escuchar cambios de estado de autenticación disparados por Auth.js
     window.addEventListener('jamvault:auth_changed', (e) => {
       setWelcomeUsername(e.detail);
     });

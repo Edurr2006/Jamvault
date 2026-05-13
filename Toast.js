@@ -1,9 +1,8 @@
 /**
- * JamVault Toast System 🔔
- * Replaces native alert() with professional, animated notifications.
+ * JamVault - Sistema de Notificaciones (Toast) 🔔
  */
 
-// Ensure the container exists
+// Asegurar que el contenedor exista
 const createToastContainer = () => {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -15,10 +14,10 @@ const createToastContainer = () => {
 };
 
 /**
- * Shows a professional toast notification.
- * @param {string} message - The message to display.
+ * Muestra una notificación profesional.
+ * @param {string} message - El mensaje a mostrar.
  * @param {string} type - info, success, warning, error.
- * @param {number} duration - Auto-close duration in ms (default 4000).
+ * @param {number} duration - Duración de autocierre en ms (por defecto 4000).
  */
 window.showToast = (message, type = 'info', duration = 2500) => {
     const container = createToastContainer();
@@ -26,7 +25,7 @@ window.showToast = (message, type = 'info', duration = 2500) => {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
 
-    // Icon mapping
+    // Mapeo de iconos
     const icons = {
         success: 'fa-check-circle',
         error: 'fa-exclamation-circle',
@@ -48,7 +47,7 @@ window.showToast = (message, type = 'info', duration = 2500) => {
 
     container.appendChild(toast);
 
-    // Auto-remove
+    // Auto-eliminación
     setTimeout(() => {
         if (toast.parentElement) {
             toast.classList.add('toast-exit');
@@ -58,7 +57,7 @@ window.showToast = (message, type = 'info', duration = 2500) => {
 };
 
 /**
- * Creates a premium modal for confirmations.
+ * Crea un modal premium para confirmaciones.
  */
 window.showConfirm = (message, onConfirm) => {
     const overlay = document.createElement('div');
@@ -92,12 +91,12 @@ window.showConfirm = (message, onConfirm) => {
         cleanup();
     };
 
-    // Smooth entry
+    // Entrada suave
     requestAnimationFrame(() => overlay.classList.add('modal-active'));
 };
 
 /**
- * Creates a premium modal for prompts (text input).
+ * Crea un modal premium para avisos (entrada de texto).
  */
 window.showPrompt = (message, defaultValue, onConfirm) => {
     const overlay = document.createElement('div');
@@ -138,7 +137,7 @@ window.showPrompt = (message, defaultValue, onConfirm) => {
         }
     };
 
-    // Support ENTER key
+    // Soportar tecla ENTER
     input.onkeyup = (e) => {
         if (e.key === 'Enter') overlay.querySelector('#modalConfirm').click();
         if (e.key === 'Escape') cleanup();
@@ -148,7 +147,7 @@ window.showPrompt = (message, defaultValue, onConfirm) => {
 };
 
 /**
- * Creates a premium modal for DAW Export.
+ * Crea un modal premium para Exportación del DAW.
  */
 window.showExportModal = (onExport) => {
     const overlay = document.createElement('div');
@@ -207,7 +206,7 @@ window.showExportModal = (onExport) => {
 };
 
 /**
- * Creates a premium modal for Theme Selection.
+ * Crea un modal premium para Selección de Tema.
  */
 window.showThemeModal = (currentTheme, onSelect) => {
     const overlay = document.createElement('div');
@@ -272,5 +271,5 @@ window.showThemeModal = (currentTheme, onSelect) => {
     requestAnimationFrame(() => overlay.classList.add('modal-active'));
 };
 
-// Optional: Override native alert (use with caution, better to replace calls manually)
+// Opcional: Sobrescribir el alert nativo (usar con precaución, mejor reemplazar las llamadas manualmente)
 // window.alert = (msg) => window.showToast(msg, 'info');

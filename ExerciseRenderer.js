@@ -5,7 +5,7 @@ export class ExerciseRenderer {
         this.scaleContainer = document.getElementById(scaleContainerId);
         this.chordContainer = document.getElementById(chordContainerId);
 
-        // Fret Coordinates
+        // Coordenadas de los trastes
         this.FRET_X = [12, 81, 184.5, 275.5, 363.5, 446.5, 525.5, 601.5, 673, 741.5, 806.5, 868.5, 928, 983.5, 1035, 1084, 1131.5, 1177.5];
         this.STRING_Y = { 1: 20, 2: 60, 3: 100, 4: 140, 5: 180, 6: 220 };
 
@@ -35,25 +35,25 @@ export class ExerciseRenderer {
                 </radialGradient>
             </defs>
 
-            <!-- Neck Background -->
+            <!-- Fondo del mástil -->
             <rect x="0" y="20" width="1209" height="200" fill="#141416" rx="8" />
             
-            <!-- Inlay Markers -->
+            <!-- Marcadores de posición (Inlays) -->
             <g opacity="0.15">
                 ${[275.5, 446.5, 601.5, 741.5, 1084, 1177.5].map(x => `<circle cx="${x}" cy="120" r="6" fill="white" />`).join('')}
                 <circle cx="928" cy="60" r="6" fill="white" />
                 <circle cx="928" cy="180" r="6" fill="white" />
             </g>
 
-            <!-- Strings -->
+            <!-- Cuerdas -->
             <g stroke="#fff" stroke-opacity="0.3">
                 ${[20, 60, 100, 140, 180, 220].map((y, i) => `<line x1="24" y1="${y}" x2="1209" y2="${y}" stroke-width="${1 + (i * 0.2)}" />`).join('')}
             </g>
 
-            <!-- Nut -->
+            <!-- Cejuela -->
             <line x1="23.99" y1="20" x2="23.99" y2="220" stroke="white" stroke-width="5" opacity="0.9" />
 
-            <!-- Frets -->
+            <!-- Trastes -->
             ${[138, 231, 320, 407, 486, 565, 638, 708, 775, 838, 899, 957, 1010, 1060, 1108, 1155, 1200].map(x => `<line x1="${x}" y1="20" x2="${x}" y2="220" stroke="#fff" stroke-width="2" opacity="0.4" />`).join('')}
             
             <g id="exNotesLayer"></g>
@@ -131,7 +131,7 @@ export class ExerciseRenderer {
             return;
         }
 
-        // Dedicated large preview for single chords
+        // Previsualización grande dedicada para acordes individuales
         const svg = this._generateChordSVG(data, {
             width: 320,
             height: 420,
@@ -148,7 +148,7 @@ export class ExerciseRenderer {
     }
 
     /**
-     * Internal helper to generate a chord SVG string.
+     * Ayuda interna para generar una cadena SVG de acorde.
      */
     _generateChordSVG(data, options = {}) {
         const { width = 140, height = 210, viewBox = "0 0 220 280", isHighlighted = false, isLarge = false } = options;
@@ -159,7 +159,7 @@ export class ExerciseRenderer {
         const fingers = chordInfo[data.position || 0] || chordInfo[0];
         if (!fingers) return '';
 
-        // Calculate offset
+        // Calcular desplazamiento
         let maxFret = 0;
         let minFret = 20;
         fingers.forEach(f => {
@@ -179,7 +179,7 @@ export class ExerciseRenderer {
         const activeStrings = new Set(fingers.map(f => f.cuerda));
         const mutedStrings = [1, 2, 3, 4, 5, 6].filter(s => !activeStrings.has(s));
 
-        // --- DETECT BARRES ---
+        // --- DETECTAR CEJILLAS ---
         const barreGroups = {};
         fingers.forEach(f => {
             if (f.dedo === 1 && f.traste > 0) {
@@ -280,9 +280,9 @@ export class ExerciseRenderer {
     }
 
     /**
-     * Renders a row of chord diagrams for a progression.
-     * @param {Array} steps - The progression steps to render.
-     * @param {number} activeIndex - Optional index of the currently playing chord to highlight.
+     * Renderiza una fila de diagramas de acordes para una progresión.
+     * @param {Array} steps - Los pasos de la progresión a renderizar.
+     * @param {number} activeIndex - Índice opcional del acorde que se está reproduciendo actualmente para resaltar.
      */
     renderChordProgression(steps, activeIndex = -1) {
         if (!this.chordContainer) return;
@@ -295,7 +295,7 @@ export class ExerciseRenderer {
 
         let html = `<div class="chord-progression-row" style="display: flex; gap: 12px; padding: 10px; overflow-x: auto; width: 100%; justify-content: center; align-items: flex-start;">`;
 
-        // We use the absolute index from the original steps array for correct highlighting sync
+        // Usamos el índice absoluto del array de pasos original para una sincronización de resaltado correcta
         let chordCount = 0;
         steps.forEach((step, absoluteIdx) => {
             if (step.kind !== 'chord') return;
@@ -320,7 +320,7 @@ export class ExerciseRenderer {
     }
 
     highlightStep(step, stepIndex) {
-        // Reset scale highlights
+        // Restablecer resaltados de escala
         const allCircles = document.querySelectorAll('.note-circle');
         allCircles.forEach(c => {
             const isSelected = c.getAttribute('stroke') === '#fff';
@@ -332,7 +332,7 @@ export class ExerciseRenderer {
             c.setAttribute('r', '16');
         });
 
-        // Reset chord progression highlights
+        // Restablecer resaltados de la progresión de acordes
         const allDiags = document.querySelectorAll('.chord-diagram-item');
         allDiags.forEach(d => {
             d.style.transform = 'scale(1)';
@@ -350,15 +350,15 @@ export class ExerciseRenderer {
                 noteEl.setAttribute('r', '20');
             }
         } else if (step.kind === 'chord') {
-            // Find the diagram in the progression row if possible
-            // Note: we need to find which "chord step index" this is
-            // For now, simpler: highlight based on root/type match if unique, or find index in chords subset
+            // Encontrar el diagrama en la fila de progresión si es posible
+            // Nota: necesitamos encontrar qué "índice de paso de acorde" es este
+            // Por ahora, más simple: resaltar basado en la coincidencia de raíz/tipo si es única, o encontrar el índice en el subconjunto de acordes
             const progItems = document.querySelectorAll('.chord-diagram-item');
-            // We need to know the index relative to other chords only
-            // Let's rely on data-prog-index if we can pass it, but highlightStep only gets step
-            // Better: Ejercicios.js will call renderer.renderChordProgression(steps, activeChordIndex) 
-            // for absolute clarity. But highlightStep is the standardized callback.
-            // Let's use the stepIndex to filter chords.
+            // Necesitamos conocer el índice relativo solo a otros acordes
+            // Confiemos en data-prog-index si podemos pasarlo, pero highlightStep solo recibe el paso
+            // Mejor: Ejercicios.js llamará a renderer.renderChordProgression(steps, activeChordIndex) 
+            // para una claridad absoluta. Pero highlightStep es el callback estandarizado.
+            // Usemos el stepIndex para filtrar los acordes.
         }
     }
 }

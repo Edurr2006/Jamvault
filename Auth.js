@@ -1,9 +1,9 @@
 /**
  * JamVault - Auth.js
- * Handles user authentication, session management, and UI updates across all pages.
+ * Gestiona la autenticación de usuarios, gestión de sesiones y actualizaciones de la interfaz en todas las páginas.
  */
 
-// Guards against spurious logout events / toasts when no session was ever active
+// Protege contra eventos de cierre de sesión / toasts espurios cuando nunca hubo una sesión activa
 let _authSessionActive = false;
 let _authEventsSetup = false;
 
@@ -19,7 +19,7 @@ if (document.readyState === 'loading') {
 }
 
 function injectAuthUI() {
-    // Inject FontAwesome if not present
+    // Inyectar FontAwesome si no está presente
     if (!document.querySelector('link[href*="font-awesome"]')) {
         const faLink = document.createElement('link');
         faLink.rel = 'stylesheet';
@@ -27,12 +27,12 @@ function injectAuthUI() {
         document.head.appendChild(faLink);
     }
 
-    // Inject the Auth Button into the header navigation
+    // Inyectar el botón de autenticación en la navegación del encabezado
     const header = document.querySelector('header');
     const navLinks = document.querySelector('.nav-links');
     if (!header && !navLinks) return;
 
-    // Create auth button container
+    // Crear contenedor del botón de autenticación
     const authContainer = document.createElement('div');
     authContainer.className = 'auth-container';
     authContainer.innerHTML = `
@@ -67,7 +67,7 @@ function injectAuthUI() {
         if (navLinks) navLinks.appendChild(authContainer);
     }
 
-    // Inject the Modal HTML to the body
+    // Inyectar el HTML del Modal al body
     const modalHTML = `
     <div id="authModal" class="modal-overlay">
         <div class="auth-modal-content">
@@ -110,17 +110,17 @@ function injectAuthUI() {
     `;
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-    // Bind events
+    // Vincular eventos
     setupAuthEvents();
 }
 
 let isLoginMode = true;
 
 function setupAuthEvents() {
-    if (_authEventsSetup) return; // Prevent multiple listeners
+    if (_authEventsSetup) return; // Evitar múltiples escuchadores de eventos
     _authEventsSetup = true;
 
-    // Use event delegation for robust click handling
+    // Usar delegación de eventos para una gestión robusta de clics
     document.addEventListener('click', (e) => {
         const authBtnClicked = e.target.closest('#authBtn');
         const closeBtnClicked = e.target.closest('#closeAuthModal');
@@ -234,7 +234,7 @@ async function checkAuthStatus() {
             window.dispatchEvent(new CustomEvent('jamvault:auth_changed', { detail: null }));
         }
     } catch (e) {
-        console.error('Failed to check auth status', e);
+        console.error('Error al comprobar el estado de autenticación', e);
     }
 }
 
@@ -260,16 +260,16 @@ function updateUIForGuest() {
 }
 
 async function handleLogout() {
-    if (!_authSessionActive) return; // Already logged out or no session
+    if (!_authSessionActive) return; // Ya se cerró sesión o no había sesión activa
     _authSessionActive = false;
 
     try {
         await fetch('api/auth.php?action=logout', { method: 'POST' });
     } catch (e) {
-        console.error('Logout fetch error', e);
+        console.error('Error al cerrar sesión mediante fetch', e);
     }
     
-    // Always clear UI and dispatch even if logout fetch failed (local session is done)
+    // Siempre limpiar la interfaz y disparar el evento incluso si el cierre de sesión falló (la sesión local ha terminado)
     updateUIForGuest();
     if (typeof showToast === 'function') {
         showToast('Sesión cerrada', 'info');

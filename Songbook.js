@@ -1,15 +1,15 @@
 /**
  * JamVault - Songbook.js
- * Manages song search, drag-and-drop categorisation, and cloud persistence.
- * Requires authentication – guests see a lock overlay and cannot interact.
+ * Gestiona la búsqueda de canciones, la categorización mediante arrastrar y soltar, y la persistencia en la nube.
+ * Requiere autenticación – los invitados ven una capa de bloqueo y no pueden interactuar.
  */
 
-// ── Global State ──────────────────────────────────────────────────────────────
+// ── Estado Global ──────────────────────────────────────────────────────────────
 let songLists = { want: [], progress: [], done: [] };
 let isLoggedIn = false;
-let wasEverLoggedIn = false; // tracks if user had an active session this visit
+let wasEverLoggedIn = false; // rastrea si el usuario tuvo una sesión activa en esta visita
 
-// ── UI Elements ───────────────────────────────────────────────────────────────
+// ── Elementos de la UI ─────────────────────────────────────────────────────────
 const searchInput  = document.getElementById('searchInput');
 const clearSearchBtn = document.getElementById('clearSearch');
 const loadingDiv   = document.getElementById('loading');
@@ -23,13 +23,13 @@ const listsNodes = {
 };
 const columnNodes = document.querySelectorAll('.songbook-column');
 
-// ── 1. INITIALISATION ─────────────────────────────────────────────────────────
+// ── 1. INICIALIZACIÓN ─────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     renderAllLists();
     initDiscovery();
-    // Check if user is already logged in (initial load)
+    // Comprobar si el usuario ya ha iniciado sesión (carga inicial)
     setTimeout(() => {
         if (window.jamvaultUser && !wasEverLoggedIn) {
             handleLogin();
@@ -39,12 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
 });
 
-// Listen for login / logout events dispatched by Auth.js
+// Escuchar eventos de inicio / cierre de sesión despachados por Auth.js
 window.addEventListener('jamvault:auth_changed', (e) => {
     if (e.detail) {
         handleLogin();
     } else {
-        // detail is null: either first load or logout
+        // detail es null: ya sea la primera carga o el cierre de sesión
         if (wasEverLoggedIn) {
             handleLogout();
         } else {
@@ -63,13 +63,13 @@ async function handleLogin() {
 
 function handleLogout() {
     isLoggedIn = false;
-    wasEverLoggedIn = false; // Reset to avoid double-processing
+    wasEverLoggedIn = false; // Restablecer para evitar el doble procesamiento
     songLists = { want: [], progress: [], done: [] };
     renderAllLists();
     showOverlay();
 }
 
-// ── 2. AUTH OVERLAY ───────────────────────────────────────────────────────────
+// ── 2. CAPA DE AUTENTICACIÓN (AUTH OVERLAY) ───────────────────────────────────
 
 function showOverlay() {
     if (authOverlay) authOverlay.style.display = 'flex';
@@ -79,7 +79,7 @@ function hideOverlay() {
     if (authOverlay) authOverlay.style.display = 'none';
 }
 
-// ── 3. DISCOVERY & SEARCH ─────────────────────────────────────────────────────
+// ── 3. DESCUBRIMIENTO Y BÚSQUEDA ──────────────────────────────────────────────
 
 async function initDiscovery() {
     loadingDiv.style.display = 'block';
@@ -89,7 +89,7 @@ async function initDiscovery() {
 }
 
 function setupEventListeners() {
-    // Search with debounce
+    // Búsqueda con debounce
     let searchTimeout;
     searchInput.oninput = (e) => {
         const q = e.target.value.trim();
@@ -110,7 +110,7 @@ function setupEventListeners() {
         initDiscovery();
     };
 
-    // Drag-and-drop on Kanban columns
+    // Arrastrar y soltar en las columnas del Kanban
     columnNodes.forEach(column => {
         column.addEventListener('dragover', (e) => {
             if (!isLoggedIn) return;
@@ -148,7 +148,7 @@ function setupEventListeners() {
     });
 }
 
-// ── 4. API CALLS ──────────────────────────────────────────────────────────────
+// ── 4. LLAMADAS A LA API ──────────────────────────────────────────────────────
 
 async function fetchSongs(query) {
     const url = query ? `api/tabs.php?q=${encodeURIComponent(query)}` : 'api/tabs.php';
@@ -166,7 +166,7 @@ async function fetchSongs(query) {
 async function fetchCloudSongbook() {
     try {
         const res = await fetch('api/songbook.php?action=list');
-        if (res.status === 401) return; // not logged in
+        if (res.status === 401) return; // no ha iniciado sesión
         const data = await res.json();
         if (data.success) {
             songLists = data.songbook;
@@ -206,7 +206,7 @@ async function apiRemove(tabId) {
     } catch (e) { console.error('Error removing song from cloud:', e); }
 }
 
-// ── 5. RENDERING ──────────────────────────────────────────────────────────────
+// ── 5. RENDERIZADO ────────────────────────────────────────────────────────────
 
 function renderSearchResults(results, titleText) {
     discoveryArea.innerHTML = `<div class="discovery-title"><i class="fas fa-compact-disc"></i> ${titleText || 'Biblioteca JamVault'}</div>`;
@@ -268,7 +268,7 @@ function renderList(category) {
     const songs = songLists[category];
     listNode.innerHTML = '';
 
-    // Update count badge
+    // Actualizar el contador
     const header = listNode.previousElementSibling;
     const countSpan = header ? header.querySelector('.count') : null;
     if (countSpan) countSpan.textContent = songs.length;
@@ -309,7 +309,7 @@ function renderList(category) {
     });
 }
 
-// ── 6. DATA OPERATIONS ────────────────────────────────────────────────────────
+// ── 6. OPERACIONES DE DATOS ───────────────────────────────────────────────────
 
 async function addSong(category, songData) {
     const exists = Object.values(songLists).some(list => list.some(s => s.id === songData.id));
@@ -341,7 +341,7 @@ async function removeSong(category, songId) {
     await apiRemove(songId);
 }
 
-// ── 7. HELPERS ────────────────────────────────────────────────────────────────
+// ── 7. AYUDAS (HELPERS) ───────────────────────────────────────────────────────
 
 function openAuthModal() {
     const modal = document.getElementById('authModal');

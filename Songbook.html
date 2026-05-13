@@ -7,6 +7,7 @@
   <title>Libro de Canciones | JamVault</title>
   <link rel="stylesheet" href="IndexStyles.css?v=2" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="imagenes/favicon.png">
   <script src="ThemeInit.js"></script>
   <script src="LocalStorage.js" defer></script>
 
@@ -30,7 +31,7 @@
       letter-spacing: -1.5px;
     }
 
-    /* --- MODERN SEARCH AREA --- */
+    /* --- ÁREA DE BÚSQUEDA MODERNA --- */
     .search-area {
       display: flex;
       flex-direction: column;
@@ -94,7 +95,7 @@
       transform: translateY(-50%) scale(1.1);
     }
 
-    /* --- DISCOVERY / RESULTS AREA --- */
+    /* --- ÁREA DE DESCUBRIMIENTO / RESULTADOS --- */
     #discovery-area {
       width: 100%;
       max-width: 1100px;
@@ -143,7 +144,7 @@
       box-shadow: 0 10px 20px rgba(0,0,0,0.4);
     }
 
-    /* --- COLUMNS & CARDS --- */
+    /* --- COLUMNAS Y TARJETAS --- */
     .songbook-container {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -166,7 +167,7 @@
       box-shadow: 0 15px 35px rgba(0,0,0,0.2);
     }
 
-    /* Soft Glows for Categories */
+    /* Brillos Suaves para Categorías */
     .songbook-column[data-category="want"] { box-shadow: 0 10px 40px rgba(255, 68, 68, 0.08); }
     .songbook-column[data-category="progress"] { box-shadow: 0 10px 40px rgba(243, 156, 18, 0.08); }
     .songbook-column[data-category="done"] { box-shadow: 0 10px 40px rgba(46, 204, 113, 0.08); }
@@ -178,7 +179,7 @@
     }
 
     .songbook-header {
-      font-size: 1.15rem; /* Reduced slightly to ensure fit */
+      font-size: 1.15rem; /* Reducido ligeramente para asegurar el ajuste */
       font-weight: 800;
       margin-bottom: 2.5rem;
       padding: 0.5rem 0 1.2rem;
@@ -311,7 +312,7 @@
       100% { opacity: 0.6; }
     }
 
-    /* --- RESULT CARDS (used by Songbook.js) --- */
+    /* --- TARJETAS DE RESULTADOS (usadas por Songbook.js) --- */
     .result-info {
       display: flex;
       flex-direction: column;
@@ -330,13 +331,13 @@
       color: rgba(255,255,255,0.5);
     }
 
-    /* --- AUTH GATE OVERLAY --- */
+    /* --- SUPERPOSICIÓN DE BARRERA DE AUTENTICACIÓN --- */
     .songbook-wrapper {
       position: relative;
     }
 
     #songbook-auth-overlay {
-      display: none; /* shown via JS when not logged in */
+      display: none; /* mostrado a través de JS cuando no se ha iniciado sesión */
       position: absolute;
       inset: 0;
       z-index: 50;
@@ -448,7 +449,7 @@
 
     <div class="songbook-wrapper">
 
-      <!-- AUTH GATE OVERLAY (shown when not logged in) -->
+      <!-- SUPERPOSICIÓN DE BARRERA DE AUTENTICACIÓN (se muestra cuando no se ha iniciado sesión) -->
       <div id="songbook-auth-overlay">
         <div class="lock-icon"><i class="fas fa-lock"></i></div>
         <h3>Inicia sesión para continuar</h3>

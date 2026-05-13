@@ -1,7 +1,7 @@
 /**
  * JamVault - Tabs.js
- * Native Engine = AlphaTab Vector Rendering + Native Audio
- * 100% professional-quality synchronization and musical notation.
+ * Motor Nativo = Renderizado de Vectores AlphaTab + Audio Nativo
+ * Sincronización y notación musical de calidad 100% profesional.
  */
 
 let alphaApi = null;
@@ -9,9 +9,9 @@ let currentScore = null;
 let currentTrack = null;
 let isPlaying = false;
 let isSoloMode = false;
-let totalScoreTicks = 0; // Pre-calculated for performance
+let totalScoreTicks = 0; // Pre-calculado para rendimiento
 
-// UI Elements
+// Elementos de la UI
 const searchInput = document.getElementById('searchInput');
 const clearSearchBtn = document.getElementById('clearSearch');
 const songsListBody = document.getElementById('songsListBody');
@@ -25,8 +25,9 @@ const speedLabel = document.getElementById('at-speed-label');
 const trackSidebar = document.getElementById('at-track-sidebar');
 const controlsBar = document.getElementById('atControlsBar');
 const progressBar = document.getElementById('at-progress-bar');
+const progressContainer = document.querySelector('.at-progress-container');
 
-// --- 1. SEARCH & DISCOVERY ---
+// --- 1. BÚSQUEDA Y DESCUBRIMIENTO ---
 let allSongs = [];
 async function initDiscovery() {
   if (!loadingDiv) return;
@@ -37,7 +38,7 @@ async function initDiscovery() {
     loadingDiv.style.display = 'none';
     renderSongsList(allSongs);
   } catch (error) {
-    console.error('Error initializing discovery:', error);
+    console.error('Error al inicializar el descubrimiento:', error);
     if (loadingDiv) loadingDiv.style.display = 'none';
   }
 }
@@ -90,7 +91,7 @@ function renderSongsList(songs) {
   });
 }
 
-// Search Logic
+// Lógica de Búsqueda
 let searchTimeout;
 if (searchInput) {
   searchInput.oninput = (e) => {
@@ -110,7 +111,7 @@ if (clearSearchBtn) clearSearchBtn.onclick = () => {
   searchInput.value = ''; clearSearchBtn.style.display = 'none'; initDiscovery();
 };
 
-// --- 2. THE ALPHATAB ENGINE ---
+// --- 2. EL MOTOR ALPHATAB ---
 
 function initAlphaTab() {
   if (alphaApi) alphaApi.destroy();
@@ -118,7 +119,7 @@ function initAlphaTab() {
   const settings = {
     core: { engine: 'svg' },
     display: {
-      layout: { mode: 'page' },       // Vertical layout, line by line
+      layout: { mode: 'page' },       // Diseño vertical, línea por línea
       hideStandardNotation: true,
       staveSpacing: 10,
       padding: [40, 40, 40, 40]
@@ -130,16 +131,15 @@ function initAlphaTab() {
       scrollElement: '#at-player-content',
       scrollOffsetY: -80
     },
-    ui: { cursor: true }   // Keep native cursor for beat interaction; we overlay our smoother one
+    ui: { cursor: true }   // Mantener el cursor nativo para la interacción con los pulsos; superponemos el nuestro más fluido
   };
 
   alphaApi = new alphaTab.AlphaTabApi(document.getElementById('alphaTab'), settings);
 
-  // Score Loaded: Find the track that starts earliest
+  // Partitura Cargada: Buscar la pista que comienza antes
   alphaApi.scoreLoaded.on(score => {
     currentScore = score;
-    // PRE-CALCULATE DURATION ONCE (Optimization)
-    totalScoreTicks = score.masterBars.reduce((a, b) => a + (b.tickDuration || 0), 0) || 100000;
+    totalScoreTicks = score.tickCount || 100000;
     
     const validTracks = (score.tracks || []).filter(t => !t.name.match(/vocal|voice|voz|lyric|capo/i));
 
@@ -161,7 +161,7 @@ function initAlphaTab() {
 
     alphaApi.renderTracks([currentTrack]);
     
-    // Restore Multi-Track Playback: Ensure all tracks are unmuted and respect solo mode
+    // Restaurar Reproducción Multi-Pista: Asegurar que todas las pistas estén activas y respetar el modo solo
     if (score.tracks) {
       alphaApi.changeTrackMute(score.tracks, false);
       if (isSoloMode) {
@@ -181,31 +181,68 @@ function initAlphaTab() {
     if (container) container.scrollTop = 0;
   });
 
-  // ─── OPTIMIZED CSS-BASED OVERLAY CURSOR ───────────────────────
+  // Ticks Totales Actualizados cuando el reproductor está listo (maneja repeticiones)
+  alphaApi.playerReady.on(() => {
+    if (alphaApi.player && alphaApi.player.totalTicks > 0) {
+      totalScoreTicks = alphaApi.player.totalTicks;
+      console.log("📏 Ticks Totales de Reproducción:", totalScoreTicks);
+    }
+  });
+
+  // Clic para Buscar (Seek)
+  if (progressContainer) {
+    progressContainer.onclick = (e) => {
+      if (!alphaApi || totalScoreTicks <= 0) return;
+      const rect = progressContainer.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const percentage = Math.max(0, Math.min(1, x / rect.width));
+      
+      // Seguimiento suave: si se está reproduciendo, podría tartamudear menos si pausamos/reanudamos o simplemente establecemos el tick
+      alphaApi.player.tick = percentage * totalScoreTicks;
+      
+      // Feedback visual: actualización inmediata
+      if (progressBar) {
+        progressBar.style.width = (percentage * 100) + '%';
+      }
+    };
+  }
+
+  // ─── CURSOR SUPERPUESTO OPTIMIZADO BASADO EN CSS ───────────────────────
   
-  // Caching elements for laser performance
+  // Caché de elementos para un rendimiento máximo
   const laser = document.getElementById('customLaser');
   const cont = document.getElementById('at-player-content');
 
-  let lastATTime = 0; // For detecting manual seeks
+  let lastTickUpdate = 0;
+  let laserUpdatePending = false;
 
   alphaApi.playerPositionChanged.on(args => {
-    // Progress bar update - Optimized with pre-calculated totalScoreTicks
-    if (progressBar) {
-      progressBar.style.width = ((args.currentTick / totalScoreTicks) * 100) + '%';
+    // 1. Barra de Progreso Optimizada: Limitada a unos 60fps (cada 16ms)
+    const now = Date.now();
+    if (now - lastTickUpdate > 16) {
+      if (progressBar && totalScoreTicks > 0) {
+        // Usar args.tick para la posición de la línea de tiempo de reproducción
+        progressBar.style.width = ((args.tick / totalScoreTicks) * 100) + '%';
+      }
+      lastTickUpdate = now;
     }
 
-    // Snap the laser overlay exactly over the AlphaTab internal selection
-    const el = document.querySelector('.at-cursor') || document.querySelector('.at-cursor-bar');
-    
-    if (laser && el && cont) {
-      const elRect = el.getBoundingClientRect();
-      const contRect = cont.getBoundingClientRect();
-      
-      laser.style.left = (elRect.left - contRect.left + cont.scrollLeft - 3) + 'px';
-      laser.style.top = (elRect.top - contRect.top + cont.scrollTop) + 'px';
-      laser.style.width = '4px';
-      laser.style.height = elRect.height + 'px';
+    // 2. Láser Superpuesto Optimizado: Usar requestAnimationFrame para evitar el caos en el diseño (layout thrashing)
+    if (!laserUpdatePending && laser && isPlaying) {
+      laserUpdatePending = true;
+      requestAnimationFrame(() => {
+        const el = document.querySelector('.at-cursor') || document.querySelector('.at-cursor-bar');
+        if (el && cont) {
+          const elRect = el.getBoundingClientRect();
+          const contRect = cont.getBoundingClientRect();
+          
+          laser.style.left = (elRect.left - contRect.left + cont.scrollLeft - 3) + 'px';
+          laser.style.top = (elRect.top - contRect.top + cont.scrollTop) + 'px';
+          laser.style.width = '4px';
+          laser.style.height = elRect.height + 'px';
+        }
+        laserUpdatePending = false;
+      });
     }
   });
 
@@ -213,7 +250,7 @@ function initAlphaTab() {
     isPlaying = (args.state === 1);
     if (playPauseBtn) playPauseBtn.innerText = isPlaying ? '⏸' : '▶';
 
-    // Show or hide the laser when we start/stop playing
+    // Mostrar u ocultar el láser cuando comenzamos/detenemos la reproducción
     if (laser) {
       laser.style.display = isPlaying ? 'block' : 'none';
     }
@@ -224,14 +261,14 @@ function initAlphaTab() {
     if (laser) laser.style.display = 'none';
   });
 
-  // Handle Resize
+  // Manejar Redimensionamiento
   window.addEventListener('resize', () => {
     if (alphaApi) alphaApi.updateSettings();
   });
 }
 
 
-// --- 3. LOADING LOGIC ---
+// --- 3. LÓGICA DE CARGA ---
 async function loadSong(songId) {
   if (loadingDiv) {
     loadingDiv.style.display = 'block';
@@ -240,10 +277,10 @@ async function loadSong(songId) {
   if (playerSection) playerSection.style.display = 'flex';
   if (searchInput) searchInput.disabled = true;
 
-  // Reset Audio UI
+  // Restablecer la UI de Audio
 
   try {
-    // Fetch tab metadata from local API
+    // Obtener metadatos de la tablatura desde la API local
     const response = await fetch(`api/tabs.php?id=${songId}`);
     if (!response.ok) throw new Error('Tab no encontrado en la BD');
     const tab = await response.json();
@@ -251,19 +288,19 @@ async function loadSong(songId) {
 
     console.log(`📋 Cargando: ${tab.title} by ${tab.artist}`);
 
-    // Build the URL pointing to the local .gpx file (relative to project root)
+    // Construir la URL que apunta al archivo .gpx local (relativa a la raíz del proyecto)
     const tabUrl = tab.file;
 
-    // Initialize AlphaTab and load
+    // Inicializar AlphaTab y cargar
     initAlphaTab();
     alphaApi.load(tabUrl);
 
     alphaApi.scoreLoaded.on(() => {
-      // nothing extra on load
+      // nada extra al cargar
     }, true);
 
   } catch (e) {
-    console.error("❌ Load Failed", e);
+    console.error("❌ Carga Fallida", e);
     if (loadingDiv) loadingDiv.style.display = 'none';
     showToast("Error al cargar la partitura: " + e.message, "error");
   }
@@ -302,13 +339,13 @@ const themeColors = {
   'retro': '#D81B60', 'vintage': '#B7950B', 'redblack': '#C0392B'
 };
 
-// Global Listeners with Safety Guards
+// Escuchadores Globales con Guardas de Seguridad
 if (playPauseBtn) playPauseBtn.onclick = () => {
   resumeAudioContext();
   try {
     alphaApi?.playPause();
   } catch (e) {
-    console.warn("AlphaTab Play/Pause suppressed:", e);
+    console.warn("AlphaTab Play/Pause suprimido:", e);
   }
 };
 
@@ -316,7 +353,7 @@ if (stopBtn) stopBtn.onclick = () => {
   try {
     alphaApi?.stop();
   } catch (e) {
-    console.warn("AlphaTab Stop suppressed:", e);
+    console.warn("AlphaTab Stop suprimido:", e);
   }
 };
 
@@ -372,7 +409,7 @@ if (countInBtn) countInBtn.onclick = () => {
   countInBtn.innerText = !isActive ? '🔢 Cuenta atrás: ON' : '🔢 Cuenta atrás';
 };
 
-// Slider Helper
+// Ayudante de Deslizador (Slider)
 window.adjustSlider = (id, delta) => {
   const slider = document.getElementById(id);
   if (slider) {
@@ -383,12 +420,12 @@ window.adjustSlider = (id, delta) => {
   }
 };
 
-// AudioContext Resume Helper
+// Ayudante de Reanudación de AudioContext
 function resumeAudioContext() {
   if (alphaApi && alphaApi.renderer && alphaApi.renderer.engine && alphaApi.renderer.engine.audioContext) {
     const ctx = alphaApi.renderer.engine.audioContext;
     if (ctx.state === 'suspended') {
-      ctx.resume().then(() => console.log("🔊 AudioContext resumed via gesture"));
+      ctx.resume().then(() => console.log("🔊 AudioContext reanudado mediante gesto"));
     }
   }
   if (window.Tone && Tone.State === 'suspended') {
@@ -396,14 +433,14 @@ function resumeAudioContext() {
   }
 }
 
-// Global gesture to unlock audio
+// Gesto global para desbloquear el audio
 document.addEventListener('click', resumeAudioContext, { once: true });
 
 window.onload = () => {
   initDiscovery();
   applyThemeColors();
 
-  // Load song if songId is in URL
+  // Cargar canción si songId está en la URL
   const params = new URLSearchParams(window.location.search);
   const songId = params.get('songId') || params.get('id');
   if (songId) {
@@ -412,13 +449,13 @@ window.onload = () => {
 };
 window.loadSong = loadSong;
 
-// Theme Synchronization logic
+// Lógica de Sincronización de Temas
 function applyThemeColors() {
   const currentTheme = document.body.className.split(' ')[0] || 'JamVault';
   const color = themeColors[currentTheme] || '#F39C12';
   document.documentElement.style.setProperty('--at-accent-color', color);
 
-  // Convert hex to rgb for opacity-based effects in CSS
+  // Convertir hex a rgb para efectos basados en opacidad en CSS
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
   const rgb = result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '243, 156, 18';
   document.documentElement.style.setProperty('--at-accent-rgb', rgb);

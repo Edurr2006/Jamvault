@@ -32,11 +32,11 @@ INSERT INTO tabs (title, artist, genre, difficulty, file, views) VALUES
 ('Parisienne Walkways', 'Gary Moore', 'Blues Rock', 4, 'tabs/Moore, Gary - Parisienne Walkways.gp3', 0);
 
 -- ==========================================
--- USER PROFILES & SAVED DATA SYSTEM
+-- SISTEMA DE PERFILES DE USUARIO Y DATOS GUARDADOS
 -- ==========================================
 
 
--- 1. Users Table
+-- 1. Tabla de Usuarios
 CREATE TABLE users (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   username      VARCHAR(50) NOT NULL UNIQUE,
@@ -45,7 +45,7 @@ CREATE TABLE users (
   created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. User Exercises
+-- 2. Ejercicios de Usuario
 CREATE TABLE user_exercises (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   user_id       INT NOT NULL,
@@ -55,17 +55,17 @@ CREATE TABLE user_exercises (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- 3. JamStudio Projects
+-- 3. Proyectos de JamStudio
 CREATE TABLE user_jamstudio_projects (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   user_id       INT NOT NULL,
   name          VARCHAR(150) NOT NULL,
-  project_data  LONGTEXT NOT NULL COMMENT 'JSON state of the JamStudio project',
+  project_data  LONGTEXT NOT NULL COMMENT 'Estado JSON del proyecto JamStudio',
   updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- 4. User Songbook (Kanban lists)
+-- 4. Cancionero del Usuario (listas Kanban)
 CREATE TABLE user_songbook (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   user_id       INT NOT NULL,
@@ -74,5 +74,5 @@ CREATE TABLE user_songbook (
   added_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (tab_id) REFERENCES tabs(id) ON DELETE CASCADE,
-  UNIQUE KEY unique_user_tab (user_id, tab_id) -- A user can only have a song in one category at a time
+  UNIQUE KEY unique_user_tab (user_id, tab_id) -- Un usuario solo puede tener una canción en una categoría a la vez
 );

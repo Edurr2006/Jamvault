@@ -35,7 +35,7 @@
     box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
 }
 
-/* Footer social hovers temáticos */
+/* Hovers temáticos de redes sociales en el pie de página */
 .JamVault .social-circle:hover {
     background: #FF9F1C;
     color: #000;
@@ -108,7 +108,7 @@
     transform: translateY(-2px);
 }
 
-/* Footer nav hovers temáticos */
+/* Hovers temáticos de navegación en el pie de página */
 .JamVault .footer-nav a:hover {
     color: #FF9F1C;
 }
