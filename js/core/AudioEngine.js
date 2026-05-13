@@ -1,8 +1,8 @@
 // ========== MOTOR DE AUDIO (AUDIO ENGINE) ==========
 // Motor de audio central para DAW profesional
 
-import { AudioMath } from './utils/AudioMath.js';
-import { IRLoader } from './utils/IRLoader.js';
+import { AudioMath } from '../utils/AudioMath.js';
+import { IRLoader } from '../utils/IRLoader.js';
 
 export class AudioEngine {
     constructor(sampleRate = 48000) {

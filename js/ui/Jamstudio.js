@@ -1,10 +1,10 @@
 // ========== JAMSTUDIO PRO - Guitar DAW Profesional ==========
 // Implementación completa con arquitectura modular y cadena de señal profesional
 
-import { AudioEngine } from './AudioEngine.js';
-import { SignalChain } from './SignalChain.js';
-import { AudioMath } from './utils/AudioMath.js';
-import { TimelineManager } from './TimelineManager.js';
+import { AudioEngine } from '../core/AudioEngine.js';
+import { SignalChain } from '../core/SignalChain.js';
+import { AudioMath } from '../utils/AudioMath.js';
+import { TimelineManager } from '../core/TimelineManager.js';
 
 class Jamstudio {
     constructor() {
@@ -184,6 +184,9 @@ class Jamstudio {
 
         // Escuchador de teclado global (Eliminar clips)
         document.addEventListener('keydown', (e) => {
+            const workspace = document.getElementById('workspace-view');
+            if (!workspace || workspace.style.display === 'none') return;
+
             if ((e.key === 'Delete' || e.key === 'Backspace') && this.selectedClips.length > 0) {
                 // No eliminar si el foco está en un input
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -236,6 +239,9 @@ class Jamstudio {
 
         // Atajos de teclado
         document.addEventListener('keydown', (e) => {
+            const workspace = document.getElementById('workspace-view');
+            if (!workspace || workspace.style.display === 'none') return;
+
             if (e.code === 'Space' && !e.target.matches('input, textarea')) {
                 e.preventDefault();
                 if (this.isPlaying && !this.isPaused) {

@@ -1,16 +1,16 @@
 // ========== CADENA DE SEÑAL ==========
 // Cadena de señal profesional: Entrada → Puerta de Ruido → Compresor → Amplificador → Efectos → EQ → Salida
 
-import { NoiseGate } from './effects/NoiseGate.js';
-import { Compressor } from './effects/Compressor.js';
-import { AnalogDistortion } from './effects/AnalogDistortion.js';
-import { BPMDelay } from './effects/BPMDelay.js';
-import { ConvolutionReverb } from './effects/ConvolutionReverb.js';
-import { Chorus } from './effects/Chorus.js';
-import { Flanger } from './effects/Flanger.js';
-import { Phaser } from './effects/Phaser.js';
-import { Tremolo } from './effects/Tremolo.js';
-import { ParametricEQ } from './effects/ParametricEQ.js';
+import { NoiseGate } from '../effects/NoiseGate.js';
+import { Compressor } from '../effects/Compressor.js';
+import { AnalogDistortion } from '../effects/AnalogDistortion.js';
+import { BPMDelay } from '../effects/BPMDelay.js';
+import { ConvolutionReverb } from '../effects/ConvolutionReverb.js';
+import { Chorus } from '../effects/Chorus.js';
+import { Flanger } from '../effects/Flanger.js';
+import { Phaser } from '../effects/Phaser.js';
+import { Tremolo } from '../effects/Tremolo.js';
+import { ParametricEQ } from '../effects/ParametricEQ.js';
 import { AmpSimulator } from './AmpSimulator.js';
 import { CabinetSimulator } from './CabinetSimulator.js';
 

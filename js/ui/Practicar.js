@@ -1,4 +1,4 @@
-import { ExerciseState } from './ExerciseState.js';
+import { ExerciseState } from '../core/ExerciseState.js';
 import { ExercisePlayer } from './ExercisePlayer.js';
 import { ExerciseRenderer } from './ExerciseRenderer.js';
 import { acordesDB } from './ChordData.js';

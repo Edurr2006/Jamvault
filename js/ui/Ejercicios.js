@@ -4,7 +4,7 @@
  * Refactorizado para arrastrar y soltar (Drag & Drop) y adición instantánea de notas.
  */
 
-import { ExerciseState } from './ExerciseState.js';
+import { ExerciseState } from '../core/ExerciseState.js';
 import { ExerciseRenderer } from './ExerciseRenderer.js';
 import { ExercisePlayer } from './ExercisePlayer.js';
 import { acordesDB } from './ChordData.js';
