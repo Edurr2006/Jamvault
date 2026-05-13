@@ -140,6 +140,49 @@
             }
         }
 
+        /* VARIABLES DE TEMA PARA ACENTOS DINÁMICOS */
+        body.JamVault {
+            --accent-theme: #FF8906;
+            --accent-rgb: 255, 137, 6;
+            --accent-glow: rgba(255, 137, 6, 0.25);
+        }
+
+        body.natural {
+            --accent-theme: #10D96A;
+            --accent-rgb: 16, 217, 106;
+            --accent-glow: rgba(16, 217, 106, 0.3);
+        }
+
+        body.galactic {
+            --accent-theme: #1E90FF;
+            --accent-rgb: 30, 144, 255;
+            --accent-glow: rgba(30, 144, 255, 0.3);
+        }
+
+        body.retro {
+            --accent-theme: #D81B60;
+            --accent-rgb: 216, 27, 96;
+            --accent-glow: rgba(216, 27, 96, 0.3);
+        }
+
+        body.vintage {
+            --accent-theme: #F1C40F;
+            --accent-rgb: 241, 196, 15;
+            --accent-glow: rgba(241, 196, 15, 0.3);
+        }
+
+        body.redblack {
+            --accent-theme: #E74C3C;
+            --accent-rgb: 231, 76, 60;
+            --accent-glow: rgba(231, 76, 60, 0.3);
+        }
+
+        :root {
+            --accent-theme: #FF8906;
+            --accent-rgb: 255, 137, 6;
+            --accent-glow: rgba(255, 137, 6, 0.25);
+        }
+
         .vu-meter {
             width: 20px;
             height: 100%;
@@ -321,6 +364,261 @@
             transform: none;
             box-shadow: none;
         }
+
+        /* MODAL DE PROYECTOS */
+        .projects-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* Menos opacidad */
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .projects-modal-content {
+            background: #1a1b23;
+            border: 1px solid rgba(var(--accent-rgb), 0.3);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 850px; /* Ventana más grande */
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(var(--accent-rgb), 0.1);
+            position: relative;
+        }
+
+        .projects-modal-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .projects-modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--accent-theme);
+            letter-spacing: 0.5px;
+        }
+
+        .close-projects-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-projects-btn:hover {
+            color: #fff;
+        }
+
+        .projects-modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 2rem;
+        }
+
+        /* PROJECT CARD (ACCORDION) */
+        .project-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .project-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .project-item.active {
+            background: rgba(var(--accent-rgb), 0.05);
+            border-color: var(--accent-theme);
+        }
+
+        .project-main-info {
+            padding: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .project-name {
+            font-weight: 600;
+            color: #fff;
+            font-size: 1.1rem;
+        }
+
+        .project-date {
+            font-size: 0.8rem;
+            color: #777;
+            margin-top: 4px;
+        }
+
+        .project-actions {
+            display: none;
+            padding: 0 1.2rem 1.2rem;
+            gap: 10px;
+            animation: fadeInDown 0.3s ease forwards;
+        }
+
+        .project-item.active .project-actions {
+            display: flex;
+        }
+
+        .project-action-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-load-project {
+            background: var(--accent-theme);
+            color: #000;
+        }
+
+        .btn-delete-project {
+            background: rgba(220, 53, 69, 0.1);
+            color: #ff6b6b;
+            border: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        .project-action-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-delete-project:hover {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        /* RECIENTES (Estilo Tabs.html) */
+        .recent-projects-container {
+            margin-top: 4rem;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1.5rem 2.5rem;
+            border: 1px solid rgba(var(--accent-rgb), 0.2);
+            width: 100%;
+            max-width: 850px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 40px rgba(var(--accent-rgb), 0.05);
+            display: flex; /* Cambiado a flex */
+            flex-direction: column;
+            animation: fadeIn 0.8s ease;
+            margin-bottom: 5rem; /* Espacio extra al final */
+        }
+
+        .recent-projects-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 0.2rem;
+            text-align: left;
+            background: linear-gradient(135deg, var(--accent-theme) 0%, rgba(255, 255, 255, 0.8) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .recent-projects-subtitle {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 1.2rem;
+            display: block;
+        }
+
+        .recent-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        .recent-table tr {
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .recent-table tr:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: scale(1.01) translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .recent-table td {
+            padding: 1.2rem 1.5rem;
+            color: #fff;
+        }
+
+        .recent-table tr td:first-child {
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+        }
+
+        .recent-table tr td:last-child {
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+            text-align: right;
+        }
+
+        .recent-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: block;
+        }
+
+        .recent-info {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 4px;
+        }
+
+        .open-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(var(--accent-rgb), 0.1);
+            color: var(--accent-theme);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid rgba(var(--accent-rgb), 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .recent-table tr:hover .open-badge {
+            background: var(--accent-theme);
+            color: #000;
+        }
     </style>
 </head>
 
@@ -381,15 +679,26 @@
             </div>
         </div>
 
-        <!-- PANEL DE PROYECTOS -->
-        <div id="projects-panel" style="display:none; width:100%; max-width:700px; margin-top:1rem;">
-          <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:1.5rem;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-              <h3 style="color:#fff; margin:0;">📂 Mis Proyectos</h3>
-              <button class="btn" style="font-size:0.85rem; padding:0.4rem 1rem;" onclick="promptSaveProject()">💾 Guardar Actual</button>
+        <!-- PROYECTOS RECIENTES -->
+        <div id="recent-projects-container" class="recent-projects-container">
+            <h3 class="recent-projects-title">Continúa donde lo dejaste</h3>
+            <span class="recent-projects-subtitle">Proyectos actualizados recientemente</span>
+            <table class="recent-table" id="recent-projects-table">
+                <!-- Inyectado por JS -->
+            </table>
+        </div>
+
+        <!-- MODAL DE PROYECTOS -->
+        <div id="projects-modal" class="projects-modal">
+          <div class="projects-modal-content">
+            <div class="projects-modal-header">
+              <h2>Mis Proyectos</h2>
+              <button class="close-projects-btn" onclick="toggleProjectsPanel()">&times;</button>
             </div>
-            <div id="projects-list">
-              <p style="color:#888; text-align:center;">Cargando proyectos...</p>
+            <div class="projects-modal-body">
+              <div id="projects-list">
+                <p style="color:#888; text-align:center; padding: 2rem;">Cargando tus obras maestras...</p>
+              </div>
             </div>
           </div>
         </div>
@@ -405,9 +714,9 @@
             <div class="main-controls-column">
                 <div class="track-actions-group">
                     <button id="clearAllBtn" class="btn clear-btn-top">Limpiar Todo</button>
-                    <button id="exportBtn" class="btn export-btn-top">💾 Exportar</button>
-                    <button id="saveProjectBtn" class="btn" style="background:#2ecc71; color:#000;">☁️ Guardar</button>
-                    <button onclick="exitStudioSafe()" class="btn" style="background:#555;">🔙 Salir</button>
+                    <button id="exportBtn" class="btn export-btn-top">Exportar</button>
+                    <button id="saveProjectBtn" class="btn" style="background:#2ecc71; color:#000;">Guardar</button>
+                    <button onclick="exitStudioSafe()" class="btn" style="background:#555;">Salir</button>
                 </div>
             </div>
 
@@ -521,8 +830,11 @@
             document.getElementById('workspace-view').style.display = 'none';
             document.getElementById('landing-view').style.display = 'flex';
             _currentProjectId = null;
-            // Recargar lista de proyectos si el panel está abierto
-            if (_projectsPanelOpen) loadProjects();
+            
+            // Asegurar que el modal de proyectos esté cerrado al volver
+            _projectsPanelOpen = false;
+            const modal = document.getElementById('projects-modal');
+            if (modal) modal.style.display = 'none';
         }
 
         function exitStudioSafe() {
@@ -539,42 +851,70 @@
         }
 
         function toggleProjectsPanel() {
-            const panel = document.getElementById('projects-panel');
+            const modal = document.getElementById('projects-modal');
             _projectsPanelOpen = !_projectsPanelOpen;
-            panel.style.display = _projectsPanelOpen ? 'block' : 'none';
+            modal.style.display = _projectsPanelOpen ? 'flex' : 'none';
             if (_projectsPanelOpen) loadProjects();
+            
+            // Cerrar al hacer clic fuera del contenido
+            if (_projectsPanelOpen) {
+                modal.onclick = (e) => {
+                    if (e.target === modal) toggleProjectsPanel();
+                };
+            }
         }
 
         async function loadProjects() {
             const list = document.getElementById('projects-list');
             if (!list) return;
-            list.innerHTML = '<p style="color:#888;text-align:center;">Cargando proyectos...</p>';
+            list.innerHTML = '<p style="color:#888;text-align:center; padding: 2rem;">Buscando tus proyectos...</p>';
             try {
                 const res = await fetch('api/jamstudio.php?action=list');
                 const data = await res.json();
                 if (data.error) {
-                    list.innerHTML = `<p style="color:#ff6b6b;text-align:center;">${data.error}</p>`;
+                    list.innerHTML = `<p style="color:#ff6b6b;text-align:center; padding: 2rem;">${data.error}</p>`;
                     return;
                 }
                 if (!data.projects || data.projects.length === 0) {
-                    list.innerHTML = '<p style="color:#888;text-align:center;">No tienes proyectos guardados aún.</p>';
+                    list.innerHTML = '<p style="color:#888;text-align:center; padding: 2rem;">No tienes proyectos guardados aún. ¡Crea algo increíble!</p>';
                     return;
                 }
-                list.innerHTML = data.projects.map(p => `
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;margin-bottom:0.5rem;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
-                        <div>
-                            <div style="font-weight:600;color:#fff;">🎵 ${p.name}</div>
-                            <div style="font-size:0.8rem;color:#888;">${new Date(p.updated_at).toLocaleDateString('es-ES', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+                
+                list.innerHTML = data.projects.map(p => {
+                    const dateStr = new Date(p.updated_at).toLocaleDateString('es-ES', {
+                        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+                    return `
+                    <div class="project-item" onclick="expandProjectItem(this, event)">
+                        <div class="project-main-info">
+                            <div>
+                                <div class="project-name">${p.name}</div>
+                                <div class="project-date">${dateStr}</div>
+                            </div>
+                            <div style="color: #444; font-size: 1.2rem;">⌵</div>
                         </div>
-                        <div style="display:flex;gap:8px;">
-                            <button class="btn" style="font-size:0.8rem;padding:0.35rem 0.8rem;background:#2980b9;" onclick="loadProject(${p.id})">📂 Cargar</button>
-                            <button class="btn" style="font-size:0.8rem;padding:0.35rem 0.8rem;background:rgba(220,53,69,0.2);color:#ff6b6b;border:1px solid rgba(220,53,69,0.3);" onclick="deleteProject(${p.id},'${p.name.replace(/'/g, "\\'")}')">🗑️</button>
+                        <div class="project-actions">
+                            <button class="project-action-btn btn-load-project" onclick="loadProject(${p.id})">Abrir</button>
+                            <button class="project-action-btn btn-delete-project" onclick="deleteProject(${p.id}, '${p.name.replace(/'/g, "\\'")}', event)">Eliminar</button>
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
             } catch(e) {
-                list.innerHTML = '<p style="color:#ff6b6b;text-align:center;">Error al cargar proyectos.</p>';
+                list.innerHTML = '<p style="color:#ff6b6b;text-align:center; padding: 2rem;">Error al conectar con la nube.</p>';
             }
+        }
+
+        function expandProjectItem(item, event) {
+            // Si el clic viene de un botón dentro, no hacer nada aquí
+            if (event.target.tagName === 'BUTTON') return;
+            
+            // Cerrar otros
+            document.querySelectorAll('.project-item').forEach(i => {
+                if (i !== item) i.classList.remove('active');
+            });
+            // Alternar actual
+            item.classList.toggle('active');
         }
 
         async function loadProject(id) {
@@ -585,6 +925,12 @@
                 _currentProjectId = data.project.id;
                 const projectData = JSON.parse(data.project.project_data || 'null');
                 enterStudio(projectData);
+                // Dar tiempo a la inicialización para asignar el nombre
+                setTimeout(() => {
+                    if (window._jamstudioInstance) {
+                        window._jamstudioInstance.currentProjectName = data.project.name;
+                    }
+                }, 100);
                 showToast(`Proyecto "${data.project.name}" cargado`, 'success');
             } catch(e) {
                 showToast('Error al cargar el proyecto', 'error');
@@ -593,10 +939,19 @@
 
         function promptSaveProject(thenExit) {
             const studio = window._jamstudioInstance;
-            const defaultName = _currentProjectId
-                ? (studio && studio.currentProjectName ? studio.currentProjectName : 'Mi Proyecto')
-                : 'Mi Proyecto';
+            
+            // Si el proyecto ya existe y tiene nombre, guardado rápido
+            if (_currentProjectId && studio && studio.currentProjectName) {
+                saveProject(studio.currentProjectName).then(() => {
+                    if (thenExit) goBackToLanding();
+                });
+                return;
+            }
+
+            // Si es nuevo o no tiene nombre registrado, preguntar
+            const defaultName = 'Mi Proyecto';
             window.showPrompt('Nombre del proyecto:', defaultName, async (name) => {
+                if (!name) return;
                 await saveProject(name);
                 if (thenExit) goBackToLanding();
             });
@@ -618,7 +973,10 @@
                 const data = await res.json();
                 if (data.success) {
                     _currentProjectId = data.id;
-                    if (studio) { studio.hasUnsavedChanges = false; studio.currentProjectName = name; }
+                    if (studio) { 
+                        studio.hasUnsavedChanges = false; 
+                        studio.currentProjectName = name; 
+                    }
                     showToast(`Proyecto "${name}" guardado`, 'success');
                 } else {
                     showToast(data.error || 'Error al guardar', 'error');
@@ -653,22 +1011,97 @@
         window.addEventListener('jamvault:auth_changed', (e) => {
             const overlay = document.getElementById('jamstudio-auth-overlay');
             if (!overlay) return;
+            
             if (e.detail) {
                 overlay.style.display = 'none';
+                loadRecentProjects(); 
             } else {
                 overlay.style.display = 'flex';
-                // Si el estudio estaba abierto, volver al landing
                 if (document.getElementById('workspace-view').style.display !== 'none') {
                     goBackToLanding();
                 }
             }
         });
 
-        // Conectar el botón Guardar dentro del workspace
+        // Conectar eventos iniciales
         document.addEventListener('DOMContentLoaded', () => {
             const saveBtn = document.getElementById('saveProjectBtn');
             if (saveBtn) saveBtn.addEventListener('click', () => promptSaveProject(false));
+            
+            // POLLING DE SEGURIDAD: Intentar cargar cada segundo durante los primeros 5 segundos
+            let attempts = 0;
+            const interval = setInterval(() => {
+                attempts++;
+                const user = (typeof Auth !== 'undefined' && Auth.userData) ? Auth.userData : null;
+                if (user) {
+                    loadRecentProjects();
+                    clearInterval(interval);
+                }
+                if (attempts >= 5) clearInterval(interval);
+            }, 1000);
         });
+
+        async function loadRecentProjects() {
+            const container = document.getElementById('recent-projects-container');
+            const table = document.getElementById('recent-projects-table');
+            if (!container || !table) return;
+
+            try {
+                const res = await fetch('api/jamstudio.php?action=list');
+                const data = await res.json();
+                
+                if (data.projects && data.projects.length > 0) {
+                    // Ordenar por updated_at descendente y tomar los 5 primeros
+                    const recent = data.projects
+                        .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+                        .slice(0, 5);
+
+                    table.innerHTML = recent.map(p => {
+                        const dateStr = new Date(p.updated_at).toLocaleDateString('es-ES', {
+                            day: '2-digit', month: 'short', year: 'numeric'
+                        });
+                        return `
+                        <tr onclick="loadProject(${p.id})">
+                            <td style="text-align: left;">
+                                <span class="recent-name">${p.name}</span>
+                                <span class="recent-info">Actualizado el ${dateStr}</span>
+                            </td>
+                            <td style="text-align: right;">
+                                <div class="open-badge">Abrir</div>
+                            </td>
+                        </tr>
+                        `;
+                    }).join('');
+                    
+                    container.style.display = 'flex';
+                    container.style.visibility = 'visible';
+                    container.style.opacity = '1';
+                } else {
+                    container.style.display = 'none';
+                }
+            } catch (e) {
+                console.error('Error cargando recientes:', e);
+                container.style.display = 'none';
+            }
+        }
+
+        // Conectar eventos iniciales
+        document.addEventListener('DOMContentLoaded', () => {
+            const saveBtn = document.getElementById('saveProjectBtn');
+            if (saveBtn) saveBtn.addEventListener('click', () => promptSaveProject(false));
+            
+            // Intento inicial por si el evento ya se disparó
+            if (typeof Auth !== 'undefined' && Auth.userData) {
+                loadRecentProjects();
+            }
+        });
+
+        // Actualizar recientes al volver a la landing
+        const _origGoBackToLanding = goBackToLanding;
+        goBackToLanding = function() {
+            _origGoBackToLanding();
+            loadRecentProjects();
+        };
     </script>
 
     <!-- ========== PIE DE PÁGINA DEL SITIO ========== -->
