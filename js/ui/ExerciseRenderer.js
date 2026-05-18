@@ -66,6 +66,7 @@ export class ExerciseRenderer {
         if (!layer) return;
         layer.innerHTML = '';
 
+        let animationDelay = 0;
         allNotes.forEach(note => {
             const x = this.FRET_X[note.fret];
             const y = this.STRING_Y[note.string];
@@ -119,6 +120,11 @@ export class ExerciseRenderer {
             text.setAttribute('pointer-events', 'none');
             text.textContent = isSelected ? stepIndices.join(',') : note.note;
             g.appendChild(text);
+
+            if (isSelected) {
+                g.style.animationDelay = `${animationDelay}ms`;
+                animationDelay += 40;
+            }
 
             layer.appendChild(g);
         });
@@ -190,6 +196,7 @@ export class ExerciseRenderer {
 
         const barreNotes = new Set();
         let barreSvg = "";
+        let animationDelay = 0;
         Object.keys(barreGroups).forEach(t => {
             const notes = barreGroups[t];
             if (notes.length >= 2) {
@@ -207,12 +214,13 @@ export class ExerciseRenderer {
 
                 const w = (maxX - minX) + 20;
                 barreSvg += `
-                    <g class="barre-group">
+                    <g class="barre-group" style="animation-delay: ${animationDelay}ms">
                         <rect x="${minX - 10}" y="${y - 12}" width="${w}" height="24" rx="12" 
                               fill="${isHighlighted ? '#fff' : 'var(--accent-theme)'}" filter="url(#chordGlow)" />
                         <text x="${(minX + maxX) / 2}" y="${y + 5}" text-anchor="middle" fill="#000" font-size="12" font-weight="bold">1</text>
                     </g>
                 `;
+                animationDelay += 40;
             }
         });
 
@@ -267,12 +275,14 @@ export class ExerciseRenderer {
             const visualFret = f.traste - startFret + 1;
             const x = (6 - f.cuerda) * 25;
             const y = (visualFret * 35) - 17.5;
-            return `
-                            <g class="finger-dot">
+            const res = `
+                            <g class="finger-dot" style="animation-delay: ${animationDelay}ms">
                                 <circle cx="${x}" cy="${y}" r="12" fill="${f.esRaiz ? 'var(--accent-theme)' : '#fff'}" filter="url(#chordGlow)" />
                                 <text x="${x}" y="${y + 5}" text-anchor="middle" fill="#000" font-size="11" font-weight="bold">${f.dedo > 0 ? f.dedo : ''}</text>
                             </g>
                         `;
+            animationDelay += 40;
+            return res;
         }).join('')}
                 </g>
             </svg>

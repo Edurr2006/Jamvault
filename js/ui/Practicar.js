@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         layer.innerHTML = '';
 
         const uniquePositions = new Set();
+        let animationDelay = 0;
 
         // 1. Si es un ejercicio de escalas, mostrar el contexto de la escala (todas las notas de esa escala)
         if (ex.type === 'scale') {
@@ -135,7 +136,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                             if (f.traste >= 0) {
                                 const key = `${f.cuerda}-${f.traste}`;
                                 if (!uniquePositions.has(key)) {
-                                    renderNote(f.cuerda, f.traste, getNoteName(f.cuerda, f.traste), false);
+                                    renderNote(f.cuerda, f.traste, getNoteName(f.cuerda, f.traste), false, animationDelay);
+                                    animationDelay += 10;
                                     uniquePositions.add(key);
                                 }
                             }
@@ -207,7 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return NOTES[midi % 12];
     }
 
-    function renderNote(string, fret, name, isActive) {
+    function renderNote(string, fret, name, isActive, delay = 0) {
         const layer = document.getElementById('notesLayer');
         const x = FRET_X[fret];
         const y = STRING_Y[string];
@@ -215,6 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
         g.setAttribute('class', `note-pos s-${string} f-${fret}`);
+        g.style.animationDelay = `${delay}ms`;
         g.setAttribute('opacity', isActive ? '1' : '0.6'); // Increased base opacity for visibility
 
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -296,6 +299,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         const activeStrings = new Set(fingers.map(f => f.cuerda));
         const mutedStrings = [1, 2, 3, 4, 5, 6].filter(s => !activeStrings.has(s));
 
+        let animationDelay = 0;
+        const mutedSvg = mutedStrings.map(s => {
+            const x = (6 - s) * 22;
+            const res = `<text x="${x}" y="-10" text-anchor="middle" fill="#444" font-size="14" class="barre-group" style="animation-delay: ${animationDelay}ms">×</text>`;
+            animationDelay += 40;
+            return res;
+        }).join('');
+
+        const openSvg = fretLabels.filter(f => f.type === 'open').map(f => {
+            const x = (6 - f.string) * 22;
+            const res = `<circle cx="${x}" cy="-12" r="5" fill="none" stroke="var(--accent-theme)" stroke-width="1.5" class="barre-group" style="animation-delay: ${animationDelay}ms" />`;
+            animationDelay += 40;
+            return res;
+        }).join('');
+
+        const fingersSvg = fretLabels.filter(f => f.traste).map(f => {
+            const x = (6 - f.string) * 22;
+            const y = (f.traste * 30) - 15;
+            const res = `
+                <g class="finger-dot" style="animation-delay: ${animationDelay}ms">
+                    <circle cx="${x}" cy="${y}" r="10" fill="${f.isRoot ? 'var(--accent-theme)' : '#fff'}" filter="url(#chordGlow)" />
+                    <text x="${x}" y="${y + 4}" text-anchor="middle" fill="#000" font-size="10" font-weight="bold">${f.isRoot ? 'R' : ''}</text>
+                </g>
+            `;
+            animationDelay += 40;
+            return res;
+        }).join('');
+
         const svgContent = `
     <svg width="180" height="230" viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg">
         <rect x="0" y="0" width="200" height="250" fill="rgba(255, 137, 6, 0.08)" rx="16" stroke="var(--accent-theme)" stroke-width="3" />
@@ -306,22 +337,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             ${[0, 22, 44, 66, 88, 110].map(x => `<line x1="${x}" y1="0" x2="${x}" y2="150" stroke="#333" stroke-width="1.5" />`).join('')}
             ${[30, 60, 90, 120, 150].map(y => `<line x1="0" y1="${y}" x2="110" y2="${y}" stroke="#333" stroke-width="1.5" />`).join('')}
             ${startFret > 1 ? `<text x="-25" y="20" fill="#666" font-size="12" font-weight="bold">${startFret}fr</text>` : ''}
-            ${mutedStrings.map(s => {
-            const x = (6 - s) * 22;
-            return `<text x="${x}" y="-10" text-anchor="middle" fill="#444" font-size="14">×</text>`;
-        }).join('')}
-            ${fretLabels.filter(f => f.type === 'open').map(f => {
-            const x = (6 - f.string) * 22;
-            return `<circle cx="${x}" cy="-12" r="5" fill="none" stroke="var(--accent-theme)" stroke-width="1.5" />`;
-        }).join('')}
-            ${fretLabels.filter(f => f.traste).map(f => {
-            const x = (6 - f.string) * 22;
-            const y = (f.traste * 30) - 15;
-            return `
-                    <circle cx="${x}" cy="${y}" r="10" fill="${f.isRoot ? 'var(--accent-theme)' : '#fff'}" filter="url(#chordGlow)" />
-                    <text x="${x}" y="${y + 4}" text-anchor="middle" fill="#000" font-size="10" font-weight="bold">${f.isRoot ? 'R' : ''}</text>
-                `;
-        }).join('')}
+            ${mutedSvg}
+            ${openSvg}
+            ${fingersSvg}
         </g>
     </svg>`;
         container.innerHTML = svgContent;

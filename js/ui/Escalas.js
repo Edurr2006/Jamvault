@@ -99,7 +99,7 @@ function mostrarEscala() {
           }, animationDelay);
         });
       });
-      animationDelay += 20; // Escalonamiento por tipo de nota
+      animationDelay += 50; // Escalonamiento por tipo de nota
     }
   });
 }

@@ -1,15 +1,27 @@
-/* Animación de aparición de las notas de la escala */
-#fretboard .note.scale-note-appear {
-    animation: scaleNoteAppear 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+/* Animación de aparición de las notas de la escala y acordes */
+#fretboard .note.scale-note-appear,
+#fretboard .chord-circle,
+#fretboard .chord-barre,
+.chord-circle,
+.chord-barre,
+.ex-note,
+.note-pos,
+.finger-dot,
+.barre-group {
+    animation: notePopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    transform-origin: center;
+    transform-box: fill-box;
+    opacity: 0;
 }
 
-@keyframes scaleNoteAppear {
+@keyframes notePopIn {
     0% {
         opacity: 0;
+        transform: scale(0.3);
     }
-
     100% {
         opacity: 1;
+        transform: scale(1);
     }
 }
 

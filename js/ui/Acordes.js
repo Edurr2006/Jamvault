@@ -908,7 +908,8 @@ function renderizarDiagrama(posiciones) {
 
   const barreNotes = new Set();
 
-  // Renderizar barras
+  // Renderizar barras con animación escalonada
+  let animationDelay = 0;
   Object.keys(barreGroups).forEach(trasteKey => {
     const notes = barreGroups[trasteKey];
     if (notes.length >= 2) {
@@ -970,6 +971,8 @@ function renderizarDiagrama(posiciones) {
       labelFinger.textContent = "1";
       gBarre.appendChild(labelFinger);
 
+      gBarre.style.animationDelay = `${animationDelay}ms`;
+      animationDelay += 40;
       svg.appendChild(gBarre);
     }
   });
@@ -1019,6 +1022,8 @@ function renderizarDiagrama(posiciones) {
       g.appendChild(labelFinger);
     }
 
+    g.style.animationDelay = `${animationDelay}ms`;
+    animationDelay += 40;
     svg.appendChild(g);
   });
 }
