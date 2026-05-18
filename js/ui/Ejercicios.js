@@ -32,17 +32,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     const renderer = new ExerciseRenderer('scaleCanvasContainer', 'chordCanvasContainer');
     const player = new ExercisePlayer();
 
-    await player.init();
-
     // --- AYUDAS DE SUPERPOSICIÓN DE AUTENTICACIÓN (AUTH OVERLAY) ---
     let wasEverLoggedInEx = false;
     const authOverlayEx = document.getElementById('exercises-auth-overlay');
 
-    function showExOverlay() {
+    const showExOverlay = () => {
         if (authOverlayEx) authOverlayEx.style.display = 'flex';
-    }
-    function hideExOverlay() {
+    };
+    const hideExOverlay = () => {
         if (authOverlayEx) authOverlayEx.style.display = 'none';
+    };
+
+    // --- INTEGRACIÓN DE AUTENTICACIÓN (AUTH) - Movido arriba para evitar race conditions ---
+    window.addEventListener('jamvault:auth_changed', async (e) => {
+        if (e.detail) {
+            wasEverLoggedInEx = true;
+            hideExOverlay();
+            await state.fetchCloudExercises();
+            renderMainList();
+        } else if (wasEverLoggedInEx) {
+            wasEverLoggedInEx = false;
+            await state.fetchCloudExercises();
+            showExOverlay();
+            renderMainList();
+        } else {
+            showExOverlay();
+        }
+    });
+
+    // Comprobación inicial inmediata
+    if (window.jamvaultUser) {
+        wasEverLoggedInEx = true;
+        hideExOverlay();
+    } else {
+        showExOverlay();
+    }
+
+    // --- CARGA ASÍNCRONA DEL REPRODUCTOR ---
+    await player.init();
+    if (window.jamvaultUser) {
+        await state.fetchCloudExercises();
+        renderMainList();
     }
 
     // --- ELEMENTOS DEL DOM: FLUJO DE TRABAJO DE CREACIÓN ---
@@ -604,36 +634,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // --- 6. INTEGRACIÓN DE AUTENTICACIÓN (AUTH) ---
-
-    window.addEventListener('jamvault:auth_changed', async (e) => {
-        if (e.detail) {
-            // El usuario inició sesión
-            wasEverLoggedInEx = true;
-            hideExOverlay();
-            await state.fetchCloudExercises();
-            renderMainList();
-        } else if (wasEverLoggedInEx) {
-            // Cierre de sesión real: tenía una sesión, ahora no
-            wasEverLoggedInEx = false; // Restablecer
-            await state.fetchCloudExercises();
-            showExOverlay();
-            renderMainList();
-        } else {
-            // Primera carga sin sesión: mostrar superposición silenciosamente (sin toast)
-            showExOverlay();
-        }
-    });
-
-    // Comprobar en la carga inicial si el usuario ya está establecido
-    setTimeout(async () => {
-        if (window.jamvaultUser) {
-            wasEverLoggedInEx = true;
-            hideExOverlay();
-            await state.fetchCloudExercises();
-            renderMainList();
-        } else {
-            showExOverlay();
-        }
-    }, 500); // Dar tiempo a Auth.js para checkSession
+    // Comprobar en la carga inicial si el usuario ya está establecido (Ya manejado arriba)
 });
