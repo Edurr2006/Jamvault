@@ -1,12 +1,159 @@
 /* ============================================================
-   PÁGINA DE INICIO — SECCIONES CON REVELACIÓN AL DESPLAZARSE
+   HERO SECTION REDESIGN
    ============================================================ */
-
-/* Suficiente relleno inferior en las tarjetas para que la primera sección no asome */
-.menus {
-  padding-bottom: 2rem;
+.hero-section {
+  position: relative;
+  width: 100%;
+  min-height: 95vh;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 8rem 2.5rem 4rem 2.5rem;
+  box-sizing: border-box;
+  background-color: #050505;
+  background-image: 
+    linear-gradient(to right, #050505 45%, rgba(5,5,5,0.7) 60%, transparent 100%),
+    linear-gradient(to top, #050505 10%, transparent 50%),
+    url('../imagenes/acordes.jpg');
+  background-size: cover;
+  background-position: right center;
+  background-repeat: no-repeat;
+  color: #fff;
+  overflow: hidden;
 }
 
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 1200px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 2rem;
+}
+
+.hero-title {
+  font-size: 5.5rem;
+  font-weight: 900;
+  line-height: 1.1;
+  margin: 0;
+  max-width: 700px;
+  letter-spacing: -1px;
+}
+.hero-title .highlight {
+  color: var(--theme-accent, #FF8906);
+}
+
+.hero-subtitle {
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  max-width: 600px;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+  max-width: 900px;
+}
+
+.hero-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 1rem;
+  padding: 1.5rem 0 1.5rem 1.5rem;
+  text-decoration: none;
+  color: #fff;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease;
+}
+.hero-card:first-child {
+  padding-left: 0;
+}
+.hero-card:last-child {
+  border-right: none;
+}
+.hero-card:hover {
+  transform: translateY(-5px);
+}
+
+.hero-card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.3s ease;
+}
+.hero-card:hover .hero-card-icon {
+  border-color: var(--theme-accent, #FF8906);
+}
+.hero-card-icon svg {
+  width: 32px;
+  height: 32px;
+  stroke: var(--theme-accent, #FF8906);
+  stroke-width: 2.2px;
+}
+
+.hero-card h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0;
+}
+.hero-card p {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.hero-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+  background-color: var(--theme-accent, #FF8906);
+  color: #000;
+  font-weight: 800;
+  font-size: 1.1rem;
+  padding: 1rem 2rem;
+  border-radius: 99px;
+  text-decoration: none;
+  width: max-content;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hero-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 30px var(--theme-accent-glow, rgba(255,137,6,0.3));
+}
+
+@media (max-width: 1024px) {
+  .hero-title { font-size: 4rem; }
+  .hero-grid { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
+  .hero-card { border-right: none; padding-bottom: 2rem; padding-left: 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .hero-card:nth-child(3), .hero-card:nth-child(4) { border-bottom: none; padding-bottom: 0; }
+}
+
+@media (max-width: 768px) {
+  .hero-section { padding: 6rem 2rem 3rem 2rem; background-image: linear-gradient(to top, #050505 40%, transparent 100%), url('../imagenes/acordes.jpg'); background-position: center; }
+  .hero-title { font-size: 3rem; }
+  .hero-grid { grid-template-columns: 1fr; }
+  .hero-card { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1.5rem; }
+  .hero-card:last-child { border-bottom: none; }
+}
+
+/* ============================================================
+   PÁGINA DE INICIO — SECCIONES CON REVELACIÓN AL DESPLAZARSE
+   ============================================================ */
 /* ---------- Divisor de pista de desplazamiento ---------- */
 
 .ls-scroll-hint {
@@ -163,6 +310,10 @@
 }
 
 /* Secciones alineadas a la derecha: la descripción no debe desbordarse de forma extraña */
+.ls-content-reverse .ls-text {
+  align-items: flex-end;
+  text-align: right;
+}
 .ls-content-reverse .ls-desc {
   max-width: 480px;
   margin-left: auto;

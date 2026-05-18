@@ -1,4 +1,4 @@
-import { acordesDB } from '../utils/ChordData.js';
+import { acordesDB } from './ChordData.js';
 
 export class ExerciseRenderer {
     constructor(scaleContainerId, chordContainerId) {
@@ -358,7 +358,7 @@ export class ExerciseRenderer {
             // Confiemos en data-prog-index si podemos pasarlo, pero highlightStep solo recibe el paso
             // Mejor: Ejercicios.js llamará a renderer.renderChordProgression(steps, activeChordIndex) 
             // para una claridad absoluta. Pero highlightStep es el callback estandarizado.
-            // Usemos el stepIndex para filtrar los acordes.
+            // Usaremos el stepIndex para filtrar los acordes.
         }
     }
 }

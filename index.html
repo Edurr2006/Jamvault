@@ -33,34 +33,66 @@
     <button id="toggleTheme" class="btn">Cambiar Tema</button>
   </header>
 
-  <div class="container">
-    <br> <br>
-    <h2 id="welcome-heading">Bienvenido, <span id="welcome-username">usuario</span></h2>
-    <p>Aquí podrás buscar canciones, practicar escalas y guardar tus tablaturas favoritas.</p> <br> <br>
-    <a href="Tabs.html" class="btn">Explorar Canciones</a> <br><br><br><br>
-  </div>
-  <div class="menus">
-    <a href="Acordes.html" class="cardlink">
-      <div class="menu card-chords">
-        <h3>Acordes</h3>
-        <p>Domina las posiciones y progresiones esenciales para cualquier estilo musical.</p>
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Todo lo que <span class="highlight">necesitas</span> para mejorar.</h1>
+      <p class="hero-subtitle">Acordes, escalas, tabs, ejercicios y mucho más.</p>
+      
+      <div class="hero-grid">
+        <a href="Acordes.html" class="hero-card">
+          <div class="hero-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+               <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18" />
+            </svg>
+          </div>
+          <h3>Acordes</h3>
+          <p>Encuentra posiciones y progresiones esenciales.</p>
+        </a>
+  
+        <a href="Escalas.html" class="hero-card">
+          <div class="hero-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M2 12h2a6 6 0 0 1 12 0h2" />
+              <path d="M2 12c0 4 4 8 8 8s8-4 8-8" />
+              <circle cx="12" cy="12" r="2" />
+            </svg>
+          </div>
+          <h3>Escalas</h3>
+          <p>Visualiza y comprende cada escala.</p>
+        </a>
+  
+        <a href="Tabs.html" class="hero-card">
+          <div class="hero-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+              <line x1="3" y1="14" x2="21" y2="14" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+              <path d="M16 6v7a3 3 0 0 1-6 0V7l6-1" />
+            </svg>
+          </div>
+          <h3>Tabs</h3>
+          <p>Accede a tablaturas claras y precisas.</p>
+        </a>
+  
+        <a href="Ejercicios.html" class="hero-card">
+          <div class="hero-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M6 4v6" />
+              <path d="M18 4v6" />
+              <rect x="3" y="9" width="6" height="3" rx="1" />
+              <rect x="15" y="9" width="6" height="3" rx="1" />
+              <path d="M9 10.5h6" />
+            </svg>
+          </div>
+          <h3>Ejercicios</h3>
+          <p>Lleva tu técnica al siguiente nivel.</p>
+        </a>
       </div>
-    </a>
-
-    <a href="Escalas.html" class="cardlink">
-      <div class="menu card-scales">
-        <h3>Escalas</h3>
-        <p>Explora el diapasón y perfecciona tu agilidad con nuestro visualizador interactivo.</p>
-      </div>
-    </a>
-
-    <a href="Ejercicios.html" class="cardlink">
-      <div class="menu card-exercises">
-        <h3>Ejercicios</h3>
-        <p>Lleva tu técnica al siguiente nivel con rutinas personalizadas y desafíos diarios.</p>
-      </div>
-    </a>
-  </div>
+  
+      <a href="Songbook.html" class="hero-btn">Explorar Canciones &rarr;</a>
+    </div>
+  </section>
 
   <!-- ========== INDICADOR DE SCROLL ========== -->
   <div class="ls-scroll-hint">
@@ -217,7 +249,13 @@
     <div class="footer-socials">
       <a href="#" class="social-circle">f</a>
       <a href="#" class="social-circle">t</a>
-      <a href="#" class="social-circle">i</a>
+      <a href="https://www.instagram.com/jamvault/" class="social-circle" target="_blank" rel="noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+        </svg>
+      </a>
       <a href="#" class="social-circle">y</a>
     </div>
     <nav class="footer-nav">
