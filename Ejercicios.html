@@ -14,13 +14,17 @@
 
 
         .exercises-container {
-            width: 95%;
-            /* Ancho explícito en lugar de max-width */
+            width: 100%;
             max-width: 1800px;
-            /* Limitar solo en pantallas ultra-anchas */
             margin: 2rem auto;
-            padding: 0 1rem;
+            padding: 0; /* Eliminado padding para que el overlay toque los bordes */
             box-sizing: border-box;
+            position: relative;
+            min-height: 80vh;
+        }
+
+        .exercises-header, .exercises-list-wrapper {
+            padding: 0 2.5rem; /* Re-añadir padding a los contenidos internos */
         }
 
         .exercises-header {
@@ -426,26 +430,25 @@
         }
 
         /* --- SUPERPOSICIÓN DE AUTENTICACIÓN (Ejercicios) --- */
-        .exercises-list-wrapper {
-            position: relative;
-            min-height: 300px;
-        }
+
 
         #exercises-auth-overlay {
             display: none;
             position: absolute;
             inset: 0;
-            z-index: 50;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            border-radius: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 0; /* Sin bordes redondeados para que sea de página completa */
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 1.2rem;
+            gap: 1.5rem;
             text-align: center;
-            padding: 3rem 2rem;
+            padding: 4rem 2rem;
+            border: none;
+            margin: 0; /* Sin márgenes lateral */
         }
 
         #exercises-auth-overlay .lock-icon {
@@ -525,6 +528,17 @@
     </header>
 
     <main class="exercises-container">
+        <!-- SUPERPOSICIÓN DE AUTENTICACIÓN (NUEVA UBICACIÓN) -->
+        <div id="exercises-auth-overlay">
+            <div class="lock-icon"><i class="fas fa-lock"></i></div>
+            <h3>Inicia sesión para continuar</h3>
+            <p>Crea y guarda tus ejercicios personalizados sincronizando con tu cuenta JamVault.</p>
+            <button class="btn-login-overlay"
+                onclick="document.getElementById('authModal') && document.getElementById('authModal').classList.add('modal-active')">
+                <i class="fas fa-sign-in-alt" style="margin-right:8px;"></i>Iniciar Sesión
+            </button>
+        </div>
+
         <div class="exercises-header">
             <h2>Ejercicios</h2>
 
@@ -536,16 +550,6 @@
         </div>
 
         <div class="exercises-list-wrapper">
-            <!-- SUPERPOSICIÓN DE AUTENTICACIÓN -->
-            <div id="exercises-auth-overlay">
-                <div class="lock-icon"><i class="fas fa-lock"></i></div>
-                <h3>Inicia sesión para continuar</h3>
-                <p>Crea y guarda tus ejercicios personalizados sincronizando con tu cuenta JamVault.</p>
-                <button class="btn-login-overlay"
-                    onclick="document.getElementById('authModal') && document.getElementById('authModal').classList.add('modal-active')">
-                    <i class="fas fa-sign-in-alt" style="margin-right:8px;"></i>Iniciar Sesión
-                </button>
-            </div>
 
             <div id="exercisesList">
                 <!-- Los ejercicios se generarán aquí dinámicamente -->

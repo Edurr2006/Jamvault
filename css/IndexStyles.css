@@ -1591,6 +1591,8 @@ a {
   background-color: #121212;
   color: #fff;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 200; /* Por encima de overlays de contenido */
 }
 
 .footer-socials {
@@ -3858,6 +3860,7 @@ header {
   font-weight: 800;
   background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -4035,11 +4038,13 @@ select option {
     z-index: 100;
     background: rgba(0, 0, 0, 0.82);
     backdrop-filter: blur(8px);
-    border-radius: 16px;
+    border-radius: 24px;
     text-align: center;
     padding: 3rem 2rem;
-    gap: 1rem;
+    gap: 1.5rem;
     min-height: 80vh;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin: 1rem; /* Pequeño margen para que no toque los bordes y se vea profesional */
 }
 
 #jamstudio-auth-overlay .lock-icon {
