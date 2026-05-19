@@ -248,7 +248,7 @@ function initAlphaTab() {
 
   alphaApi.playerStateChanged.on(args => {
     isPlaying = (args.state === 1);
-    if (playPauseBtn) playPauseBtn.innerText = isPlaying ? '⏸' : '▶';
+    if (playPauseBtn) playPauseBtn.innerHTML = isPlaying ? '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 3px; pointer-events: none;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
 
     // Mostrar u ocultar el láser cuando comenzamos/detenemos la reproducción
     if (laser) {
@@ -312,7 +312,7 @@ function renderTrackSidebar(score) {
   (score.tracks || []).filter(t => !t.name.match(/vocal|voice|voz|lyric|capo/i)).forEach((t, i) => {
     const div = document.createElement('div');
     div.className = 'track-item' + (t === currentTrack ? ' active' : '');
-    let icon = t.name.toLowerCase().includes('drum') ? '🥁' : '🎸';
+    let icon = t.name.toLowerCase().includes('drum') ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><circle cx="12" cy="12" r="9"></circle><path d="M12 3v18"></path><path d="M3 12h18"></path></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><path d="M8 12l-4 4-2-2 4-4"></path><path d="M12 8l4-4 2 2-4 4"></path><path d="M14 10l-4 4"></path></svg>';
     const finalName = t.name && t.name.trim() !== '' ? t.name : `Instrumento ${i + 1}`;
     div.innerHTML = `<i>${icon}</i> <span>${finalName}</span>`;
     div.onclick = () => {
@@ -378,7 +378,7 @@ if (document.getElementById('at-volume')) document.getElementById('at-volume').o
 const soloToggleBtn = document.getElementById('at-solo-toggle');
 if (soloToggleBtn) soloToggleBtn.onclick = () => {
   isSoloMode = !isSoloMode;
-  soloToggleBtn.innerText = isSoloMode ? '🎧 Solo: ON' : '🎧 Solo: OFF';
+  soloToggleBtn.innerHTML = (isSoloMode ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none; margin-right: 5px;"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>Solo: ON' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none; margin-right: 5px;"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>Solo: OFF');
   soloToggleBtn.style.color = isSoloMode ? 'var(--at-accent-color)' : '#fff';
   
   if (alphaApi && alphaApi.score) {
@@ -397,7 +397,7 @@ if (metronomeBtn) metronomeBtn.onclick = () => {
   const isActive = alphaApi.metronomeVolume > 0;
   alphaApi.metronomeVolume = isActive ? 0 : 1;
   metronomeBtn.style.color = !isActive ? 'var(--at-accent-color)' : '#fff';
-  metronomeBtn.innerText = !isActive ? '🔔 Metrónomo: ON' : '🔔 Metrónomo';
+  metronomeBtn.innerHTML = (!isActive ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none; margin-right: 5px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>Metrónomo: ON' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none; margin-right: 5px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>Metrónomo');
 };
 
 const countInBtn = document.getElementById('at-count-in');
@@ -406,7 +406,7 @@ if (countInBtn) countInBtn.onclick = () => {
   const isActive = alphaApi.countInVolume > 0;
   alphaApi.countInVolume = isActive ? 0 : 1;
   countInBtn.style.color = !isActive ? 'var(--at-accent-color)' : '#fff';
-  countInBtn.innerText = !isActive ? '🔢 Cuenta atrás: ON' : '🔢 Cuenta atrás';
+  countInBtn.innerHTML = (!isActive ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none; margin-right: 5px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Cuenta atrás: ON' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none; margin-right: 5px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Cuenta atrás');
 };
 
 // Ayudante de Deslizador (Slider)

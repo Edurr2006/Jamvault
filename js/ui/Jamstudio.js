@@ -1418,21 +1418,28 @@ class Jamstudio {
                         <button class="close-mixer-btn" onclick="daw.toggleMixer(${trackId})">✕</button>
                     </div>
                     <div class="bottom-mixer-controls">
-                        <div class="bottom-control-group">
+                        <div class="bottom-control-group" style="display: flex; gap: 8px;">
                             <button class="btn arm-btn ${track.armed ? 'active' : ''}" 
                                     onclick="daw.toggleTrackArm(${trackId})" 
-                                    title="Armar para grabar">⏺️</button>
+                                    title="Armar para grabar" style="display: flex; align-items: center; justify-content: center; min-width: 45px; height: 35px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><circle cx="12" cy="12" r="6"></circle></svg>
+                            </button>
                             <button class="btn monitor-btn ${track.monitoring ? 'active' : ''}" 
                                     onclick="daw.toggleTrackMonitoring(${trackId})" 
-                                    title="Monitoreo">🎧</button>
+                                    title="Monitoreo" style="display: flex; align-items: center; justify-content: center; min-width: 45px; height: 35px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+                            </button>
                             <button class="btn mute-btn ${track.muted ? 'active' : ''}" 
-                                    onclick="daw.toggleMute(${trackId})">M</button>
+                                    onclick="daw.toggleMute(${trackId})" style="display: flex; align-items: center; justify-content: center; min-width: 45px; height: 35px; font-weight: bold;">M</button>
                             <button class="btn solo-btn ${track.solo ? 'active' : ''}" 
-                                    onclick="daw.toggleSolo(${trackId})">S</button>
+                                    onclick="daw.toggleSolo(${trackId})" style="display: flex; align-items: center; justify-content: center; min-width: 45px; height: 35px; font-weight: bold;">S</button>
                         </div>
                         <div class="bottom-control-group">
                             <button class="btn import-btn" 
-                                    onclick="daw.importAudioToTrack(${trackId})">📂 Importar</button>
+                                    onclick="daw.importAudioToTrack(${trackId})" style="display: flex; align-items: center; justify-content: center; height: 35px; padding: 0 15px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; pointer-events: none;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                                Importar
+                            </button>
                         </div>
                         <div class="bottom-mixer-sliders">
                             <div class="mixer-slider-row">
