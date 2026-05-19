@@ -847,6 +847,12 @@
         }
 
         function goBackToLanding() {
+            // Detener y liberar recursos del estudio de audio al salir
+            const studio = window._jamstudioInstance;
+            if (studio && typeof studio.cleanup === 'function') {
+                studio.cleanup();
+            }
+
             document.getElementById('workspace-view').style.display = 'none';
             document.getElementById('landing-view').style.display = 'flex';
             _currentProjectId = null;

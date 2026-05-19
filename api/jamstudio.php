@@ -76,7 +76,24 @@ if ($action === 'load' && $method === 'GET') {
 
 // --- GUARDADO / ACTUALIZACIÓN DE PROYECTO ---
 if ($action === 'save' && $method === 'POST') {
-    $body = json_decode(file_get_contents('php://input'), true);
+    $rawInput = file_get_contents('php://input');
+    
+    // Detectar si PHP truncó la petición por superar 'post_max_size'
+    if (empty($rawInput) && isset($_SERVER['CONTENT_LENGTH']) && (int)$_SERVER['CONTENT_LENGTH'] > 0) {
+        http_response_code(413);
+        echo json_encode([
+            'error' => 'El proyecto es demasiado grande para los límites actuales de PHP del servidor. Se ha configurado un archivo .htaccess para intentar subir el límite a 128MB. Si continúas viendo este error, por favor aumenta el límite "post_max_size" y "upload_max_filesize" en el archivo php.ini de tu XAMPP.'
+        ]);
+        exit;
+    }
+
+    $body = json_decode($rawInput, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Error al decodificar datos del proyecto (JSON inválido): ' . json_last_error_msg()]);
+        exit;
+    }
+
     $name = trim($body['name'] ?? '');
     $projectData = $body['project_data'] ?? null;
     $id = isset($body['id']) ? (int)$body['id'] : 0;
@@ -89,26 +106,33 @@ if ($action === 'save' && $method === 'POST') {
 
     $projectDataJson = json_encode($projectData);
 
-    if ($id > 0) {
-        // Actualizar proyecto existente (verificar que pertenece al usuario)
-        $stmt = $pdo->prepare(
-            'UPDATE user_jamstudio_projects SET name = ?, project_data = ?, updated_at = NOW() WHERE id = ? AND user_id = ?'
-        );
-        $stmt->execute([$name, $projectDataJson, $id, $userId]);
-        if ($stmt->rowCount() === 0) {
-            http_response_code(404);
-            echo json_encode(['error' => 'Proyecto no encontrado o sin permisos']);
-            exit;
+    try {
+        if ($id > 0) {
+            // Actualizar proyecto existente (verificar que pertenece al usuario)
+            $stmt = $pdo->prepare(
+                'UPDATE user_jamstudio_projects SET name = ?, project_data = ?, updated_at = NOW() WHERE id = ? AND user_id = ?'
+            );
+            $stmt->execute([$name, $projectDataJson, $id, $userId]);
+            // Nota: rowCount es 0 si no cambió nada, pero se guardó con éxito.
+            echo json_encode(['success' => true, 'id' => $id, 'message' => 'Proyecto actualizado']);
+        } else {
+            // Crear nuevo proyecto
+            $stmt = $pdo->prepare(
+                'INSERT INTO user_jamstudio_projects (user_id, name, project_data) VALUES (?, ?, ?)'
+            );
+            $stmt->execute([$userId, $name, $projectDataJson]);
+            $newId = $pdo->lastInsertId();
+            echo json_encode(['success' => true, 'id' => $newId, 'message' => 'Proyecto guardado']);
         }
-        echo json_encode(['success' => true, 'id' => $id, 'message' => 'Proyecto actualizado']);
-    } else {
-        // Crear nuevo proyecto
-        $stmt = $pdo->prepare(
-            'INSERT INTO user_jamstudio_projects (user_id, name, project_data) VALUES (?, ?, ?)'
-        );
-        $stmt->execute([$userId, $name, $projectDataJson]);
-        $newId = $pdo->lastInsertId();
-        echo json_encode(['success' => true, 'id' => $newId, 'message' => 'Proyecto guardado']);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        if (strpos($e->getMessage(), 'max_allowed_packet') !== false) {
+            echo json_encode([
+                'error' => 'El proyecto supera el tamaño permitido por la base de datos (límite "max_allowed_packet" en MySQL). Para solucionarlo, edita tu archivo "my.ini" en XAMPP, busca la línea "max_allowed_packet = 1M" (o similar), cámbiala a "max_allowed_packet = 128M" y reinicia MySQL.'
+            ]);
+        } else {
+            echo json_encode(['error' => 'Error en la base de datos al guardar: ' . $e->getMessage()]);
+        }
     }
     exit;
 }

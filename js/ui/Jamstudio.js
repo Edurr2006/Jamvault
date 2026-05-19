@@ -2,7 +2,6 @@
 // Implementación completa con arquitectura modular y cadena de señal profesional
 
 import { AudioEngine } from '../core/AudioEngine.js';
-import { SignalChain } from '../core/SignalChain.js';
 import { AudioMath } from '../utils/AudioMath.js';
 import { TimelineManager } from '../core/TimelineManager.js';
 
@@ -88,8 +87,8 @@ class Jamstudio {
             // Configurar listeners para cambios de dispositivos de audio
             document.getElementById('audioInputDevice')?.addEventListener('change', () => this.handleAudioInputChange());
             document.getElementById('audioOutputDevice')?.addEventListener('change', (e) => {
-                if (this.audioEngine && this.audioEngine.context.setSinkId) {
-                    this.audioEngine.context.setSinkId(e.target.value)
+                if (this.audioEngine && this.audioEngine.audioContext && this.audioEngine.audioContext.setSinkId) {
+                    this.audioEngine.audioContext.setSinkId(e.target.value)
                         .then(() => console.log('Salida de audio cambiada:', e.target.value))
                         .catch(err => console.error('Error al cambiar salida de audio:', err));
                 }
@@ -1232,7 +1231,6 @@ class Jamstudio {
             audioBuffer: null,
             audioBlob: null,
             source: null,
-            // signalChain: new SignalChain(this.audioEngine.audioContext, this.audioEngine.irLoader), // Removed per user request
             gainNode: null, // Inicializado debajo
             volume: 80,
             pan: 0,
@@ -2252,8 +2250,8 @@ class Jamstudio {
 
     async exportCompressed(audioBuffer, fileName, format) {
         // Reproducción a alta velocidad mediante destino de stream para capturar como OGG (Codec workaround)
-        const streamDest = this.audioEngine.context.createMediaStreamDestination();
-        const source = this.audioEngine.context.createBufferSource();
+        const streamDest = this.audioEngine.audioContext.createMediaStreamDestination();
+        const source = this.audioEngine.audioContext.createBufferSource();
         source.buffer = audioBuffer;
         source.connect(streamDest);
 
@@ -2818,6 +2816,66 @@ class Jamstudio {
         this.nextTrackId = maxTrackId + 1;
     }
 
+    cleanup() {
+        console.log('🧹 Cleaning up JamStudio instance...');
+        try { this.pause(); } catch(e){}
+        this.isPlaying = false;
+        this.isRecording = false;
+
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+        if (this.meterInterval) {
+            clearInterval(this.meterInterval);
+            this.meterInterval = null;
+        }
+        if (this.metronomeInterval) {
+            clearInterval(this.metronomeInterval);
+            this.metronomeInterval = null;
+        }
+
+        if (this.recordingStream) {
+            try {
+                this.recordingStream.getTracks().forEach(track => track.stop());
+            } catch(e){}
+            this.recordingStream = null;
+        }
+
+        if (this.tracks && Array.isArray(this.tracks)) {
+            this.tracks.forEach(track => {
+                track.monitoring = false;
+                if (track.monitorNode) {
+                    try { track.monitorNode.disconnect(); } catch(e){}
+                    track.monitorNode = null;
+                }
+                if (track.monitoringStream) {
+                    try {
+                        track.monitoringStream.getTracks().forEach(t => t.stop());
+                    } catch(e){}
+                    track.monitoringStream = null;
+                }
+                if (track.gainNode) {
+                    try { track.gainNode.disconnect(); } catch(e){}
+                }
+                if (track.analyserNode) {
+                    try { track.analyserNode.disconnect(); } catch(e){}
+                }
+                if (track.pannerNode) {
+                    try { track.pannerNode.disconnect(); } catch(e){}
+                }
+                if (track.mediaRecorder && track.mediaRecorder.state !== 'inactive') {
+                    try { track.mediaRecorder.stop(); } catch(e){}
+                }
+            });
+        }
+
+        if (this.audioEngine) {
+            try { this.audioEngine.close(); } catch(e){}
+            this.audioEngine = null;
+        }
+    }
+
 }
 
 // Inicializar al cargar la página
@@ -2825,6 +2883,9 @@ class Jamstudio {
 window.initializeJamStudio = async (projectData) => {
     // Permitir reinicialización al cargar un proyecto distinto
     if (window.dawInstance) {
+        if (typeof window.dawInstance.cleanup === 'function') {
+            window.dawInstance.cleanup();
+        }
         // Limpiar instancia previa
         window.dawInstance = null;
         window.daw = null;
