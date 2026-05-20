@@ -22,9 +22,12 @@ export class ExercisePlayer {
 
         this.steps = [];
         this.stepIndex = 0;
+        this.currentBeatInStep = 0; // Seguimiento del pulso actual dentro de un paso
 
         this.onStepHighlight = null; // Callback para sincronización visual
         this.onPlaybackEnd = null;
+
+        this.activeNodes = []; // Seguimiento de osciladores activos para limpieza inmediata
 
         // Mapeo de frecuencias de notas
         this.NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -42,12 +45,12 @@ export class ExercisePlayer {
             await this.audioEngine.init();
         }
     }
-
     setExercise(exercise) {
         this.steps = exercise.steps || [];
         this.bpm = exercise.bpm || 120;
         this.isMetronomeOn = exercise.metronomeEnabled !== undefined ? exercise.metronomeEnabled : true;
         this.stepIndex = 0;
+        this.currentBeatInStep = 0;
     }
 
     setCallbacks(onStep, onEnd, onLoop) {
@@ -72,6 +75,7 @@ export class ExercisePlayer {
 
         this.isPlaying = true;
         this.stepIndex = 0;
+        this.currentBeatInStep = 0;
         this.nextStepTime = this.audioEngine.getCurrentTime() + 0.05;
         this.scheduler();
     }
@@ -81,6 +85,18 @@ export class ExercisePlayer {
         clearTimeout(this.schedulerTimer);
         this.onStepHighlight = null;
         this.onLoop = null;
+
+        // Detener y limpiar todos los nodos de audio activos
+        this.activeNodes.forEach(node => {
+            try {
+                node.stop();
+                node.disconnect();
+            } catch (e) {
+                // Ya podría estar detenido
+            }
+        });
+        this.activeNodes = [];
+
         if (this.onPlaybackEnd) this.onPlaybackEnd();
     }
 
@@ -89,6 +105,15 @@ export class ExercisePlayer {
     }
 
     setBpm(bpm) {
+        if (this.bpm === bpm) return;
+
+        const currentTime = this.audioEngine.getCurrentTime();
+        if (this.isPlaying && this.nextStepTime > currentTime) {
+            // Ajustar el tiempo del próximo paso proporcionalmente para evitar saltos o retrasos
+            const ratio = this.bpm / bpm;
+            const remaining = this.nextStepTime - currentTime;
+            this.nextStepTime = currentTime + (remaining * ratio);
+        }
         this.bpm = bpm;
     }
 
@@ -104,11 +129,14 @@ export class ExercisePlayer {
     scheduleNextStep(time) {
         const index = this.stepIndex;
         const step = this.steps[index];
-        const duration = step ? step.duration : 1;
+        if (!step) return;
+
+        const duration = step.duration || 1;
         const secondsPerBeat = 60.0 / this.bpm;
 
-        // 1. Sincronización visual y resaltado de pasos
-        if (step) {
+        // 1. Solo al inicio del paso (pulso 0)
+        if (this.currentBeatInStep === 0) {
+            // Sincronización visual
             const delay = (time - this.audioEngine.getCurrentTime()) * 1000;
             setTimeout(() => {
                 if (this.isPlaying && this.onStepHighlight) {
@@ -116,7 +144,7 @@ export class ExercisePlayer {
                 }
             }, Math.max(0, delay));
 
-            // 2. Síntesis MIDI (Contenido) - Solo una vez al inicio del paso
+            // Síntesis MIDI (Contenido)
             if (this.isSynthEnabled) {
                 if (step.kind === 'note') {
                     this.synthNote(step.data, time, step.duration);
@@ -126,21 +154,25 @@ export class ExercisePlayer {
             }
         }
 
-        // 3. Ticks del metrónomo - Cada pulso de la duración
+        // 2. Ticks del metrónomo - Cada pulso (ahora programado de uno en uno)
         if (this.isMetronomeOn) {
-            for (let b = 0; b < duration; b++) {
-                const tickTime = time + (b * secondsPerBeat);
-                const isAccent = (index === 0 && b === 0);
-                this.playMetronomeTick(tickTime, isAccent);
-            }
+            const isAccent = (index === 0 && this.currentBeatInStep === 0);
+            this.playMetronomeTick(time, isAccent);
         }
 
-        // Avanzar
-        this.nextStepTime += duration * secondsPerBeat;
-        this.stepIndex++;
-        if (this.stepIndex >= this.steps.length) {
-            this.stepIndex = 0;
-            if (this.onLoop) this.onLoop();
+        // Avanzar un pulso (beat)
+        this.nextStepTime += secondsPerBeat;
+        this.currentBeatInStep++;
+
+        // Si hemos completado la duración del paso, pasar al siguiente
+        if (this.currentBeatInStep >= duration) {
+            this.currentBeatInStep = 0;
+            this.stepIndex++;
+
+            if (this.stepIndex >= this.steps.length) {
+                this.stepIndex = 0;
+                if (this.onLoop) this.onLoop();
+            }
         }
     }
 
@@ -158,6 +190,11 @@ export class ExercisePlayer {
         gain.gain.exponentialRampToValueAtTime(0.001, playTime + 0.04);
         osc.start(playTime);
         osc.stop(playTime + 0.05);
+
+        this.activeNodes.push(osc);
+        osc.onended = () => {
+            this.activeNodes = this.activeNodes.filter(n => n !== osc);
+        };
     }
 
     synthNote(data, time, durationBeats) {
@@ -195,6 +232,11 @@ export class ExercisePlayer {
 
         osc.start(time);
         osc.stop(time + duration + 0.1);
+
+        this.activeNodes.push(osc);
+        osc.onended = () => {
+            this.activeNodes = this.activeNodes.filter(n => n !== osc);
+        };
     }
 
     getFrequency(note, octave) {
