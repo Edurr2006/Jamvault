@@ -27,16 +27,53 @@ const controlsBar = document.getElementById('atControlsBar');
 const progressBar = document.getElementById('at-progress-bar');
 const progressContainer = document.querySelector('.at-progress-container');
 
+// Selectores de Filtro de la barra de herramientas
+const filterInstrument = document.getElementById('filterInstrument');
+const filterTuning = document.getElementById('filterTuning');
+const filterDifficulty = document.getElementById('filterDifficulty');
+
 // --- 1. BÚSQUEDA Y DESCUBRIMIENTO ---
-let allSongs = [];
+let loadedSongs = [];
+
+// Función para aplicar filtros localmente sobre los metadatos y renderizar la lista
+function applyFiltersAndRender() {
+  if (!songsListBody) return;
+  
+  const instrument = filterInstrument ? filterInstrument.value : 'all';
+  const tuning = filterTuning ? filterTuning.value : 'all';
+  const difficulty = filterDifficulty ? filterDifficulty.value : 'all';
+
+  const filteredSongs = loadedSongs.filter(song => {
+    // Filtro de Instrumento: verificar si el instrumento seleccionado está en el campo 'instruments'
+    if (instrument !== 'all') {
+      const songInsts = song.instruments ? song.instruments.split(',') : [];
+      if (!songInsts.includes(instrument)) return false;
+    }
+
+    // Filtro de Afinación
+    if (tuning !== 'all' && song.tuning !== tuning) {
+      return false;
+    }
+
+    // Filtro de Dificultad
+    if (difficulty !== 'all' && String(song.difficulty) !== String(difficulty)) {
+      return false;
+    }
+
+    return true;
+  });
+
+  renderSongsList(filteredSongs);
+}
+
 async function initDiscovery() {
   if (!loadingDiv) return;
   loadingDiv.style.display = 'block';
   try {
     const results = await fetchSongs('');
-    allSongs = results;
+    loadedSongs = results;
     loadingDiv.style.display = 'none';
-    renderSongsList(allSongs);
+    applyFiltersAndRender();
   } catch (error) {
     console.error('Error al inicializar el descubrimiento:', error);
     if (loadingDiv) loadingDiv.style.display = 'none';
@@ -65,7 +102,6 @@ function renderSongsList(songs) {
     return;
   }
   songs.forEach((song, index) => {
-    const tr = document.createElement('tr');
     const displayViews = song.views > 1000 ? (song.views / 1000).toFixed(1) + 'k' : song.views;
 
     const diff = parseInt(song.difficulty) || 1;
@@ -73,6 +109,7 @@ function renderSongsList(songs) {
     for (let i = 1; i <= 5; i++) diffHTML += `<div class="dot ${i <= diff ? 'active' : ''}"></div>`;
     diffHTML += '</div>';
 
+    const tr = document.createElement('tr');
     tr.innerHTML = `
         <td>
             <div class="song-rank-info">
@@ -99,10 +136,10 @@ if (searchInput) {
     if (clearSearchBtn) clearSearchBtn.style.display = q ? 'flex' : 'none';
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(async () => {
-      if (!q) { initDiscovery(); return; }
       loadingDiv.style.display = 'block';
       const results = await fetchSongs(q);
-      renderSongsList(results);
+      loadedSongs = results;
+      applyFiltersAndRender();
       loadingDiv.style.display = 'none';
     }, 500);
   };
@@ -110,6 +147,11 @@ if (searchInput) {
 if (clearSearchBtn) clearSearchBtn.onclick = () => {
   searchInput.value = ''; clearSearchBtn.style.display = 'none'; initDiscovery();
 };
+
+// Escuchadores de eventos para los cambios en los filtros selectores
+if (filterInstrument) filterInstrument.onchange = applyFiltersAndRender;
+if (filterTuning) filterTuning.onchange = applyFiltersAndRender;
+if (filterDifficulty) filterDifficulty.onchange = applyFiltersAndRender;
 
 // --- 2. EL MOTOR ALPHATAB ---
 
