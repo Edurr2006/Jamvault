@@ -6,6 +6,11 @@ let mediaStream = null;
 let isTunerRunning = false;
 let rafId = null;
 
+// Filtro de suavizado (mediana de las últimas N lecturas) para estabilidad
+let frequencyBuffer = [];
+const BUFFER_SIZE = 7;
+let silentFrames = 0;
+
 const startButton = document.getElementById('startButton');
 const noteDisplay = document.getElementById('note');
 const freqDisplay = document.getElementById('freq');
@@ -39,9 +44,17 @@ async function startTuner() {
         mediaStream = stream; // Guardar referencia global
 
         mediaStreamSource = audioContext.createMediaStreamSource(stream);
+        
+        // Filtro de paso bajo (Lowpass) para limpiar armónicos agudos que confunden el tono fundamental de las cuerdas graves
+        const lowpass = audioContext.createBiquadFilter();
+        lowpass.type = 'lowpass';
+        lowpass.frequency.value = 600; // Cortar armónicos por encima de 600Hz (las notas de guitarra están por debajo)
+
         analyser = audioContext.createAnalyser();
-        analyser.fftSize = 2048;
-        mediaStreamSource.connect(analyser);
+        analyser.fftSize = 4096; // Aumentado a 4096 para duplicar la precisión y la ventana temporal en cuerdas graves
+        
+        mediaStreamSource.connect(lowpass);
+        lowpass.connect(analyser);
 
         isTunerRunning = true;
         startButton.textContent = "Detener afinador";
@@ -59,6 +72,9 @@ function stopTuner() {
     startButton.textContent = "Iniciar afinador";
     startButton.classList.remove('active');
 
+    frequencyBuffer = [];
+    silentFrames = 0;
+
     if (rafId) {
         cancelAnimationFrame(rafId);
         rafId = null;
@@ -73,11 +89,6 @@ function stopTuner() {
         audioContext.close();
         audioContext = null;
     }
-
-    if (mediaStream) {
-        mediaStream.getTracks().forEach(track => track.stop());
-        mediaStream = null;
-    }
 }
 
 function updatePitch() {
@@ -89,22 +100,53 @@ function updatePitch() {
 
     const frequency = autoCorrelate(buffer, audioContext.sampleRate);
 
-    if (frequency === -1) {
-        // No se detectó tono claro
-        // Podríamos mantener el último valor o mostrar guiones
-    } else {
-        const note = getNote(frequency);
-        const cents = getCents(frequency, note);
+    // Filtrar frecuencias válidas de la afinación estándar (50Hz - 1500Hz)
+    if (frequency !== -1 && frequency >= 50 && frequency <= 1500) {
+        silentFrames = 0;
+        
+        // Agregar lectura al buffer de suavizado
+        frequencyBuffer.push(frequency);
+        if (frequencyBuffer.length > BUFFER_SIZE) {
+            frequencyBuffer.shift();
+        }
 
-        displayNote(note, cents, frequency);
+        // Obtener la mediana para filtrar picos/ruido loco instantáneo
+        const sorted = [...frequencyBuffer].sort((a, b) => a - b);
+        const medianFrequency = sorted[Math.floor(sorted.length / 2)];
+
+        const note = getNote(medianFrequency);
+        const cents = getCents(medianFrequency, note);
+
+        displayNote(note, cents, medianFrequency);
+    } else {
+        silentFrames++;
+        // Si hay silencio por más de ~250ms (15 frames a 60fps), limpiar
+        if (silentFrames > 15) {
+            frequencyBuffer = [];
+            noteDisplay.textContent = "--";
+            freqDisplay.textContent = "Frecuencia: -- Hz";
+            deviationDisplay.textContent = "Desviación: -- cents";
+            
+            if (needle) needle.style.left = "50%";
+            if (lowIndicator) lowIndicator.classList.remove('active');
+            if (highIndicator) highIndicator.classList.remove('active');
+            if (container) {
+                container.style.borderColor = "";
+                container.style.backgroundColor = "";
+                container.style.boxShadow = "";
+            }
+            if (needle) {
+                needle.style.backgroundColor = "";
+                needle.style.boxShadow = "";
+            }
+        }
     }
 
     rafId = requestAnimationFrame(updatePitch);
 }
 
 function autoCorrelate(buf, sampleRate) {
-    // Algoritmo de autocorrelación simple
-    let SIZE = buf.length;
+    const SIZE = buf.length;
     let rms = 0;
 
     for (let i = 0; i < SIZE; i++) {
@@ -113,37 +155,76 @@ function autoCorrelate(buf, sampleRate) {
     }
     rms = Math.sqrt(rms / SIZE);
 
-    if (rms < 0.01) // Señal muy débil
+    if (rms < 0.005) { // Señal muy débil / silencio
         return -1;
+    }
 
-    let r1 = 0, r2 = SIZE - 1, thres = 0.2;
-    for (let i = 0; i < SIZE / 2; i++)
-        if (Math.abs(buf[i]) < thres) { r1 = i; break; }
-    for (let i = 1; i < SIZE / 2; i++)
-        if (Math.abs(buf[SIZE - i]) < thres) { r2 = SIZE - i; break; }
+    // Encontrar el pico absoluto para umbral adaptativo
+    let maxPeak = 0;
+    for (let i = 0; i < SIZE; i++) {
+        const absVal = Math.abs(buf[i]);
+        if (absVal > maxPeak) maxPeak = absVal;
+    }
 
-    buf = buf.slice(r1, r2);
-    SIZE = buf.length;
+    // Umbral relativo del 15% del pico (súper preciso y adaptativo al volumen)
+    const thres = maxPeak * 0.15;
+    let r1 = 0;
+    let r2 = SIZE - 1;
+    for (let i = 0; i < SIZE / 2; i++) {
+        if (Math.abs(buf[i]) > thres) {
+            r1 = i;
+            break;
+        }
+    }
+    for (let i = 1; i < SIZE / 2; i++) {
+        if (Math.abs(buf[SIZE - i]) > thres) {
+            r2 = SIZE - i;
+            break;
+        }
+    }
 
-    let c = new Array(SIZE).fill(0);
-    for (let i = 0; i < SIZE; i++)
-        for (let j = 0; j < SIZE - i; j++)
+    // Asegurar tamaño mínimo para la autocorrelación
+    if (r2 - r1 > 64) {
+        buf = buf.slice(r1, r2);
+    }
+    
+    const size = buf.length;
+    const c = new Float32Array(size);
+    for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size - i; j++) {
             c[i] = c[i] + buf[j] * buf[j + i];
+        }
+    }
 
-    let d = 0; while (c[d] > c[d + 1]) d++;
-    let maxval = -1, maxpos = -1;
-    for (let i = d; i < SIZE; i++) {
+    // Encontrar primer valle
+    let d = 0;
+    while (d < size - 1 && c[d] > c[d + 1]) {
+        d++;
+    }
+    
+    // Encontrar el pico local dominante después del primer valle
+    let maxval = -1;
+    let maxpos = -1;
+    for (let i = d; i < size; i++) {
         if (c[i] > maxval) {
             maxval = c[i];
             maxpos = i;
         }
     }
+    
     let T0 = maxpos;
 
-    let x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
-    let a = (x1 + x3 - 2 * x2) / 2;
-    let b = (x3 - x1) / 2;
-    if (a) T0 = T0 - b / (2 * a);
+    // Interpolación parabólica de precisión extrema (sub-sample)
+    if (T0 > 0 && T0 < size - 1) {
+        const x1 = c[T0 - 1];
+        const x2 = c[T0];
+        const x3 = c[T0 + 1];
+        const a = (x1 + x3 - 2 * x2) / 2;
+        const b = (x3 - x1) / 2;
+        if (a) {
+            T0 = T0 - b / (2 * a);
+        }
+    }
 
     return sampleRate / T0;
 }

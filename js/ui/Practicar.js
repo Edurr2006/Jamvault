@@ -397,13 +397,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function runCountdown() {
-        if (!isCountdownActive) return;
+        if (!isCountdownActive) return true;
         countdownOverlay.style.display = 'flex';
         const beats = [4, 3, 2, 1];
         const countdownBPM = 80; // Tempo fijo más lento para la preparación
         const msPerBeat = (60 / countdownBPM) * 1000;
 
         for (const b of beats) {
+            if (!isPlaying) {
+                countdownOverlay.style.display = 'none';
+                return false;
+            }
             countdownText.textContent = b;
             // Forzar el reinicio de la animación
             countdownText.style.animation = 'none';
@@ -414,6 +418,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             await new Promise(r => setTimeout(r, msPerBeat));
         }
         countdownOverlay.style.display = 'none';
+        return true;
     }
 
     async function togglePlay() {
@@ -425,7 +430,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             isPlaying = true;
             playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
 
-            await runCountdown();
+            const ready = await runCountdown();
+            if (!ready || !isPlaying) return;
 
             player.start(ex, playerBPM, (stepIndex) => {
                 const progress = ((stepIndex + 1) / ex.steps.length) * 100;
@@ -457,8 +463,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
         progressBar.style.width = '0%';
         document.querySelectorAll('.timeline-step').forEach(s => s.classList.remove('active'));
-        renderChordDiagram(null);
+        
+        // Restaurar el estado inicial (para que los acordes/diagramas no desaparezcan)
         drawFretboard();
+        if (ex.type !== 'scale' && ex.steps.length > 0) {
+            const firstStep = ex.steps[0];
+            if (firstStep.kind === 'chord') {
+                renderer.renderChordDiagram(firstStep.data);
+                highlightChord(firstStep.data, 0);
+            } else if (firstStep.kind === 'note') {
+                highlightNote(firstStep.data.string, firstStep.data.fret, 0);
+            }
+        } else {
+            renderChordDiagram(null);
+        }
     };
 
     speedSlider.oninput = (e) => {

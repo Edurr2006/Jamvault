@@ -264,49 +264,65 @@ export const acordesDB = {
     },
     "D#": {
         "Mayor": [
-            { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
-            { cuerda: 4, traste: 8, esRaiz: false, dedo: 2 },
-            { cuerda: 3, traste: 8, esRaiz: false, dedo: 3 },
-            { cuerda: 2, traste: 8, esRaiz: false, dedo: 4 }
+            [
+                { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
+                { cuerda: 4, traste: 8, esRaiz: false, dedo: 2 },
+                { cuerda: 3, traste: 8, esRaiz: false, dedo: 3 },
+                { cuerda: 2, traste: 8, esRaiz: false, dedo: 4 }
+            ]
         ],
         "Menor": [
-            { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
-            { cuerda: 4, traste: 8, esRaiz: false, dedo: 3 },
-            { cuerda: 3, traste: 8, esRaiz: false, dedo: 4 },
-            { cuerda: 2, traste: 7, esRaiz: false, dedo: 2 }
+            [
+                { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
+                { cuerda: 4, traste: 8, esRaiz: false, dedo: 3 },
+                { cuerda: 3, traste: 8, esRaiz: false, dedo: 4 },
+                { cuerda: 2, traste: 7, esRaiz: false, dedo: 2 }
+            ]
         ],
         "7": [
-            { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
-            { cuerda: 4, traste: 8, esRaiz: false, dedo: 3 },
-            { cuerda: 3, traste: 6, esRaiz: false, dedo: 1 },
-            { cuerda: 2, traste: 8, esRaiz: false, dedo: 4 }
+            [
+                { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
+                { cuerda: 4, traste: 8, esRaiz: false, dedo: 3 },
+                { cuerda: 3, traste: 6, esRaiz: false, dedo: 1 },
+                { cuerda: 2, traste: 8, esRaiz: false, dedo: 4 }
+            ]
         ],
         "maj7": [
-            { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
-            { cuerda: 4, traste: 8, esRaiz: false, dedo: 3 },
-            { cuerda: 3, traste: 7, esRaiz: false, dedo: 2 },
-            { cuerda: 2, traste: 8, esRaiz: false, dedo: 4 }
+            [
+                { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
+                { cuerda: 4, traste: 8, esRaiz: false, dedo: 3 },
+                { cuerda: 3, traste: 7, esRaiz: false, dedo: 2 },
+                { cuerda: 2, traste: 8, esRaiz: false, dedo: 4 }
+            ]
         ],
         "m7": [
-            { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
-            { cuerda: 4, traste: 8, esRaiz: false, dedo: 3 },
-            { cuerda: 3, traste: 6, esRaiz: false, dedo: 1 },
-            { cuerda: 2, traste: 7, esRaiz: false, dedo: 2 }
+            [
+                { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
+                { cuerda: 4, traste: 8, esRaiz: false, dedo: 3 },
+                { cuerda: 3, traste: 6, esRaiz: false, dedo: 1 },
+                { cuerda: 2, traste: 7, esRaiz: false, dedo: 2 }
+            ]
         ],
         "sus2": [
-            { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
-            { cuerda: 4, traste: 8, esRaiz: false, dedo: 3 },
-            { cuerda: 3, traste: 5, esRaiz: false, dedo: 1 }
+            [
+                { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
+                { cuerda: 4, traste: 8, esRaiz: false, dedo: 3 },
+                { cuerda: 3, traste: 5, esRaiz: false, dedo: 1 }
+            ]
         ],
         "sus4": [
-            { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
-            { cuerda: 4, traste: 8, esRaiz: false, dedo: 3 },
-            { cuerda: 3, traste: 8, esRaiz: false, dedo: 4 }
+            [
+                { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
+                { cuerda: 4, traste: 8, esRaiz: false, dedo: 3 },
+                { cuerda: 3, traste: 8, esRaiz: false, dedo: 4 }
+            ]
         ],
         "dim": [
-            { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
-            { cuerda: 4, traste: 7, esRaiz: false, dedo: 2 },
-            { cuerda: 3, traste: 6, esRaiz: false, dedo: 1 }
+            [
+                { cuerda: 5, traste: 6, esRaiz: true, dedo: 1 },
+                { cuerda: 4, traste: 7, esRaiz: false, dedo: 2 },
+                { cuerda: 3, traste: 6, esRaiz: false, dedo: 1 }
+            ]
         ]
     },
     "E": {
@@ -489,48 +505,64 @@ export const acordesDB = {
     },
     "F#": {
         "Mayor": [
-            { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
-            { cuerda: 4, traste: 4, esRaiz: false, dedo: 4 },
-            { cuerda: 3, traste: 3, esRaiz: false, dedo: 2 }
+            [
+                { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
+                { cuerda: 4, traste: 4, esRaiz: false, dedo: 4 },
+                { cuerda: 3, traste: 3, esRaiz: false, dedo: 2 }
+            ]
         ],
         "Menor": [
-            { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
-            { cuerda: 4, traste: 4, esRaiz: false, dedo: 4 },
-            { cuerda: 3, traste: 2, esRaiz: false, dedo: 1 },
-            { cuerda: 2, traste: 2, esRaiz: false, dedo: 1 },
-            { cuerda: 1, traste: 2, esRaiz: false, dedo: 1 }
+            [
+                { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
+                { cuerda: 4, traste: 4, esRaiz: false, dedo: 4 },
+                { cuerda: 3, traste: 2, esRaiz: false, dedo: 1 },
+                { cuerda: 2, traste: 2, esRaiz: false, dedo: 1 },
+                { cuerda: 1, traste: 2, esRaiz: false, dedo: 1 }
+            ]
         ],
         "7": [
-            { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
-            { cuerda: 4, traste: 2, esRaiz: false, dedo: 1 }
+            [
+                { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
+                { cuerda: 4, traste: 2, esRaiz: false, dedo: 1 }
+            ]
         ],
         "maj7": [
-            { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
-            { cuerda: 4, traste: 3, esRaiz: false, dedo: 2 }
+            [
+                { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
+                { cuerda: 4, traste: 3, esRaiz: false, dedo: 2 }
+            ]
         ],
         "m7": [
-            { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
-            { cuerda: 4, traste: 2, esRaiz: false, dedo: 1 }
+            [
+                { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
+                { cuerda: 4, traste: 2, esRaiz: false, dedo: 1 }
+            ]
         ],
         "sus2": [
-            { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
-            { cuerda: 4, traste: 1, esRaiz: false, dedo: 1 }
+            [
+                { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
+                { cuerda: 4, traste: 1, esRaiz: false, dedo: 1 }
+            ]
         ],
         "sus4": [
-            { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
-            { cuerda: 4, traste: 4, esRaiz: false, dedo: 4 }
+            [
+                { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 4, esRaiz: false, dedo: 3 },
+                { cuerda: 4, traste: 4, esRaiz: false, dedo: 4 }
+            ]
         ],
         "dim": [
-            { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 3, esRaiz: false, dedo: 2 },
-            { cuerda: 4, traste: 4, esRaiz: false, dedo: 3 }
+            [
+                { cuerda: 6, traste: 2, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 3, esRaiz: false, dedo: 2 },
+                { cuerda: 4, traste: 4, esRaiz: false, dedo: 3 }
+            ]
         ]
     },
     "G": {
@@ -622,48 +654,64 @@ export const acordesDB = {
     },
     "G#": {
         "Mayor": [
-            { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
-            { cuerda: 4, traste: 6, esRaiz: false, dedo: 4 },
-            { cuerda: 3, traste: 5, esRaiz: false, dedo: 2 }
+            [
+                { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
+                { cuerda: 4, traste: 6, esRaiz: false, dedo: 4 },
+                { cuerda: 3, traste: 5, esRaiz: false, dedo: 2 }
+            ]
         ],
         "Menor": [
-            { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
-            { cuerda: 4, traste: 6, esRaiz: false, dedo: 4 },
-            { cuerda: 3, traste: 4, esRaiz: false, dedo: 1 },
-            { cuerda: 2, traste: 4, esRaiz: false, dedo: 1 },
-            { cuerda: 1, traste: 4, esRaiz: false, dedo: 1 }
+            [
+                { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
+                { cuerda: 4, traste: 6, esRaiz: false, dedo: 4 },
+                { cuerda: 3, traste: 4, esRaiz: false, dedo: 1 },
+                { cuerda: 2, traste: 4, esRaiz: false, dedo: 1 },
+                { cuerda: 1, traste: 4, esRaiz: false, dedo: 1 }
+            ]
         ],
         "7": [
-            { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
-            { cuerda: 4, traste: 4, esRaiz: false, dedo: 1 }
+            [
+                { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
+                { cuerda: 4, traste: 4, esRaiz: false, dedo: 1 }
+            ]
         ],
         "maj7": [
-            { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
-            { cuerda: 4, traste: 5, esRaiz: false, dedo: 2 }
+            [
+                { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
+                { cuerda: 4, traste: 5, esRaiz: false, dedo: 2 }
+            ]
         ],
         "m7": [
-            { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
-            { cuerda: 4, traste: 4, esRaiz: false, dedo: 1 }
+            [
+                { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
+                { cuerda: 4, traste: 4, esRaiz: false, dedo: 1 }
+            ]
         ],
         "sus2": [
-            { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
-            { cuerda: 4, traste: 3, esRaiz: false, dedo: 1 }
+            [
+                { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
+                { cuerda: 4, traste: 3, esRaiz: false, dedo: 1 }
+            ]
         ],
         "sus4": [
-            { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
-            { cuerda: 4, traste: 6, esRaiz: false, dedo: 4 }
+            [
+                { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 6, esRaiz: false, dedo: 3 },
+                { cuerda: 4, traste: 6, esRaiz: false, dedo: 4 }
+            ]
         ],
         "dim": [
-            { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
-            { cuerda: 5, traste: 5, esRaiz: false, dedo: 2 },
-            { cuerda: 4, traste: 6, esRaiz: false, dedo: 3 }
+            [
+                { cuerda: 6, traste: 4, esRaiz: true, dedo: 1 },
+                { cuerda: 5, traste: 5, esRaiz: false, dedo: 2 },
+                { cuerda: 4, traste: 6, esRaiz: false, dedo: 3 }
+            ]
         ]
     },
     "A": {
